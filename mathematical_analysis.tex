@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\begin{document}
+
+\section{Summary of System Variables}
+
+\paragraph{Questions}
+\begin{itemize}
+\item Fees should only be given to those who have actually issued nomins?
+\item How do we incentivise people to even transfer stuff.
+\item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
+\end{itemize}
+
+
+\paragraph{Money Supply}
+\begin{align*}
+C & \ \text{(curits)} & \text{ : Quantity of curits, should be constant} \\
+C_e &= C \cdot U \ \text{(curits)} & \text{ : Quantity of reserved curits, i.e. the value of tokens have been issued against } \\
+N &= \frac{U_a \cdot C \cdot P_c}{P_n} \ \text{(nomins)} & \text{ : Quantity of nomins. This can float.}\\
+\end{align*}
+\\
+
+\paragraph{Utilisation Ratios} We should work out a good level for $U_{max}$.
+\begin{align*}
+U &= \frac{P_n \cdot N}{C_e \cdot P_c} \ \text{(dimensionless)} & \text{ : Empirical issuance ratio. } \\
+U_{max} & \text{(dimensionless)} & \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_max \leq 1
+\end{align*}
+\\
+
+
+\paragraph{Prices} These values are important, with the goal of stabilising the nomin price.
+\begin{align*}
+P_c & \ (\text{}\frac{\text{\$}}{\text{curit}}) & \text{ : curit price} \\
+P_n & \ (\text{}\frac{\text{\$}}{\text{nomin}}) & \text{ : nomin price} \\
+P_c' & = \alpha \cdot f(V_n, V_v) \cdot (\text{A risk term incorporating volatility? \#buyers - \#sellers?}) &
+\end{align*}
+\\
+
+
+\paragraph{Fees}
+\[F_x, F_i, F_r \ \text{(dimensionless) : transfer, issuance, redemption fees; these should be ratios, e.g. 0.1\%}\]
+\\
+
+
+\paragraph{Money Movement}
+\begin{align*}
+V_n &= S_n \cdot N \ (\frac{nomins}{second}) & \text{ : nomin transfer rate} \\
+V_v &= V_i + V_r \ (\frac{curits}{second}) & \text{ : nomin <-> curit conversion rate.} \\
+V_i &= (C - C_e) \cdot S_i \ (\frac{curits}{second}) & \text{ : nomin issuance rate. Assumed to grow as there are more free curits in the system (actually should probably grow with the number of escrowed but unissued nomins).} \\
+V_r &= C_e \cdot S_r \ (\frac{curits}{second}) & \text{ : rate at which curits are redeemed in return for nomins (which are burned). Assumed to grow proportionally with the number of escrowed curits.}
+\end{align*}
+\\
+
+\paragraph{Microeconomic Variables} These should be defined as functions of $P_n, P_c, \text{fees, etc.}$
+\begin{align*}
+& S_n \ \text{(1/second) : average nomin spend rate} \\
+& S_i \ \text{(1/second) : average issuance rate} \\
+& S_r \ \text{(1/second) : average redemption rate}
+\end{align*}
+\end{document}
