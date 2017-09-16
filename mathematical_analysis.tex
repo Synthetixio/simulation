@@ -5,57 +5,86 @@
 
 \section{Summary of System Variables}
 
-\paragraph{Questions}
+\subsection{Discussion}
+
 \begin{itemize}
-\item Fees should only be given to those who have actually issued nomins?
-\item How do we incentivise people to even transfer stuff.
-\item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
+    \item Fees should only be given to those who have actually issued nomins?
+    \item How do we incentivise people to even transfer stuff.
+    \item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
 \end{itemize}
 
+\subsubsection{Investment incentives}
+Why would anyone buy curits in the first place? A potential buyer of curits has two avenues for making
+money in Havven:
 
+\paragraph{Capital gains due to the appreciation of curits.}
+Presumably the currency will appreciate due to a demand for curits that is founded in the intrinsic
+utility of a stablecoin. Speculators will of course be important players too, though.
+
+\paragraph{Interest accrued from fees.}
+If and when the price of curits stabilises, then this may be the only long term positive-expected
+source of revenue. Ideally fees are set at a level where they are both high enough to be an incentive
+for rent-seekers to hold curits in the long term (thus assuming the risk of providing collateral for
+the system) and low enough not to be a disincentive for ordinary users to transact in nomins.
+It is desirable, perhaps in a future world dominated by micropayments, for these fees to be
+negligible for end users, while still being macroeconomically important for the system. 
+
+\subsubsection{Fees}
+There are a number of questions to be asked, and answered:
+\begin{enumerate}
+    \item What are fees for?
+    \item When can fees be levied?
+    \item Who gets those fees?
+    \item What macroeconomic effect does this levy have as a coin travels through the system?
+\end{enumerate}
+
+\subsubsection{Liquidity}
+
+
+\hfill
+
+\subsection{Quantities of Interest}
 \paragraph{Money Supply}
 \begin{align*}
-C & \ \text{(curits)} & \text{ : Quantity of curits, should be constant} \\
-C_e &= C \cdot U \ \text{(curits)} & \text{ : Quantity of reserved curits, i.e. the value of tokens have been issued against } \\
-N &= \frac{U_a \cdot C \cdot P_c}{P_n} \ \text{(nomins)} & \text{ : Quantity of nomins. This can float.}\\
+    C & \ && \text{(curits)} && \text{ : Quantity of curits, should be constant} \\
+    C_e &= C \cdot U \ && \text{(curits)} && \text{ : Quantity of reserved curits, i.e. the value of tokens have been issued against } \\
+    N &= \frac{U_a \cdot C \cdot P_c}{P_n} \ && \text{(nomins)} && \text{ : Quantity of nomins. This can float.}
 \end{align*}
 \\
 
-\paragraph{Utilisation Ratios} We should work out a good level for $U_{max}$.
+\paragraph{Utilisation Ratios} We should work out a good level for \(U_{max}\).
 \begin{align*}
-U &= \frac{P_n \cdot N}{C_e \cdot P_c} \ \text{(dimensionless)} & \text{ : Empirical issuance ratio. } \\
-U_{max} & \text{(dimensionless)} & \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_max \leq 1
+    U &= \frac{P_n \cdot N}{C_e \cdot P_c} \ && \text{(dimensionless)} && \text{ : Empirical issuance ratio. } \\
+    U_{max} & \ && \text{(dimensionless)} && \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_max \leq 1
 \end{align*}
 \\
-
 
 \paragraph{Prices} These values are important, with the goal of stabilising the nomin price.
 \begin{align*}
-P_c & \ (\text{}\frac{\text{\$}}{\text{curit}}) & \text{ : curit price} \\
-P_n & \ (\text{}\frac{\text{\$}}{\text{nomin}}) & \text{ : nomin price} \\
-P_c' & = \alpha \cdot f(V_n, V_v) \cdot (\text{A risk term incorporating volatility? \#buyers - \#sellers?}) &
+    P_c & \ && (\frac{\text{\$}}{\text{curits}}) && \text{ : curit price} \\
+    P_n & \ && (\frac{\text{\$}}{\text{nomins}}) && \text{ : nomin price} \\
+    P_c' &= \alpha \cdot f(V_n, V_v) \cdot R && (\frac{\text{\$}}{\text{nomins} \cdot \text{seconds}}) && \text{ : R a risk term incorporating volatility? \#buyers - \#sellers?})
 \end{align*}
 \\
-
 
 \paragraph{Fees}
 \[F_x, F_i, F_r \ \text{(dimensionless) : transfer, issuance, redemption fees; these should be ratios, e.g. 0.1\%}\]
 \\
 
-
 \paragraph{Money Movement}
 \begin{align*}
-V_n &= S_n \cdot N \ (\frac{nomins}{second}) & \text{ : nomin transfer rate} \\
-V_v &= V_i + V_r \ (\frac{curits}{second}) & \text{ : nomin <-> curit conversion rate.} \\
-V_i &= (C - C_e) \cdot S_i \ (\frac{curits}{second}) & \text{ : nomin issuance rate. Assumed to grow as there are more free curits in the system (actually should probably grow with the number of escrowed but unissued nomins).} \\
-V_r &= C_e \cdot S_r \ (\frac{curits}{second}) & \text{ : rate at which curits are redeemed in return for nomins (which are burned). Assumed to grow proportionally with the number of escrowed curits.}
+    V_n &= S_n \cdot N \ && (\frac{nomins}{seconds}) && \text{ : nomin transfer rate} \\
+    V_v &= V_i + V_r \ && (\frac{curits}{seconds}) && \text{ : nomin} \leftrightarrow \text{curit conversion rate.} \\
+    V_i &= (C - C_e) \cdot S_i \ && (\frac{curits}{seconds}) && \text{ : nomin issuance rate. Assumed to grow as there are more free curits in the system (actually should probably grow with the number of escrowed but unissued nomins).} \\
+    V_r &= C_e \cdot S_r \ && (\frac{curits}{seconds}) && \text{ : rate at which curits are redeemed in return for nomins (which are burned). Assumed to grow proportionally with the number of escrowed curits.}
 \end{align*}
 \\
 
-\paragraph{Microeconomic Variables} These should be defined as functions of $P_n, P_c, \text{fees, etc.}$
+\paragraph{Microeconomic Variables} These should be defined as functions of \(P_n, P_c, \text{fees, etc.}\)
 \begin{align*}
-& S_n \ \text{(1/second) : average nomin spend rate} \\
-& S_i \ \text{(1/second) : average issuance rate} \\
-& S_r \ \text{(1/second) : average redemption rate}
+S_n \ && (\frac{1}{\text{seconds}}) && \text{ : average nomin spend rate} \\
+S_i \ && (\frac{1}{\text{seconds}}) && \text{ : average issuance rate} \\
+S_r \ && (\frac{1}{\text{seconds}}) && \text{ : average redemption rate}
 \end{align*}
+
 \end{document}
