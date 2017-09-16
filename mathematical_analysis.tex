@@ -97,6 +97,22 @@ that the system could set negative fee rates if it needed to.
 
 
 \subsection{Motility}
+We would like to know how likely a nomin is to be spent from a given account. Its motility should measure this.
+Motility should be high if the paths out of it are long, and if the nodes sent to have high degree.
+We don't like short cycles. We don't like isolated subgraphs. Would be cool if the money could go into the main
+connected component of the transaction graph as quickly as possible, then circulate in there with high velocity. How about:
+
+\[motility(a) := \frac{\sum_{p \in payees(a)}{value(a,p) \cdot motility(p)}}{\sum_{p \in payees(a)}{value(a,p)}} \]
+
+Where \(value(a, p)\) will then be the weight on the edge in the transaction graph coresponding to a given transaction.
+My motility will then be the weighted average of my neighbours.
+
+PROBLEM: Doesn't account for lots of money coming in and hardly any going out.
+
+Or iteratively, if I want to update my motility with a transaction to \(p\) of value \(v\), and I know my total sent value \(V_{out}\)...
+
+\[motility_{send}(a, p, v) := \frac{motility(a) \cdot V_{out} + motility_{receive}'(a, p, v) \cdot v}{V_{out} + v} \]
+\[motility_{receive}(a, p, v) := \frac{motility(a) \cdot V_{out}}{v \cdot V_{out}}\]
 
 
 
