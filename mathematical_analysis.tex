@@ -4,16 +4,19 @@
 \usepackage{svg}
 \begin{document}
 \title{Preliminary Havven System Analysis}
-\author{Block8}
+\date{}
 
 \begin{figure}
-    \includesvg{block8logo}
+    \centering
+    \includesvg[width=0.33\textwidth]{block8logo}
 \end{figure}
 \maketitle
 
-\section{Summary of System Variables}
+\section{Discussion}
 
-\subsection{Discussion}
+This section will provide an informal treatment of the proposed market's structure
+and dynamics, while section 2 will scaffold out its structure with a little more
+formality.
 
 \begin{itemize}
     \item Fees should only be given to those who have actually issued nomins?
@@ -22,24 +25,24 @@
     \item Why not allow the system to maintain a pool of curits/nomins that it itself can buy/sell?
 \end{itemize}
 
-\subsubsection{Restatement of Purpose}
+\subsection{Restatement of Purpose}
 We want to make a stablecoin in order to provide a currency which is a viable medium of exchange.
 Evidently, such a coin must have a relatively stable price. We will do this by allowing users to back it,
 automatically expanding and contracting the money supply as the well of capital fluctuates in value.
 To this end, we will provide two intertwined tokens.
 \paragraph{Curits} The reserve tokens, which users buy to obtain a part share in the entire system. The holders
 of this token are providing collateral for the system, and in so doing, assume some level of risk, but will
-be rewarded with fees the system levies automatically as part of its usual operation. The market capitalisation
-of the reserve market is the value of the entire system.
+be rewarded with fees the system levies automatically as part of its usual operation. The capitalisation
+of the reserve market reflects the value of the entire system.
 \paragraph{Nomins} The exchange tokens. Philosophically, we would like the nomin to be a utilon, a constant
 unit of utility, and so the system should stabilise its price in terms of some external, relatively-stable
 currency. Each holder of curits is granted the right to issue their own nomins, in proportion with the value
 of the curits they hold and are willing to escrow. If the user wishes to redeem their escrowed curits,
-they must present the system with nomins, in order to freely trade them again.
+they must present the system with nomins, in order to freely trade them again. Other than just price stability,
+the system should also encourage liquidity, if nomins are to be actually-useful as a medium of exchange.
 
 
-
-\subsubsection{Investment incentives}
+\subsection{Investment incentives}
 Why would anyone buy curits in the first place? A potential buyer of curits has at least three avenues for making
 money in Havven.
 
@@ -61,31 +64,52 @@ It is the arbitrageurs who will ultimately bring the price of nomins back into b
 through nomins, curits, and the external (crypto or fiat) markets. They might hold curits for a short time in order
 to pursue this strategy.
 
-\subsubsection{Fees}
+\subsection{Fees}
 There are a number of questions to be asked, and answered:
-\begin{enumerate}
+\begin{itemize}
     \item What are fees for?
-    \item When can fees be levied?
     \item Who gets those fees?
+    \item When can fees be levied?
     \item What macroeconomic effect does this levy have as a coin travels through the system?
-\end{enumerate}
+\end{itemize}
 
-\subsubsection{The purpose of fees}
-Redistribute them to curit-holders in order to incentivise people to hold curits.
+\paragraph{The purpose of fees}
+Fees will be redistributed to those who back the system, in order to incentivise people to capitalise it.
+The fee pool will be distributed periodically, for this purpose.
+However, if the system determines that the nomin price is too low, then fees could be burned. If the price is
+too high then perhaps the system could sell these back into the system at a discounted rate.
 
-\subsubsection{Purpose of the utilisation ratio cap}
+\paragraph{Fee beneficiaries}
 
+\paragraph{When fees can be collected}
+The system can potentially charge fees whenever any value is transferred, or any state is updated.
+There are only a few circumstances that these things happen:
+\begin{itemize}
+    \item Nomin transfers
+    \item Curit transfers
+    \item Nomin issuance
+    \item Curit redemption
+\end{itemize}
+The fee schedule could be altered dynamically in order to stabilise the system. It's even conceivable
+that the system could set negative fee rates if it needed to.
 
-\subsubsection{Liquidity}
-\hfill
+\subsection{Encouraging Liquidity}
+
 
 \subsection{Motility}
+
+
+
+
+\subsection{Utilisation Ratio}
+
 
 \subsection{Failure Modes}
 
 \subsubsection{Liquidity Trap}
 \subsubsection{Trapped Currency}
 
+\section{System Variables}
 \subsection{Quantities of Interest}
 \paragraph{Money Supply}
 \begin{align*}
