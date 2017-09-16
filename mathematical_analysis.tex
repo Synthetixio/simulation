@@ -1,7 +1,15 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{mathtools}
+\usepackage{svg}
 \begin{document}
+\title{Preliminary Havven System Analysis}
+\author{Block8}
+
+\begin{figure}
+    \includesvg{block8logo}
+\end{figure}
+\maketitle
 
 \section{Summary of System Variables}
 
@@ -11,23 +19,47 @@
     \item Fees should only be given to those who have actually issued nomins?
     \item How do we incentivise people to even transfer stuff.
     \item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
+    \item Why not allow the system to maintain a pool of curits/nomins that it itself can buy/sell?
 \end{itemize}
 
+\subsubsection{Restatement of Purpose}
+We want to make a stablecoin in order to provide a currency which is a viable medium of exchange.
+Evidently, such a coin must have a relatively stable price. We will do this by allowing users to back it,
+automatically expanding and contracting the money supply as the well of capital fluctuates in value.
+To this end, we will provide two intertwined tokens.
+\paragraph{Curits} The reserve tokens, which users buy to obtain a part share in the entire system. The holders
+of this token are providing collateral for the system, and in so doing, assume some level of risk, but will
+be rewarded with fees the system levies automatically as part of its usual operation. The market capitalisation
+of the reserve market is the value of the entire system.
+\paragraph{Nomins} The exchange tokens. Philosophically, we would like the nomin to be a utilon, a constant
+unit of utility, and so the system should stabilise its price in terms of some external, relatively-stable
+currency. Each holder of curits is granted the right to issue their own nomins, in proportion with the value
+of the curits they hold and are willing to escrow. If the user wishes to redeem their escrowed curits,
+they must present the system with nomins, in order to freely trade them again.
+
+
+
 \subsubsection{Investment incentives}
-Why would anyone buy curits in the first place? A potential buyer of curits has two avenues for making
-money in Havven:
+Why would anyone buy curits in the first place? A potential buyer of curits has at least three avenues for making
+money in Havven.
 
-\paragraph{Capital gains due to the appreciation of curits.}
+\paragraph{Capital gains due to the appreciation of curits:}
 Presumably the currency will appreciate due to a demand for curits that is founded in the intrinsic
-utility of a stablecoin. Speculators will of course be important players too, though.
+utility of a stablecoin. Speculators will naturally be important players too.
 
-\paragraph{Interest accrued from fees.}
+\paragraph{Interest accrued from fees:}
 If and when the price of curits stabilises, then this may be the only long term positive-expected
 source of revenue. Ideally fees are set at a level where they are both high enough to be an incentive
 for rent-seekers to hold curits in the long term (thus assuming the risk of providing collateral for
 the system) and low enough not to be a disincentive for ordinary users to transact in nomins.
 It is desirable, perhaps in a future world dominated by micropayments, for these fees to be
-negligible for end users, while still being macroeconomically important for the system. 
+negligible for end users, while still being macroeconomically important for the system, and for those
+who capitalise it.
+
+\paragraph{Arbitrage profit:}
+It is the arbitrageurs who will ultimately bring the price of nomins back into balance by a triangular circuit
+through nomins, curits, and the external (crypto or fiat) markets. They might hold curits for a short time in order
+to pursue this strategy.
 
 \subsubsection{Fees}
 There are a number of questions to be asked, and answered:
@@ -38,10 +70,21 @@ There are a number of questions to be asked, and answered:
     \item What macroeconomic effect does this levy have as a coin travels through the system?
 \end{enumerate}
 
+\subsubsection{The purpose of fees}
+Redistribute them to curit-holders in order to incentivise people to hold curits.
+
+\subsubsection{Purpose of the utilisation ratio cap}
+
+
 \subsubsection{Liquidity}
-
-
 \hfill
+
+\subsection{Motility}
+
+\subsection{Failure Modes}
+
+\subsubsection{Liquidity Trap}
+\subsubsection{Trapped Currency}
 
 \subsection{Quantities of Interest}
 \paragraph{Money Supply}
@@ -55,7 +98,7 @@ There are a number of questions to be asked, and answered:
 \paragraph{Utilisation Ratios} We should work out a good level for \(U_{max}\).
 \begin{align*}
     U &= \frac{P_n \cdot N}{C_e \cdot P_c} \ && \text{(dimensionless)} && \text{ : Empirical issuance ratio. } \\
-    U_{max} & \ && \text{(dimensionless)} && \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_max \leq 1
+    U_{max} & \ && \text{(dimensionless)} && \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_{max} \leq 1
 \end{align*}
 \\
 
