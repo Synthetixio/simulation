@@ -18,12 +18,14 @@ This section will provide an informal treatment of the proposed market's structu
 and dynamics, while section 2 will scaffold out its structure with a little more
 formality.
 
+\paragraph{Significant questions}
 \begin{itemize}
-    \item Fees should only be given to those who have actually issued nomins?
+    \item Should fees only be given to those who have actually issued nomins?
     \item How do we incentivise people to even transfer stuff.
+    \item Are transfer fees charged only nomins? Would people not then just try to convert to curits and exchange there?
     \item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
     \item Why not allow the system to maintain a pool of curits/nomins that it itself can buy/sell?
-    \item What if the system didn't burn nomins when curits were redeemed?
+    \item What if the system didn't burn the nomins that were handed back when curits were redeemed?
 \end{itemize}
 
 \subsection{Restatement of Purpose}
@@ -80,7 +82,20 @@ The fee pool will be distributed periodically, for this purpose.
 However, if the system determines that the nomin price is too low, then fees could be burned. If the price is
 too high then perhaps the system could sell these back into the system at a discounted rate.
 
+Fee collection rate will also be a direct measure of the velocity of money in Havven. So it's in the interest
+of curit holders to maximise liquidity in order to maximise their return.
+
 \paragraph{Fee beneficiaries}
+The previous assumption was that fees would simply be awarded to any holder of curits. But then they
+get all the upside with none of the risk. Although in the aggregate, it would be better for holders of 
+curits if everyone issued nomins. The marginal return for any single player (who cannot issue a 
+large fraction of all circulating nomins) of actually issuing them would not outweigh the risk they take
+on in doing so. If a user can issue 1\% of circulating nomins, then doing so will only increase their
+fee takings by 1\%.
+Hence it it makes no sense to actually issue nomins for any single player; so nobody will do it.
+We must improve the marginal benefit of issuing nomins into circulation in order to avoid
+this tragedy of the commons situation. So fees must be paid to those who issue nomins, not just
+those who hole curits.
 
 \paragraph{When fees can be collected}
 The system can potentially charge fees whenever any value is transferred, or any state is updated.
@@ -178,6 +193,9 @@ We will update motility scores whenever a new transaction from \(a\) to \(b\) of
     \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_{a \rightarrow b}} \mathcal{M}(b) \\
     \mathcal{M}'(a) \ &\leftarrow \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
 \end{align*}
+
+Although, it may also be nice to add a decay term, so that accounts that have not moved any money in a long time
+are taken to have a lower motility.
 
 
 \subsection{Utilisation Ratio}
