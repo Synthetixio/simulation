@@ -93,6 +93,7 @@ There are only a few circumstances that these things happen:
 \end{itemize}
 The fee schedule could be altered dynamically in order to stabilise the system. It's even conceivable
 that the system could set negative fee rates if it needed to.
+We might also charge punitive fees if a user is above the targeted utilisation ratio.
 
 \subsection{Encouraging Liquidity}
 
@@ -161,8 +162,8 @@ We will update motility scores whenever a new transaction from \(a\) to \(b\) of
 
 \begin{align*}
     \intertext{Value into \(b\) increases, so \(\mathcal{M}(b)\) can be easily recalculated.} \\
-    V_{b}^{in}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
-    \mathcal{M}'(b) \ &\leftarrow \ \frac{1}{V_{b}^{in}'} \sum_{p \in A}{V_{b \rightarrow p} \cdot \mathcal{M}'(p)} \\
+    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
+    \mathcal{M}'(b) \ &\leftarrow \ \frac{1}{{V_{b}^{in}}'} \sum_{p \in A}{V_{b \rightarrow p} \cdot \mathcal{M}'(p)} \\
     \intertext{Meanwhile, the value transferred from \(a\) to \(b\) also increases.}
     V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_{a \rightarrow b} \\
     \mathcal{M}'(a) \ &\leftarrow \ \frac{1}{V_{a}^{in}} \Big( V'_{a \rightarrow b} \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}'(p)}\Big)\\
@@ -173,7 +174,7 @@ We will update motility scores whenever a new transaction from \(a\) to \(b\) of
     \mathcal{M}'(a) \ &\approx \ \frac{1}{V_{a}^{in}} \Big( (V_{a \rightarrow b} + v_{a \rightarrow b}) \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}\Big) \\
     &\approx \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)} \\
     \intertext{So we will take our update step for a transaction from \(a\) to \(b\) to be the following:}
-    V_{b}^{in}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
+    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
     \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_{a \rightarrow b}} \mathcal{M}(b) \\
     \mathcal{M}'(a) \ &\leftarrow \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
 \end{align*}
@@ -183,12 +184,13 @@ We will update motility scores whenever a new transaction from \(a\) to \(b\) of
 
 
 \subsection{Failure Modes}
-
 \subsubsection{Liquidity Trap}
 \subsubsection{Trapped Currency}
 
+\pagebreak
 \section{System Variables}
-\subsection{Quantities of Interest}
+\hfill
+
 \paragraph{Money Supply}
 \begin{align*}
     C & \ && \text{(curits)} && \text{ : Quantity of curits, should be constant} \\
