@@ -23,6 +23,7 @@ formality.
     \item How do we incentivise people to even transfer stuff.
     \item Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.
     \item Why not allow the system to maintain a pool of curits/nomins that it itself can buy/sell?
+    \item What if the system didn't burn nomins when curits were redeemed?
 \end{itemize}
 
 \subsection{Restatement of Purpose}
@@ -95,26 +96,87 @@ that the system could set negative fee rates if it needed to.
 
 \subsection{Encouraging Liquidity}
 
+It's desirable, when actors issue nomins, that they are actually injected into Havven.
+The use of someone escrowing their curits is that they provide backing for the currency flowing through the system,
+and so they should be rewarded for assuming this risk.
+However, what's to stop someone issuing their nomins, and then just holding onto them? In this manner they
+would accrue fees, but take on none of the risk of behaving spending those nomins, for they always have an instant
+option to liquidate their position and escape. An actor who had done the economically-desirable thing, on
+the other hand, who issues nomins and then spends them, would be forced to buy nomins in the open market in
+order to redeem their escrowed curits.
+
+But how to encourage a user to actually increase liquidity by buying goods with the nomins they hold? 
+
 
 \subsection{Motility}
-We would like to know how likely a nomin is to be spent from a given account. Its motility should measure this.
-Motility should be high if the paths out of it are long, and if the nodes sent to have high degree.
+
+We would like to encourage a user to spend their nomins. So we can give them a motility score 
+and they are paid fees in proportion with the product of this score, and the number of escrowed curits
+they hold.
+
+A user should not just be able to hold nomins and accrue fees. A user should not be able to just manipulate 
+an account they control to have a high motility with small values and then dump a large value they want to hold
+into it.
+
+A user should not be able to cycle nomins through accounts they control and collect fees.
+
+We would like to incentivise long transaction paths out of an account, and high out-degree nodes along those paths
+(so money is actually liquid/fungible).
 We don't like short cycles. We don't like isolated subgraphs. Would be cool if the money could go into the main
-connected component of the transaction graph as quickly as possible, then circulate in there with high velocity. How about:
-
-\[motility(a) := \frac{\sum_{p \in payees(a)}{value(a,p) \cdot motility(p)}}{\sum_{p \in payees(a)}{value(a,p)}} \]
-
-Where \(value(a, p)\) will then be the weight on the edge in the transaction graph coresponding to a given transaction.
-My motility will then be the weighted average of my neighbours.
-
-PROBLEM: Doesn't account for lots of money coming in and hardly any going out.
-
-Or iteratively, if I want to update my motility with a transaction to \(p\) of value \(v\), and I know my total sent value \(V_{out}\)...
-
-\[motility_{send}(a, p, v) := \frac{motility(a) \cdot V_{out} + motility_{receive}'(a, p, v) \cdot v}{V_{out} + v} \]
-\[motility_{receive}(a, p, v) := \frac{motility(a) \cdot V_{out}}{v \cdot V_{out}}\]
+connected component of the transaction graph as quickly as possible, then circulate in there with high velocity.
 
 
+\paragraph{Definitions}
+\begin{align*}
+    A \ &:= \ \text{The set of all accounts} \\
+    V_{a \rightarrow b} \ &:= \ \text{total value transferred from \(a\) to \(b\)} \\
+    V_{a \rightarrow a} \ &:= \ 0 \ \text{(accounts can't transfer to themselves)} \\
+    V_{a}^{in} \ &:= \ \sum_{p \in A}{V_{p \rightarrow a}} \\
+    V_{a}^{out} \ &:= \ \sum_{p \in A}{V_{a \rightarrow p}}
+\end{align*}
+
+We might interpret \(V_{a \rightarrow b}\) to be the sum of the weights on the edges in
+the transaction multigraph corresponding to transactions between \(a\) and \(b\). \\
+
+We would like to know how likely a nomin is to be spent from a given account. Its motility should measure this.
+
+We might try to measure the probability that a coin will be spent soon, if it resides in an account \(a\).
+We will take \(\mathcal{M}(a)\) to be the motility of \(a\), which should estimate that probability:
+\begin{align*}
+    \mathcal{M}(a) &:= \sum_{p \in A}{P(a \ \text{transfers to} \ p) \cdot \mathcal{M}(p)} \\
+    &= \sum_{p \in A}{\frac{V_{a \rightarrow p}}{V_{a}^{in}} \cdot \mathcal{M}(p)} \\
+    &= \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}
+\end{align*}
+
+Intuitively, if you transfer a lot of money to high-motility accounts, then your own motility is
+taken to be high.
+
+\paragraph{Calculating Motility}
+This will need to be calculated iteratively, and locally.
+Note that \(V_{a \rightarrow p} = 0\) for \(p\) that \(a\) has never transferred to,
+so those accounts can be neglected.
+It's probably too costly to store the value of \(V_{a \rightarrow b}\) explicitly. So we will have
+to eliminate this quantity in our expressions.
+We will update motility scores whenever a new transaction from \(a\) to \(b\) of value \(v_{a \rightarrow b}\) is made.
+
+\begin{align*}
+    \intertext{Value into \(b\) increases, so \(\mathcal{M}(b)\) can be easily recalculated.} \\
+    V_{b}^{in}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
+    \mathcal{M}'(b) \ &\leftarrow \ \frac{1}{V_{b}^{in}'} \sum_{p \in A}{V_{b \rightarrow p} \cdot \mathcal{M}'(p)} \\
+    \intertext{Meanwhile, the value transferred from \(a\) to \(b\) also increases.}
+    V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_{a \rightarrow b} \\
+    \mathcal{M}'(a) \ &\leftarrow \ \frac{1}{V_{a}^{in}} \Big( V'_{a \rightarrow b} \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}'(p)}\Big)\\
+    \intertext{Although these updates should also influence accounts which have (transitively) transferred into \(a\) and \(p\),
+               we want to reward people for increasing liquidity today, rather than at some future time, and
+               we take the motility of an account to be relatively stable after some time. As a result we will
+               take \(\mathcal{M}'(p) \approx \mathcal{M}(p)\) for \(p \notin \{a, b\}\). Then:} 
+    \mathcal{M}'(a) \ &\approx \ \frac{1}{V_{a}^{in}} \Big( (V_{a \rightarrow b} + v_{a \rightarrow b}) \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}\Big) \\
+    &\approx \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)} \\
+    \intertext{So we will take our update step for a transaction from \(a\) to \(b\) to be the following:}
+    V_{b}^{in}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
+    \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_{a \rightarrow b}} \mathcal{M}(b) \\
+    \mathcal{M}'(a) \ &\leftarrow \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
+\end{align*}
 
 
 \subsection{Utilisation Ratio}
