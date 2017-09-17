@@ -188,7 +188,7 @@ We will update motility scores whenever a new transaction from \(a\) to \(b\) of
     \intertext{Meanwhile, the value transferred from \(a\) to \(b\) also increases.}
     V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_{a \rightarrow b} \\
     \mathcal{M}'(a) \ &\leftarrow \ \frac{1}{V_{a}^{in}} \Big( V'_{a \rightarrow b} \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}'(p)}\Big)\\
-    \intertext{Although these updates should also influence accounts which have (transitively) transferred into \(a\) and \(p\),
+    \intertext{Although these updates should also influence accounts which have (transitively) transferred into \(a\) and \(b\),
                we want to reward people for increasing liquidity today, rather than at some future time, and
                we take the motility of an account to be relatively stable after some time. As a result we will
                take \(\mathcal{M}'(p) \approx \mathcal{M}(p)\) for \(p \notin \{a, b\}\). Then:} 
