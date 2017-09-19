@@ -1,8 +1,15 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage{svg}
 \begin{document}
+
+% Macros
+\newcommand{\CUR}{\textsc{cur}}
+\newcommand{\NOM}{\textsc{nom}}
+
+
 \title{Preliminary Havven System Analysis}
 \date{}
 
@@ -16,7 +23,8 @@
 
 This section will provide an informal treatment of the proposed market's structure
 and dynamics, while section 2 will scaffold out its structure with a little more
-formality.
+formality, including the definitions of all the important system variables.
+If you see an unfamiliar symbol in section 1, look up its definition in section 2.
 
 \paragraph{Significant questions}
 \begin{itemize}
@@ -99,7 +107,7 @@ fee takings by 1\%.
 Hence it it makes no sense to actually issue nomins for any single player; so nobody will do it.
 We must improve the marginal benefit of issuing nomins into circulation in order to avoid
 this tragedy of the commons situation. So fees must be paid to those who issue nomins, not just
-those who hole curits.
+those who hold curits.
 
 \paragraph{When fees can be collected}
 The system can potentially charge fees whenever any value is transferred, or any state is updated.
@@ -150,20 +158,23 @@ connected component of the transaction graph as quickly as possible, then circul
 
 \paragraph{Definitions}
 \begin{align*}
-    A \ &:= \ \text{The set of all accounts} \\
-    V_{a \rightarrow b} \ &:= \ \text{total value transferred from \(a\) to \(b\)} \\
-    V_{a \rightarrow a} \ &:= \ 0 \ \text{(accounts can't transfer to themselves)} \\
+    A \ &: \ \text{The set of all accounts} \\
+    T \ &: \ \text{The multiset of all transactions; a subset of \(A \times A \times \mathbb{N}.\)} \\
+    T_{a \rightarrow b} \subseteq T \ &: \ \text{The set of transactions from \(a\) to \(b\) with \(a, \ b \ \in A\).} \\
+    v_t \ &: \ \text{the value of a transaction} \ t \in T. \\
+    V_{a \rightarrow b} \ &:= \ \sum_{t \in T_{a \rightarrow b}}{v_t} \ \ \text{(the total value transferred from \(a\) to \(b\))} \\
     V_{a}^{in} \ &:= \ \sum_{p \in A}{V_{p \rightarrow a}} \\
-    V_{a}^{out} \ &:= \ \sum_{p \in A}{V_{a \rightarrow p}}
+    V_{a}^{out} \ &:= \ \sum_{p \in A}{V_{a \rightarrow p}} \\
+    \intertext{Note that \(T_{a \rightarrow a} := \varnothing \), and hence \(V_{a \rightarrow a} = 0\)
+               (accounts can't transfer to themselves).}
+    \intertext{We might interpret \((A, T)\) as a weighted multigraph of transactions, 
+               with each transaction \(t \in T_{a \rightarrow b}\)
+               corresponding to a weighted edge in that graph between nodes \(a\) and \(b\).}
 \end{align*}
 
-We might interpret \(V_{a \rightarrow b}\) to be the sum of the weights on the edges in
-the transaction multigraph corresponding to transactions between \(a\) and \(b\). \\
-
-We would like to know how likely a nomin is to be spent from a given account. Its motility should measure this.
-
-We might try to measure the probability that a coin will be spent soon, if it resides in an account \(a\).
-We will take \(\mathcal{M}(a)\) to be the motility of \(a\), which should estimate that probability:
+\noindent We would like to know how likely a nomin is to be spent soon from a given account.
+The motility of the account should measure this. Considering an account \(a\), we will take
+\(\mathcal{M}(a)\) to be the motility of \(a\):
 \begin{align*}
     \mathcal{M}(a) &:= \sum_{p \in A}{P(a \ \text{transfers to} \ p) \cdot \mathcal{M}(p)} \\
     &= \sum_{p \in A}{\frac{V_{a \rightarrow p}}{V_{a}^{in}} \cdot \mathcal{M}(p)} \\
@@ -179,34 +190,54 @@ Note that \(V_{a \rightarrow p} = 0\) for \(p\) that \(a\) has never transferred
 so those accounts can be neglected.
 It's probably too costly to store the value of \(V_{a \rightarrow b}\) explicitly. So we will have
 to eliminate this quantity in our expressions.
-We will update motility scores whenever a new transaction from \(a\) to \(b\) of value \(v_{a \rightarrow b}\) is made.
-
+We will update motility scores whenever a new transaction \(t\) from \(a\) to \(b\) of value \(v_t\) is made.
 \begin{align*}
     \intertext{Value into \(b\) increases, so \(\mathcal{M}(b)\) can be easily recalculated.} \\
-    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
+    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_t \\
     \mathcal{M}'(b) \ &\leftarrow \ \frac{1}{{V_{b}^{in}}'} \sum_{p \in A}{V_{b \rightarrow p} \cdot \mathcal{M}'(p)} \\
     \intertext{Meanwhile, the value transferred from \(a\) to \(b\) also increases.}
-    V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_{a \rightarrow b} \\
+    V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_t \\
     \mathcal{M}'(a) \ &\leftarrow \ \frac{1}{V_{a}^{in}} \Big( V'_{a \rightarrow b} \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}'(p)}\Big)\\
     \intertext{Although these updates should also influence accounts which have (transitively) transferred into \(a\) and \(b\),
                we want to reward people for increasing liquidity today, rather than at some future time, and
                we take the motility of an account to be relatively stable after some time. As a result we will
-               take \(\mathcal{M}'(p) \approx \mathcal{M}(p)\) for \(p \notin \{a, b\}\). Then:} 
-    \mathcal{M}'(a) \ &\approx \ \frac{1}{V_{a}^{in}} \Big( (V_{a \rightarrow b} + v_{a \rightarrow b}) \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}\Big) \\
-    &\approx \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)} \\
-    \intertext{So we will take our update step for a transaction from \(a\) to \(b\) to be the following:}
-    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_{a \rightarrow b} \\
-    \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_{a \rightarrow b}} \mathcal{M}(b) \\
-    \mathcal{M}'(a) \ &\leftarrow \ \frac{v_{a \rightarrow b}}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
+               take \(\mathcal{M}'(p) \approx \mathcal{M}(p)\) for \(p \notin \{a, b\} \). Then:} 
+    \mathcal{M}'(a) \ &\approx \ \frac{1}{V_{a}^{in}} \Big( (V_{a \rightarrow b} + v_t) \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}\Big) \\
+    &\approx \ \frac{v_t}{V_{a}^{in}} \mathcal{M}'(b) \ + \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)} \\
+    \intertext{So we will take our update step for a transaction \(t\) from \(a\) to \(b\) to be the following:}
+    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_t \\
+    \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_t} \mathcal{M}(b) \\
+    \mathcal{M}'(a) \ &\leftarrow \ \frac{v_t}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
 \end{align*}
 
-Although, it may also be nice to add a decay term, so that accounts that have not moved any money in a long time
+\noindent However, it may also be nice to add a decay term, so that accounts that have not moved any money in a long time
 are taken to have a lower motility.
 
 
 \pagebreak
 \subsection{Utilisation Ratio}
 
+It's not clear to me exactly what purpose \(U_{max}\) serves. It certainly keeps the value of the pool of
+curits below the value of the pool of nomins, assuming there is no devaluation of a ratio more severe than 
+\(U_{max}\) itself. However, if the system has adequate mechanisms enforce \(U\ \leq U_{max}\), then
+why not simply allow users to issue nomins up to the maximum value of curits they have escrowed? \\
+
+\noindent A low \(U_{max}\) seems like it would place upward pressure on the price of nomins.
+Consider a situation where \(U_{max} = 0.2\), and I have an impecunious friend, Jake, who owns a wallet which
+has issued \$20 worth of nomins on the back of \$100 of escrowed curits. At the moment, he has no
+money, but his wallet is worth \$80, since he can burn \$20 worth of nomins to get at those curits.
+So Jake should be willing to pay anywhere up to \$80 to buy enough nomins to free up the curits.
+This situation will still motivate Jake until the price of the nomins he's issued is equal to the
+price of the curits he's escrowed. That is, until the price of a nomin is worth five times the price of
+a curit.\\
+
+\noindent Finally, let's consider the impact of the utilisation ratio on a curit investor's value proposition.
+Examine the aggregate fees collected from nomin transfers \(Ag_{nx}\), and expand out its definition:
+\[Ag_{nx} = \frac{F_{nx} \cdot S_n \cdot C \cdot P_c \cdot U}{P_n}\]
+This quantity is proportional with the actual utilisation ratio \(U\). The more nomins that have
+been issued, the more fees are returned. So if \(U = 0.2\), then if the system would like to return 
+a fee rate of 5\% per annum to curit-holders, then fees to the tune of 25\% per year will have to be
+levied on nomin transfers, assuming no other fees exist. This may be a little high.
 
 \subsection{Failure Modes}
 \subsubsection{Liquidity Trap}
@@ -214,49 +245,75 @@ are taken to have a lower motility.
 
 \pagebreak
 \section{System Variables}
+
 \hfill
+
+\noindent What follows are the main variables of the system. 
+Under each heading, each row will correspond to a single quantity of interest.
+Each row will have three columns. Leftmost, a mathematical definition of the variable; in the middle,
+the dimension of the quantity (which units it is measured in); and on the rightmost, a short
+english summary of the variable.\\
+
+\noindent Certain abbreviations will be used.
+For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for curits and nomins considered as
+units of measurement. \\
+
 
 \paragraph{Money Supply}
 \begin{align*}
-    C & \ && \text{(curits)} && \text{ : Quantity of curits, should be constant} \\
-    C_e &= C \cdot U \ && \text{(curits)} && \text{ : Quantity of reserved curits, i.e. the value of tokens have been issued against } \\
-    N &= \frac{U_a \cdot C \cdot P_c}{P_n} \ && \text{(nomins)} && \text{ : Quantity of nomins. This can float.}
+    &C \ && &(\CUR{}) && &\text{ : Quantity of curits, which is constant.} \\
+    &C_e = C \cdot U \ && &(\CUR{}) && &\text{ : Quantity of reserved curits against which nomins have been issued.} \\
+    &N = \frac{U \cdot C \cdot P_c}{P_n} \ && &(\NOM{}) && &\text{ : Quantity of nomins. This can float.}
 \end{align*}
 \\
 
-\paragraph{Utilisation Ratios} We should work out a good level for \(U_{max}\).
+\paragraph{Utilisation Ratios}
 \begin{align*}
-    U &= \frac{P_n \cdot N}{C_e \cdot P_c} \ && \text{(dimensionless)} && \text{ : Empirical issuance ratio. } \\
-    U_{max} & \ && \text{(dimensionless)} && \text{ : Targeted issuance ratio ceiling. Ideally, } 0 \leq U \leq U_{max} \leq 1
+    &U = \frac{P_n \cdot N}{C_e \cdot P_c} \ && &\text{(dimensionless)} && &\text{ : Empirical issuance ratio. } \\
+    &U_{max} \ && &\text{(dimensionless)} && &\text{ : Targeted issuance ratio ceiling.}
+    \intertext{Ideally, \(0 \leq U \leq U_{max} \leq 1\), but we need to work out a good level for \(U_{max}\).}
 \end{align*}
 \\
 
-\paragraph{Prices} These values are important, with the goal of stabilising the nomin price.
+\paragraph{Prices}
 \begin{align*}
-    P_c & \ && (\frac{\text{\$}}{\text{curits}}) && \text{ : curit price} \\
-    P_n & \ && (\frac{\text{\$}}{\text{nomins}}) && \text{ : nomin price} \\
-    P_c' &= \alpha \cdot f(V_n, V_v) \cdot R && (\frac{\text{\$}}{\text{nomins} \cdot \text{seconds}}) && \text{ : R a risk term incorporating volatility? \#buyers - \#sellers?})
+    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{ : curit price.} \\
+    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{ : nomin price.} \\
+    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{ : curit price rate of change.}
+    \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
 \end{align*}
 \\
 
-\paragraph{Fees}
-\[F_x, F_i, F_r \ \text{(dimensionless) : transfer, issuance, redemption fees; these should be ratios, e.g. 0.1\%}\]
+\paragraph{Microeconomic Variables} These should be defined as functions of \(P_n, \ P_c, \ \text{fees, etc.}\)
+\begin{align*}
+S_n \ && (\frac{1}{\text{sec}}) && &\text{ : average nomin spend rate} \\
+S_i \ && (\frac{1}{\text{sec}}) && &\text{ : average issuance rate} \\
+S_r \ && (\frac{1}{\text{sec}}) && &\text{ : average redemption rate}
+\end{align*}
 \\
 
 \paragraph{Money Movement}
 \begin{align*}
-    V_n &= S_n \cdot N \ && (\frac{nomins}{seconds}) && \text{ : nomin transfer rate} \\
-    V_v &= V_i + V_r \ && (\frac{curits}{seconds}) && \text{ : nomin} \leftrightarrow \text{curit conversion rate.} \\
-    V_i &= (C - C_e) \cdot S_i \ && (\frac{curits}{seconds}) && \text{ : nomin issuance rate. Assumed to grow as there are more free curits in the system (actually should probably grow with the number of escrowed but unissued nomins).} \\
-    V_r &= C_e \cdot S_r \ && (\frac{curits}{seconds}) && \text{ : rate at which curits are redeemed in return for nomins (which are burned). Assumed to grow proportionally with the number of escrowed curits.}
+    V_n &= S_n \cdot N \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{ : nomin transfer rate.} \\
+    V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin} \leftrightarrow \text{curit conversion rate.} \\
+    V_i &= (C - C_e) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin issuance rate.} \\
+    V_r &= C_e \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : curit redemption rate.} \\
+    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.
+               Actually perhaps it should grow with the number of escrowed curits with
+               no nomins issued against them.}
+    \intertext{\(V_r\), by contrast, is taken to grow proportionally with the number of escrowed curits.}
 \end{align*}
 \\
 
-\paragraph{Microeconomic Variables} These should be defined as functions of \(P_n, P_c, \text{fees, etc.}\)
+\paragraph{Fees}
 \begin{align*}
-S_n \ && (\frac{1}{\text{seconds}}) && \text{ : average nomin spend rate} \\
-S_i \ && (\frac{1}{\text{seconds}}) && \text{ : average issuance rate} \\
-S_r \ && (\frac{1}{\text{seconds}}) && \text{ : average redemption rate}
+\intertext{The following fees are ratios, for example 0.1\%, levied on each transaction.}
+&F_{nx} & \ && &\text{(dimensionless)} && &\text{ : nomin transfer fee} \\
+&F_{cx} & \ && &\text{(dimensionless)} && &\text{ : curit transfer fee} \\
+&F_i & \ && &\text{(dimensionless)} && &\text{ : nomin issuance fee} \\
+&F_r & \ && &\text{(dimensionless)} && &\text{ : curit redemption fee} \\
+\intertext{These quantities are the aggregated fees accrued by the system per unit time.}
+&Ag_{nx} &:= V_n \cdot F_{nx} \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{ : fees taken from nomin transfers.} \\
 \end{align*}
 
 \end{document}
