@@ -262,10 +262,10 @@ units of measurement. \\
 
 \paragraph{Prices}
 \begin{align*}
-    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{ : curit price.} \\
-    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{ : nomin price.} \\
-    \pi &:= \frac{P_c}{P_n} \ && &(\frac{\NOM{}}{\CUR{}}) && &\text{ : curit to nomin conversion factor.} \\
-    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{ : curit price rate of change.}
+    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{: curit price.} \\
+    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{: nomin price.} \\
+    \pi &:= \frac{P_c}{P_n} \ && &(\frac{\NOM{}}{\CUR{}}) && &\text{: curit to nomin conversion factor.} \\
+    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{: curit price rate of change.}
     \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
 \end{align*}
 \\
@@ -273,35 +273,36 @@ units of measurement. \\
 
 \paragraph{Money Supply}
 \begin{align*}
-    &C \ && &(\CUR{}) && &\text{ : Quantity of curits, which is constant.} \\
-    % &C_e \ && &(\CUR{}) && &\text{ : Quantity of escrowed curits.} \\
-    &N = C_N \cdot \pi \ && &(\NOM{}) && &\text{ : Quantity of nomins. This can float.} \\
-    &C_N = \frac{N}{\pi} \ && &(\CUR{}) && &\text{ : Curit value of issued nomins.}
+    &C \ && &(\CUR{}) && &\text{: Quantity of curits, which is constant.} \\
+    &C_e \ && &(\CUR{}) && &\text{: Quantity of escrowed curits.} \\
+    &N = C_N \cdot \pi \ && &(\NOM{}) && &\text{: Quantity of nomins. This can float.} \\
+    &C_N = \frac{N}{\pi} \ && &(\CUR{}) && &\text{: Curit value of issued nomins.}
+    \intertext{Ideally, \(C_N \leq C_e\).}
 \end{align*}
 \\
 
 \paragraph{Utilisation Ratios}
 \begin{align*}
-    &U = \frac{C_N}{C} \ && &\text{(dimensionless)} && &\text{ : Empirical issuance ratio. } \\
-    &U_{max} \ && &\text{(dimensionless)} && &\text{ : Targeted issuance ratio ceiling.}
+    &U = \frac{C_N}{C} \ && &\text{(dimensionless)} && &\text{: Empirical issuance ratio. } \\
+    &U_{max} \ && &\text{(dimensionless)} && &\text{: Targeted issuance ratio ceiling.}
     \intertext{Ideally, \(0 \leq U \leq U_{max} \leq 1\), but we need to work out a good level for \(U_{max}\).}
 \end{align*}
 \\
 
 \paragraph{Microeconomic Variables} These should be defined as functions of \(P_n, \ P_c, \ \text{fees, etc.}\)
 \begin{align*}
-S_n \ && (\frac{1}{\text{sec}}) && &\text{ : average nomin spend rate} \\
-S_i \ && (\frac{1}{\text{sec}}) && &\text{ : average issuance rate} \\
-S_r \ && (\frac{1}{\text{sec}}) && &\text{ : average redemption rate}
+S_n \ && (\frac{1}{\text{sec}}) && &\text{: average nomin spend rate} \\
+S_i \ && (\frac{1}{\text{sec}}) && &\text{: average issuance rate} \\
+S_r \ && (\frac{1}{\text{sec}}) && &\text{: average redemption rate}
 \end{align*}
 \\
 
 \paragraph{Money Movement}
 \begin{align*}
-    V_n &= S_n \cdot N \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{ : nomin transfer rate.} \\
-    V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin} \leftrightarrow \text{curit conversion rate.} \\
-    V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin issuance rate.} \\
-    V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : curit redemption rate.} \\
+    V_n &= S_n \cdot N \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{: nomin transfer rate.} \\
+    V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin} \leftrightarrow \text{curit conversion rate.} \\
+    V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin issuance rate.} \\
+    V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: curit redemption rate.} \\
     \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.
                Actually perhaps it should grow with the number of escrowed curits with
                no nomins issued against them.}
@@ -312,12 +313,12 @@ S_r \ && (\frac{1}{\text{sec}}) && &\text{ : average redemption rate}
 \paragraph{Fees}
 \begin{align*}
 \intertext{The following fees are ratios, for example 0.1\%, levied on each transaction.}
-&F_{nx} & \ && &\text{(dimensionless)} && &\text{ : nomin transfer fee} \\
-&F_{cx} & \ && &\text{(dimensionless)} && &\text{ : curit transfer fee} \\
-&F_i & \ && &\text{(dimensionless)} && &\text{ : nomin issuance fee} \\
-&F_r & \ && &\text{(dimensionless)} && &\text{ : curit redemption fee} \\
+&F_{nx} & \ && &\text{(dimensionless)} && &\text{: nomin transfer fee} \\
+&F_{cx} & \ && &\text{(dimensionless)} && &\text{: curit transfer fee} \\
+&F_i & \ && &\text{(dimensionless)} && &\text{: nomin issuance fee} \\
+&F_r & \ && &\text{(dimensionless)} && &\text{: curit redemption fee} \\
 \intertext{These quantities are the aggregated fees accrued by the system per unit time.}
-&Ag_{nx} &:= V_n \cdot F_{nx} \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{ : fees taken from nomin transfers.} \\
+&Ag_{nx} &:= V_n \cdot F_{nx} \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{: fees taken from nomin transfers.}
 \end{align*}
 
 \end{document}
