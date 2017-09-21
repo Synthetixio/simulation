@@ -18,53 +18,74 @@ import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
-from mesa.batchrunner import BatchRunner
-from mesa.visualization.modules import CanvasGrid
-from mesa.visualization.ModularVisualization import ModularServer
 
-class MyAgent(Agent):
-    def __init__(self, name, model):
-        super().__init__(name, model)
+import matplotlib.pyplot as plt
+
+class MoneyAgent(Agent):
+    """An agent with a fixed initial wealth."""
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+        self.wealth = random.randrange(0,10)
+
+    def move(self):
+        steps = self.model.grid.get_neighborhood(self.pos, moore=True)
+        new_pos = random.choice(steps)
+        self.model.grid.move_agent(self, new_pos)
+
+    def donate(self):
+        if self.wealth == 0:
+            return
+
+        others = [a for a in self.model.grid.get_cell_list_contents([self.pos]) if a.wealth < self.wealth and a is not self]
+        if len(others) > 0:
+            other = random.choice(others)
+            other.wealth += 1
+            self.wealth -= 1
 
     def step(self):
-        print("{} activated".format(self.unique_id))
+        self.move()
+        self.donate()
 
-class MyModel(Model):
-    def __init__(self, n_agents):
-        super().__init__(n_agents)
-        self.dc = DataCollector(model_reporters={"agent_count": lambda m: m.schedule.get_agent_count()},
-                                agent_reporters={"name": lambda a: a.unique_id})
-
+class MoneyModel(Model):
+    """A model with some number of agents."""
+    def __init__(self, N, width, height):
         self.schedule = RandomActivation(self)
-        self.grid = MultiGrid(10, 10, torus=True)
-        for i in range(n_agents):
-            a = MyAgent(i, self)
+        self.grid = MultiGrid(width, height, True)
+
+        self.num_agents = N
+        for i in range(self.num_agents):
+            a = MoneyAgent(i, self)
             self.schedule.add(a)
-            coords = (random.randrange(0, 10), random.randrange(0, 10))
-            self.grid.place_agent(a, coords)
+
+            x = random.randrange(1, self.grid.width)
+            y = random.randrange(1, self.grid.height)
+            self.grid.place_agent(a, (x, y))
+    
+    def wealth_sd(self):
+        agents = self.schedule.agents
+        num_agents = len(agents)
+
+        mean_wealth = sum([a.wealth for a in agents])/num_agents
+        sum_squared_diffs = sum([(a.wealth - mean_wealth)**2 for a in agents])
+
+        return (sum_squared_diffs/(num_agents - 1))**0.5
 
     def step(self):
+        """Advance the model by one step."""
+
+        print("Wealth standard deviation: {}".format(self.wealth_sd()))
         self.schedule.step()
-        self.dc.collect(self)
 
-params = {"n_agents": range(1, 20)}
-batch_run = BatchRunner(MyModel, params, max_steps=10,
-                        model_reporters={"n_agents": lambda m: m.schedule.get_agent_count()})
-batch_run.run_all()
-batch_df = batch_run.get_model_vars_dataframe()
-print(batch_df)
+m = MoneyModel(1000, 50, 50)
 
-def agent_portrayal(agent):
-    return {"Shape":  "circle",
-            "Filled": "true",
-            "Layer":  0,
-            "Color":  "red" if agent.unique_id % 2 else "blue",
-            "r":      0.5}
-
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
-server = ModularServer(MyModel, [grid], "My Model", {"n_agents": 100})
-
-server.launch()
-
-
+plt.ion()
+plt.hist([a.wealth for a in m.schedule.agents])
+for _ in range(1000):
+    m.step()
+    plt.cla()
+    plt.hist([a.wealth for a in m.schedule.agents])
+    plt.draw()
+    plt.pause(0.01)
+from collections import Counter
+print(Counter([a.wealth for a in m.schedule.agents]))
+plt.show()
