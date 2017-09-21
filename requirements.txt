@@ -2,3 +2,4 @@ jupyter
 matplotlib
 mesa
 numpy
+scipy

@@ -21,12 +21,13 @@ from mesa.space import MultiGrid
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import skewnorm
 
 class MoneyAgent(Agent):
     """An agent with a fixed initial wealth."""
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = random.randrange(0,10)
+        self.wealth = int((skewnorm.rvs(4) + 1)*10)
 
     def move(self):
         steps = self.model.grid.get_neighborhood(self.pos, moore=True)
@@ -94,11 +95,13 @@ def cell_wealth(model):
 m = MoneyModel(1000, 50, 50)
 
 plt.ion()
-plt.hist([a.wealth for a in m.schedule.agents])
 for _ in range(1000):
     m.step()
+    plt.figure(1)
     plt.cla()
-    #plt.hist([a.wealth for a in m.schedule.agents])
+    plt.hist([a.wealth for a in m.schedule.agents])
+    plt.figure(2)
+    plt.cla()
     plt.imshow(cell_wealth(m), interpolation='nearest')
     plt.draw()
     plt.pause(0.01)
