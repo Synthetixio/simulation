@@ -48,8 +48,9 @@ be rewarded with fees the system levies automatically as part of its usual opera
 of the reserve market reflects the value of the entire system.
 \paragraph{Nomins} The exchange tokens. Philosophically, we would like the nomin to be a utilon, a constant
 unit of utility, and so the system should stabilise its price in terms of some external, relatively-stable
-currency. Each holder of curits is granted the right to issue their own nomins, in proportion with the value
-of the curits they hold and are willing to escrow. If the user wishes to redeem their escrowed curits,
+currency, or perhaps a commodity basket in order to insulate the nomin price from the volatility of its 
+underpinning currency. Each holder of curits is granted the right to issue their own nomins, in proportion
+with the value of the curits they hold and are willing to escrow. If the user wishes to redeem their escrowed curits,
 they must present the system with nomins, in order to freely trade them again. Other than just price stability,
 the system should also encourage liquidity, if nomins are to be actually-useful as a medium of exchange.
 
@@ -239,6 +240,7 @@ been issued, the more fees are returned. So if \(U = 0.2\), then if the system w
 a fee rate of 5\% per annum to curit-holders, then fees to the tune of 25\% per year will have to be
 levied on nomin transfers, assuming no other fees exist. This may be a little high.
 
+\pagebreak
 \subsection{Failure Modes}
 \subsubsection{Liquidity Trap}
 \subsubsection{Trapped Currency}
@@ -258,29 +260,31 @@ english summary of the variable.\\
 For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for curits and nomins considered as
 units of measurement. \\
 
+\paragraph{Prices}
+\begin{align*}
+    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{ : curit price.} \\
+    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{ : nomin price.} \\
+    \pi &:= \frac{P_c}{P_n} \ && &(\frac{\NOM{}}{\CUR{}}) && &\text{ : curit to nomin conversion factor.} \\
+    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{ : curit price rate of change.}
+    \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
+\end{align*}
+\\
+
 
 \paragraph{Money Supply}
 \begin{align*}
     &C \ && &(\CUR{}) && &\text{ : Quantity of curits, which is constant.} \\
-    &C_e = C \cdot U \ && &(\CUR{}) && &\text{ : Quantity of reserved curits against which nomins have been issued.} \\
-    &N = \frac{U \cdot C \cdot P_c}{P_n} \ && &(\NOM{}) && &\text{ : Quantity of nomins. This can float.}
+    % &C_e \ && &(\CUR{}) && &\text{ : Quantity of escrowed curits.} \\
+    &N = C_N \cdot \pi \ && &(\NOM{}) && &\text{ : Quantity of nomins. This can float.} \\
+    &C_N = \frac{N}{\pi} \ && &(\CUR{}) && &\text{ : Curit value of issued nomins.}
 \end{align*}
 \\
 
 \paragraph{Utilisation Ratios}
 \begin{align*}
-    &U = \frac{P_n \cdot N}{C_e \cdot P_c} \ && &\text{(dimensionless)} && &\text{ : Empirical issuance ratio. } \\
+    &U = \frac{C_N}{C} \ && &\text{(dimensionless)} && &\text{ : Empirical issuance ratio. } \\
     &U_{max} \ && &\text{(dimensionless)} && &\text{ : Targeted issuance ratio ceiling.}
     \intertext{Ideally, \(0 \leq U \leq U_{max} \leq 1\), but we need to work out a good level for \(U_{max}\).}
-\end{align*}
-\\
-
-\paragraph{Prices}
-\begin{align*}
-    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{ : curit price.} \\
-    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{ : nomin price.} \\
-    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{ : curit price rate of change.}
-    \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
 \end{align*}
 \\
 
@@ -296,8 +300,8 @@ S_r \ && (\frac{1}{\text{sec}}) && &\text{ : average redemption rate}
 \begin{align*}
     V_n &= S_n \cdot N \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{ : nomin transfer rate.} \\
     V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin} \leftrightarrow \text{curit conversion rate.} \\
-    V_i &= (C - C_e) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin issuance rate.} \\
-    V_r &= C_e \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : curit redemption rate.} \\
+    V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : nomin issuance rate.} \\
+    V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{ : curit redemption rate.} \\
     \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.
                Actually perhaps it should grow with the number of escrowed curits with
                no nomins issued against them.}
