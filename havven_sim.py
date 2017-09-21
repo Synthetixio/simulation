@@ -19,6 +19,7 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 class MoneyAgent(Agent):
@@ -76,6 +77,20 @@ class MoneyModel(Model):
         print("Wealth standard deviation: {}".format(self.wealth_sd()))
         self.schedule.step()
 
+def cell_counts(model):
+    dimensions = (model.grid.width, model.grid.height)
+    counts = np.zeros(dimensions)
+    for cell, x, y in model.grid.coord_iter():
+        counts[x][y] = len(cell)
+    return counts
+
+def cell_wealth(model):
+    dimensions = (model.grid.width, model.grid.height)
+    counts = np.zeros(dimensions)
+    for cell, x, y in model.grid.coord_iter():
+        counts[x][y] = sum(a.wealth for a in cell)
+    return counts
+
 m = MoneyModel(1000, 50, 50)
 
 plt.ion()
@@ -83,9 +98,8 @@ plt.hist([a.wealth for a in m.schedule.agents])
 for _ in range(1000):
     m.step()
     plt.cla()
-    plt.hist([a.wealth for a in m.schedule.agents])
+    #plt.hist([a.wealth for a in m.schedule.agents])
+    plt.imshow(cell_wealth(m), interpolation='nearest')
     plt.draw()
     plt.pause(0.01)
-from collections import Counter
-print(Counter([a.wealth for a in m.schedule.agents]))
 plt.show()
