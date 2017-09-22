@@ -19,9 +19,12 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
+from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import ChartModule
+from mesa.visualization.ModularVisualization import ModularServer
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from scipy.stats import skewnorm
 
 class MoneyAgent(Agent):
@@ -103,21 +106,7 @@ def cell_wealth(model):
         counts[x][y] = sum(a.wealth for a in cell)
     return counts
 
-m = MoneyModel(100, 25, 25)
+m = MoneyModel(1000, 25, 25)
 
-plt.ion()
-for _ in range(100):
+for _ in range(1000):
     m.step()
-    plt.figure(1)
-    plt.cla()
-    plt.hist([a.wealth for a in m.schedule.agents])
-    plt.figure(2)
-    plt.cla()
-    plt.imshow(cell_wealth(m), interpolation='nearest')
-    plt.figure(3)
-    plt.cla()
-    plt.plot(m.collector.get_model_vars_dataframe())
-    plt.draw()
-    plt.pause(0.01)
-
-plt.pause(5)
