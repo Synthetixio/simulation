@@ -6,7 +6,14 @@ This will be an agent-based model of the Havven system. To run the simulation, i
 
 There will be three components to this simulation:
 
-* The agents themselves; market makers, arbitrageurs, speculators, and so forth;
+* The agents themselves; possible future players:
+    * market makers
+    * arbitrageurs
+    * day-trading speculators
+    * buy-and-hold speculators
+    * merchants / citizens
+    * cryptocurrency refugees
+    * attackers
 * The currency environment of Havven itself;
 * A virtual exchange to go between `NOM`, `CUR`, and `USD`;
 
