@@ -18,6 +18,7 @@ import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.datacollection import DataCollector
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ class MoneyAgent(Agent):
     """An agent with a fixed initial wealth."""
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.wealth = int((skewnorm.rvs(4) + 1)*10)
+        self.wealth = int(skewnorm.rvs(100)*10)
 
     def move(self):
         steps = self.model.grid.get_neighborhood(self.pos, moore=True)
@@ -47,6 +48,20 @@ class MoneyAgent(Agent):
     def step(self):
         self.move()
         self.donate()
+    
+def wealth_sd(model):
+    agents = model.schedule.agents
+    num_agents = len(agents)
+
+    mean_wealth = sum([a.wealth for a in agents])/num_agents
+    sum_squared_diffs = sum([(a.wealth - mean_wealth)**2 for a in agents])
+
+    return (sum_squared_diffs/(num_agents - 1))**0.5
+
+def gini(model):
+    n, s_wealth = len(model.schedule.agents), sorted([a.wealth for a in model.schedule.agents])
+    return 1 + (1/n) - 2*(sum(x*(n-i) for i, x in enumerate(s_wealth)) / (n*sum(s_wealth)))
+
 
 class MoneyModel(Model):
     """A model with some number of agents."""
@@ -62,20 +77,16 @@ class MoneyModel(Model):
             x = random.randrange(1, self.grid.width)
             y = random.randrange(1, self.grid.height)
             self.grid.place_agent(a, (x, y))
-    
-    def wealth_sd(self):
-        agents = self.schedule.agents
-        num_agents = len(agents)
 
-        mean_wealth = sum([a.wealth for a in agents])/num_agents
-        sum_squared_diffs = sum([(a.wealth - mean_wealth)**2 for a in agents])
-
-        return (sum_squared_diffs/(num_agents - 1))**0.5
+        self.collector = DataCollector(model_reporters={"Gini": gini,
+                                                        "Wealth SD": wealth_sd},
+                                       agent_reporters={"Wealth": lambda a: a.wealth})
 
     def step(self):
         """Advance the model by one step."""
 
-        print("Wealth standard deviation: {}".format(self.wealth_sd()))
+        print("Wealth SD: {0:.2f}, GINI: {1:.2f}".format(wealth_sd(self), gini(self)))
+        self.collector.collect(self)
         self.schedule.step()
 
 def cell_counts(model):
@@ -92,10 +103,10 @@ def cell_wealth(model):
         counts[x][y] = sum(a.wealth for a in cell)
     return counts
 
-m = MoneyModel(1000, 50, 50)
+m = MoneyModel(100, 25, 25)
 
 plt.ion()
-for _ in range(1000):
+for _ in range(100):
     m.step()
     plt.figure(1)
     plt.cla()
@@ -103,6 +114,10 @@ for _ in range(1000):
     plt.figure(2)
     plt.cla()
     plt.imshow(cell_wealth(m), interpolation='nearest')
+    plt.figure(3)
+    plt.cla()
+    plt.plot(m.collector.get_model_vars_dataframe())
     plt.draw()
     plt.pause(0.01)
-plt.show()
+
+plt.pause(5)
