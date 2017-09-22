@@ -2,6 +2,7 @@
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.UserParam import UserSettableParameter
 from model import MoneyModel
 
 def agent_portrayal(agent):
@@ -16,7 +17,7 @@ def agent_portrayal(agent):
             "Layer": 0}
 
 
-def make_server(n_agents=1000, width=25, height=25, px_width=500, px_height=500):
+def make_server(n_agents=200, width=25, height=25, px_width=500, px_height=500):
     grid = CanvasGrid(agent_portrayal, width, height, px_width, px_height)
     chart = ChartModule([{"Label": "Gini",
                           "Color": "red"},
@@ -30,6 +31,8 @@ def make_server(n_agents=1000, width=25, height=25, px_width=500, px_height=500)
                           "Color": "orange"}],
                        data_collector_name="collector")
 
+    n_slider = UserSettableParameter('slider', "Number of Agents", n_agents, 2, 2000, 1)
+
     server = ModularServer(MoneyModel, [grid, chart, chart2], "Money Model",
-                        {"N": n_agents, "width": width, "height": height})
+                        {"N": n_slider, "width": width, "height": height})
     return server
