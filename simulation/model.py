@@ -19,9 +19,6 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
-from mesa.visualization.modules import CanvasGrid
-from mesa.visualization.modules import ChartModule
-from mesa.visualization.ModularVisualization import ModularServer
 
 import numpy as np
 #import matplotlib.pyplot as plt
@@ -65,10 +62,18 @@ def gini(model):
     n, s_wealth = len(model.schedule.agents), sorted([a.wealth for a in model.schedule.agents])
     return 1 + (1/n) - 2*(sum(x*(n-i) for i, x in enumerate(s_wealth)) / (n*sum(s_wealth)))
 
+def max_wealth(model):
+    w = [a.wealth for a in model.schedule.agents]
+    return max(w)
+
+def min_wealth(model):
+    w = [a.wealth for a in model.schedule.agents]
+    return min(w)
 
 class MoneyModel(Model):
     """A model with some number of agents."""
     def __init__(self, N, width, height):
+        self.running = True
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(width, height, True)
 
@@ -82,13 +87,13 @@ class MoneyModel(Model):
             self.grid.place_agent(a, (x, y))
 
         self.collector = DataCollector(model_reporters={"Gini": gini,
-                                                        "Wealth SD": wealth_sd},
+                                                        "Wealth SD": wealth_sd,
+                                                        "Max Wealth": max_wealth,
+                                                        "Min Wealth": min_wealth},
                                        agent_reporters={"Wealth": lambda a: a.wealth})
 
     def step(self):
         """Advance the model by one step."""
-
-        print("Wealth SD: {0:.2f}, GINI: {1:.2f}".format(wealth_sd(self), gini(self)))
         self.collector.collect(self)
         self.schedule.step()
 
@@ -105,8 +110,3 @@ def cell_wealth(model):
     for cell, x, y in model.grid.coord_iter():
         counts[x][y] = sum(a.wealth for a in cell)
     return counts
-
-m = MoneyModel(1000, 25, 25)
-
-for _ in range(1000):
-    m.step()
