@@ -1,28 +1,13 @@
-"""
-havven_sim.py
-
-This will be an agent-based model of the Havven system.
-
-It must incorporate three parts: 
-
-* The currency environment itself;
-* An exchange to go between NOM, CUR, and USD;
-* The agents themselves.
-"""
-
-
-# What follows is just a prototype to demonstrate that the mesa ABM module works.
-
 import random
+
+import numpy as np
+from scipy.stats import skewnorm
 
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-import numpy as np
-#import matplotlib.pyplot as plt
-from scipy.stats import skewnorm
 
 class MoneyAgent(Agent):
     """An agent with a fixed initial wealth."""

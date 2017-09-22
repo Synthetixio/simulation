@@ -1,4 +1,3 @@
-# I run the sim, and the visualisation server.
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
@@ -15,7 +14,6 @@ def agent_portrayal(agent):
             "Filled": "true",
             "Color": color,
             "Layer": 0}
-
 
 def make_server(n_agents=200, width=25, height=25, px_width=500, px_height=500):
     grid = CanvasGrid(agent_portrayal, width, height, px_width, px_height)
