@@ -26,24 +26,37 @@ class MarketPlayer(Agent):
 
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
-        return self.fiat + self.model.cur_to_fiat(self.curits) + self.model.nom_to_fiat(self.nomins)
+        return self.fiat + \
+               self.model.cur_to_fiat(self.curits + self.escrowed_curits) + \
+               self.model.nom_to_fiat(self.nomins - self.issued_nomins)
 
     def transfer_fiat_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a value of fiat to the recipient, if balance is sufficient. Return True on success."""
+        """Transfer a positive value of fiat to the recipient, if balance is sufficient. Return True on success."""
         return self.model.transfer_fiat(self, recipient, value)
     
     def transfer_curits_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a value of curits to the recipient, if balance is sufficient. Return True on success."""
+        """Transfer a positive value of curits to the recipient, if balance is sufficient. Return True on success."""
         return self.model.transfer_curits(self, recipient, value)
 
     def transfer_nomins_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a value of nomins to the recipient, if balance is sufficient. Return True on success."""
+        """Transfer a positive value of nomins to the recipient, if balance is sufficient. Return True on success."""
         return self.model.transfer_nomins(self, recipient, value)
-
+    
     def escrow_curits(self, value:float) -> bool:
-        pass
+        """Escrow a positive value of curits in order to be able to issue nomins against them."""
+        if self.curits >= value >= 0:
+            self.curits -= value
+            self.escrowed_curits += value
+            self.model.escrowed_curits += value
+            return True
+        return False
 
     def issue_nomins(self, value:float) -> bool:
+        """Issue a positive value of nomins against currently escrowed curits, up to the utilisation ratio maximum."""
+        pass
+
+    def redeem_curits(self, value:float) -> bool:
+        """Burn nomins in order to unescrow curits."""
         pass
 
     def step(self) -> None:
@@ -113,29 +126,31 @@ class HavvenModel(Model):
         self.escrowed_curits = 0.0
         self.issued_nomins = 0.0
 
+        # Utilisation Ratio
+        self.utilisation_ratio_max
 
     def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
-        """Transfer a value of fiat currency from the sender to the recipient, if balance is sufficient.
+        """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if (value >= sender.fiat):
+        if sender.fiat >= value >= 0:
             sender.fiat -= value
             recipient.fiat += value
             return True
         return False
-
+    
     def transfer_curits(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
-        """Transfer a value of curits from the sender to the recipient, if balance is sufficient.
+        """Transfer a positive value of curits from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if (value >= sender.curits):
+        if sender.curits >= value >= 0:
             sender.curits -= value
             recipient.curits += value
             return True
         return False
-
-    def transfer_nomins(self, sender, recipient, value) -> bool:
-        """Transfer a value of nomins from the sender to the recipient, if balance is sufficient.
+    
+    def transfer_nomins(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+        """Transfer a positive value of nomins from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if (value >= sender.nomins):
+        if sender.nomins >= value >= 0:
             sender.nomins -= value
             recipient.nomins += value
             return True
