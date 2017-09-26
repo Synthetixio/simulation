@@ -218,11 +218,6 @@ class HavvenModel(Model):
 
     def step(self) -> None:
         """Advance the model by one step."""
-        # Increment the market time
-        self.cur_nom_market.step()
-        self.cur_fiat_market.step()
-        self.nom_fiat_market.step()
-
         # Agents submit trades
         self.schedule.step()
 
