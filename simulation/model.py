@@ -51,13 +51,42 @@ class MarketPlayer(Agent):
             return True
         return False
 
+    def available_escrowed_curits(self) -> float:
+        """Return the quantity of escrowed curits which is not locked by issued nomins (may be negative)."""
+        return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
+
+    def unavailable_escrowed_curits(self) -> float:
+        """Return the quantity of escrowed curits which is locked by having had nomins issued against it (may be greater than total escrowed curits)."""
+        return self.model.nom_to_cur(self.issued_nomins)
+
+    def unescrow_curits(self, value:float) -> bool:
+        """Unescrow a quantity of curits, if there are not too many issued nomins locking it."""
+        if 0 <= value <= available_escrowed_curits(value):
+            self.curits += value
+            self.escrowed_curits -= value
+            return True
+        return False
+
+    def issuance_rights(self) -> float:
+        """The total quantity of nomins this agent has a right to issue."""
+        return self.model.cur_to_nom(self.escrowed_curits) * self.model.utilisation_ratio_max
+
     def issue_nomins(self, value:float) -> bool:
         """Issue a positive value of nomins against currently escrowed curits, up to the utilisation ratio maximum."""
-        pass
+        remaining = self.issuance_rights() - self.issued_nomins
+        if 0 <= value <= remaining:
+            self.issued_nomins += value
+            self.nomins += value
+            return True
+        return False
 
-    def redeem_curits(self, value:float) -> bool:
-        """Burn nomins in order to unescrow curits."""
-        pass
+    def burn_nomins(self, value:float) -> bool:
+        """Burn a positive value of issued nomins, which frees up curits."""
+        if 0 <= value <= self.nomins and value <= self.issued_nomins:
+            self.nomins -= value
+            self.issued_nomins -= value
+            return True
+        return False
 
     def step(self) -> None:
         pass
@@ -65,7 +94,7 @@ class MarketPlayer(Agent):
 
 # Functions for extracting aggregate information from the Havven model.
 
-def wealth_sd(model:HavvenModel) -> float:
+def wealth_sd(model:"HavvenModel") -> float:
     """Return the standard deviation of wealth in the economy."""
     num_agents = len(model.schedule.agents)
     wealths = [a.wealth() for a in model.schedule.agents]
@@ -73,17 +102,17 @@ def wealth_sd(model:HavvenModel) -> float:
     sum_squared_diffs = sum([(w - mean_wealth)**2 for w in wealths])
     return (sum_squared_diffs/(num_agents - 1))**0.5
 
-def gini(model:HavvenModel) -> float:
+def gini(model:"HavvenModel") -> float:
     """Return the gini coefficient in the economy."""
     n, s_wealth = len(model.schedule.agents), sorted([a.wealth() for a in model.schedule.agents])
     return 1 + (1/n) - 2*(sum(x*(n-i) for i, x in enumerate(s_wealth)) / (n*sum(s_wealth)))
 
-def max_wealth(model:HavvenModel) -> float:
+def max_wealth(model:"HavvenModel") -> float:
     """Return the wealth of the richest person in the economy."""
     w = [a.wealth() for a in model.schedule.agents]
     return max(w)
 
-def min_wealth(model:HavvenModel) -> float:
+def min_wealth(model:"HavvenModel") -> float:
     """Return the wealth of the poorest person in the economy."""
     w = [a.wealth() for a in model.schedule.agents]
     return min(w)
@@ -126,8 +155,8 @@ class HavvenModel(Model):
         self.escrowed_curits = 0.0
         self.issued_nomins = 0.0
 
-        # Utilisation Ratio
-        self.utilisation_ratio_max
+        # Utilisation Ratio maximum (between 0 and 1)
+        self.utilisation_ratio_max = 1.0
 
     def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
