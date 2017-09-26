@@ -8,6 +8,8 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
+import orderbook
+
 
 class MarketPlayer(Agent):
     """
@@ -158,6 +160,11 @@ class HavvenModel(Model):
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
 
+        # Order books
+        self.cur_nom_market = orderbook.OrderBook()
+        self.cur_fiat_market = orderbook.OrderBook()
+        self.nom_fiat_market = orderbook.OrderBook()
+
     def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
         Return True on success."""
@@ -211,5 +218,18 @@ class HavvenModel(Model):
 
     def step(self) -> None:
         """Advance the model by one step."""
-        self.collector.collect(self)
+        # Increment the market time
+        self.cur_nom_market.step()
+        self.cur_fiat_market.step()
+        self.nom_fiat_market.step()
+
+        # Agents submit trades
         self.schedule.step()
+
+        # Resolve outstanding trades
+        self.cur_nom_market.resolve()
+        self.cur_fiat_market.resolve()
+        self.nom_fiat_market.resolve()
+
+        # Collect data
+        self.collector.collect(self)
