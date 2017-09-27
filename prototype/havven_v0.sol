@@ -2,9 +2,8 @@ pragma solidity ^0.4.11;
 
 /*    - Prefer exceptions to return values. (Too paranoid?)
  *    - Check things before execution, rather than afterwards and revert, if possible.
- *    - Need to work out how fixed-precision arithmetic should go.
- *    - When and how frequently are fees distributed?
- *    - 
+ *    - Need to work out how the fixed-precision arithmetic should go.
+ *    - When and how frequently are fees distributed? (and How?)
  */
 
 
@@ -29,29 +28,16 @@ contract PriceOracle {
         nominPrice = price;
     }
 
+    // TODO: Fill this up so that it converts to the maximum possible number of curits and gives back the unconvertible change.
     // Take nomins in, return the converted quantity of curits and return a residue that was unconvertible.
     // 0 in 0 out.
     function toCurits(uint nomins) public constant returns (uint convertedCur, uint convertedNom) {
-        // TODO, fill me in so that everything works out.
         require(nominPrice != 0 && curitPrice != 0);
-        /*uint rate;
-        uint cur;
-        if (curitPrice > nominPrice) {
-            rate = curitPrice / nominPrice;
-            cur = nomins * rate;
-            return (cur, nomins);
-        } else {
-            //rate = nominPrice / curitPrice;
-            //cur = nomins / rate;
-
-            cur = (nomins * curitPrice) / nominPrice;
-            return (cur, (nomins * curitPrice) % nominPrice);
-        }*/
+        
         // For now, just do the naive thing and leak nomins.
         return ((nomins * curitPrice) / nominPrice, 0);
     }
     function toNomins(uint curits) public constant returns (uint convertedCur, uint convertedNom) {
-        // TODO, fill me in so that everything works out.
         return (0, (curits * nominPrice) / curitPrice);
     }
 }
