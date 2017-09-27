@@ -26,6 +26,8 @@ class MarketPlayer(Agent):
         self.escrowed_curits = 0
         self.issued_nomins = 0
 
+        self.orders = set()
+
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
         return self.fiat + \
@@ -89,6 +91,10 @@ class MarketPlayer(Agent):
             self.issued_nomins -= value
             return True
         return False
+
+    def cancel_order(self, order):
+        if order in self.orders:
+            self.orders.remove(order)
 
     def step(self) -> None:
         pass
@@ -161,32 +167,114 @@ class HavvenModel(Model):
         self.utilisation_ratio_max = 1.0
 
         # Order books
-        self.cur_nom_market = orderbook.OrderBook()
-        self.cur_fiat_market = orderbook.OrderBook()
-        self.nom_fiat_market = orderbook.OrderBook()
+        # If a book is X_Y_market, then buyers hold X and sellers hold Y.
+        self.cur_nom_market = orderbook.OrderBook(self.cur_nom_match)
+        self.cur_fiat_market = orderbook.OrderBook(self.cur_fiat_match)
+        self.nom_fiat_market = orderbook.OrderBook(self.nom_fiat_match)
+    
+    @classmethod
+    def __x_y_transfer__(cls, bid, ask, x_success, y_success, x_transfer, y_transfer) -> bool:
+        if ask.price > bid.price:
+            return False
+        
+        # Price will be favourable to whoever went second.
+        price = ask.price if ask.time > bid.time else bid.price
+        quantity = min(ask.quantity, bid.quantity)
+        buy_val = quantity*price
 
-    def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+        # Only perform the actual transfer if it would be successful.
+        # Cancel any orders that would not succeed.
+        fail = False
+        if not x_success(bid.issuer, ask.issuer, buy_val):
+            bid.cancel()
+            fail = True
+        if not y_success(ask.issuer, bid.issuer, quantity):
+            ask.cancel()
+            fail = True
+        if fail:
+            return False
+        
+        # Perform the actual transfers
+        x_transfer(bid.issuer, ask.issuer, buy_val)
+        y_transfer(ask.issuer, bid.issuer, quantity)
+
+        # Update the orders, and cancel any with 0 remaining quantity.
+        ask.quantity -= quantity
+        bid.quantity -= quantity
+        if ask.quantity == 0:
+            ask.cancel()
+        if bid.quantity == 0:
+            bid.cancel()
+
+        return True
+
+    @classmethod
+    def cur_nom_match(cls, bid, ask) -> bool:
+        """Buyer offers curits in exchange for nomins from the seller."""
+        return cls.__x_y_match__(bid, ask,
+                                    cls.transfer_curits_success,
+                                    cls.transfer_nomins_success,
+                                    cls.transfer_curits,
+                                    cls.transfer_nomins)
+
+    @classmethod
+    def cur_fiat_match(cls, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+        """Buyer offers curits in exchange for fiat from the seller."""
+        return cls.__x_y_match__(bid, ask,
+                                    cls.transfer_curits_success,
+                                    cls.transfer_fiat_success,
+                                    cls.transfer_curits,
+                                    cls.transfer_fiat)
+
+    @classmethod
+    def nom_fiat_match(cls, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+        """Buyer offers nomins in exchange for fiat from the seller."""
+        return cls.__x_y_match__(bid, ask,
+                                    cls.transfer_nomins_success,
+                                    cls.transfer_fiat_success,
+                                    cls.transfer_nomins,
+                                    cls.transfer_fiat)
+
+    @classmethod
+    def transfer_fiat_success(cls, sender:MarketPlayer, value:float) -> bool:
+        """True iff the sender could successfully send a value of fiat."""
+        return 0 <= value <= sender.fiat
+    
+    @classmethod
+    def transfer_curits_success(cls, sender:MarketPlayer, value:float) -> bool:
+        """True iff the sender could successfully send a value of curits."""
+        return 0 <= value <= sender.curits
+    
+    @classmethod
+    def transfer_nomins_success(cls, sender:MarketPlayer, value:float) -> bool:
+        """True iff the sender could successfully send a value of nomins."""
+        return 0 <= value <= sender.nomins
+    
+    @classmethod
+    def transfer_fiat(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if sender.fiat >= value >= 0:
+        if cls.transfer_fiat_success(sender, value):
             sender.fiat -= value
             recipient.fiat += value
             return True
         return False
     
-    def transfer_curits(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+    @classmethod
+    def transfer_curits(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of curits from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if sender.curits >= value >= 0:
+        if cls.transfer_curits_success(sender, value):
             sender.curits -= value
             recipient.curits += value
             return True
         return False
     
-    def transfer_nomins(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+    @classmethod
+    def transfer_nomins(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of nomins from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if sender.nomins >= value >= 0:
+        if cls.transfer_nomins_success(sender, value):
             sender.nomins -= value
             recipient.nomins += value
             return True
