@@ -174,10 +174,16 @@ class HavvenModel(Model):
     
     @classmethod
     def __x_y_transfer__(cls, bid, ask, x_success, y_success, x_transfer, y_transfer) -> bool:
+        """
+        Trade between the given ask and bid if they can, with the given transfer and success functions.
+        Cancel any orders which the agent cannot afford to service.
+        """
         if ask.price > bid.price:
             return False
         
-        # Price will be favourable to whoever went second.
+        # Price will be favourable to whoever went first.
+        # The earlier poster does no worse than their posted price, but may do better;
+        # while the later poster transacts at their posted price.
         price = ask.price if ask.time > bid.time else bid.price
         quantity = min(ask.quantity, bid.quantity)
         buy_val = quantity*price
