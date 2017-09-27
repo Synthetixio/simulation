@@ -143,6 +143,7 @@ class HavvenModel(Model):
                                                         "Max Wealth": max_wealth,
                                                         "Min Wealth": min_wealth},
                                        agent_reporters={"Wealth": lambda a: a.wealth})
+        self.time = 1
 
         # Add the market participants
         self.num_agents = N
@@ -162,6 +163,21 @@ class HavvenModel(Model):
         self.nomin_supply = 0.0
         self.escrowed_curits = 0.0
         self.issued_nomins = 0.0
+        
+        # Havven's own capital supplies
+        self.curits = self.curit_supply
+        self.nomins = 0
+
+        # Fees
+        self.fee_period = 100
+        self.nom_transfer_fee_rate = 0.005
+        self.cur_transfer_fee_rate = 0.01
+        # TODO: charge issuance and redemption fees
+        self.issuance_fee_rate = 0.01
+        self.redemption_fee_rate = 0.02
+        
+        # TODO: Move fiat fees and currency pool into its own object
+        self.fiat_transfer_fee_rate = 0.01
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
@@ -172,8 +188,7 @@ class HavvenModel(Model):
         self.cur_fiat_market = orderbook.OrderBook(self.cur_fiat_match)
         self.nom_fiat_market = orderbook.OrderBook(self.nom_fiat_match)
     
-    @classmethod
-    def __x_y_transfer__(cls, bid, ask, x_success, y_success, x_transfer, y_transfer) -> bool:
+    def __x_y_transfer__(self, bid, ask, x_success, y_success, x_transfer, y_transfer) -> bool:
         """
         Trade between the given ask and bid if they can, with the given transfer and success functions.
         Cancel any orders which the agent cannot afford to service.
@@ -214,75 +229,79 @@ class HavvenModel(Model):
 
         return True
 
-    @classmethod
-    def cur_nom_match(cls, bid, ask) -> bool:
+    def cur_nom_match(self, bid, ask) -> bool:
         """Buyer offers curits in exchange for nomins from the seller."""
-        return cls.__x_y_match__(bid, ask,
-                                    cls.transfer_curits_success,
-                                    cls.transfer_nomins_success,
-                                    cls.transfer_curits,
-                                    cls.transfer_nomins)
+        return self.__x_y_match__(bid, ask,
+                                  self.transfer_curits_success,
+                                  self.transfer_nomins_success,
+                                  self.transfer_curits,
+                                  self.transfer_nomins)
 
-    @classmethod
-    def cur_fiat_match(cls, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+    def cur_fiat_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
         """Buyer offers curits in exchange for fiat from the seller."""
-        return cls.__x_y_match__(bid, ask,
-                                    cls.transfer_curits_success,
-                                    cls.transfer_fiat_success,
-                                    cls.transfer_curits,
-                                    cls.transfer_fiat)
+        return self.__x_y_match__(bid, ask,
+                                  self.transfer_curits_success,
+                                  self.transfer_fiat_success,
+                                  self.transfer_curits,
+                                  self.transfer_fiat)
 
-    @classmethod
-    def nom_fiat_match(cls, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+    def nom_fiat_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
         """Buyer offers nomins in exchange for fiat from the seller."""
-        return cls.__x_y_match__(bid, ask,
-                                    cls.transfer_nomins_success,
-                                    cls.transfer_fiat_success,
-                                    cls.transfer_nomins,
-                                    cls.transfer_fiat)
+        return self.__x_y_match__(bid, ask,
+                                  self.transfer_nomins_success,
+                                  self.transfer_fiat_success,
+                                  self.transfer_nomins,
+                                  self.transfer_fiat)
 
-    @classmethod
-    def transfer_fiat_success(cls, sender:MarketPlayer, value:float) -> bool:
+    def transfer_fiat_fee(self, value):
+        return value * self.fiat_transfer_fee
+
+    def transfer_curits_fee(self, value):
+        return value * self.cur_transfer_fee
+
+    def transfer_nomins_fee(self, value):
+        return value * self.nom_transfer_fee
+
+    def transfer_fiat_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of fiat."""
         return 0 <= value <= sender.fiat
     
-    @classmethod
-    def transfer_curits_success(cls, sender:MarketPlayer, value:float) -> bool:
+    def transfer_curits_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of curits."""
-        return 0 <= value <= sender.curits
+        return 0 <= value + self.transfer_curits_fee(value) <= sender.fiat
     
-    @classmethod
-    def transfer_nomins_success(cls, sender:MarketPlayer, value:float) -> bool:
+    def transfer_nomins_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of nomins."""
-        return 0 <= value <= sender.nomins
-    
-    @classmethod
-    def transfer_fiat(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+        return 0 <= value + self.transfer_nomins_fee(value) <= sender.fiat
+
+    def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if cls.transfer_fiat_success(sender, value):
+        if self.transfer_fiat_success(sender, value):
             sender.fiat -= value
             recipient.fiat += value
             return True
         return False
     
-    @classmethod
-    def transfer_curits(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+    def transfer_curits(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of curits from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if cls.transfer_curits_success(sender, value):
-            sender.curits -= value
+        if self.transfer_curits_success(sender, value):
+            fee = self.transfer_curits_fee(value)
+            sender.curits -= value + fee
             recipient.curits += value
+            self.curits += fee
             return True
         return False
     
-    @classmethod
-    def transfer_nomins(cls, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
+    def transfer_nomins(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of nomins from the sender to the recipient, if balance is sufficient.
         Return True on success."""
-        if cls.transfer_nomins_success(sender, value):
-            sender.nomins -= value
+        if self.transfer_nomins_success(sender, value):
+            fee = self.transfer_nomins_fee(value)
+            sender.nomins -= value + fee
             recipient.nomins += value
+            self.nomins += fee
             return True
         return False 
 
@@ -310,6 +329,23 @@ class HavvenModel(Model):
         """Convert a quantity of fiat to its equivalent value in nomins."""
         return value / self.nomin_price
 
+    def distribute_fees(self):
+        """Distribute currently held nomins to holders of curits."""
+        # Different fee modes:
+        #  * distributed by held curits
+        # TODO: * distribute by escrowed curits
+        # TODO: * distribute by issued nomins
+        # TODO: * distribute by motility
+
+        # Held curits
+        unit = self.nomins / self.curit_supply
+        for agent in self.schedule.agents:
+            if self.nomins == 0:
+                break
+            qty = min(agent.curits * unit, self.nomins)
+            agent.nomins += qty
+            self.nomins -= qty
+        
     def step(self) -> None:
         """Advance the model by one step."""
         # Agents submit trades
@@ -320,5 +356,10 @@ class HavvenModel(Model):
         self.cur_fiat_market.resolve()
         self.nom_fiat_market.resolve()
 
+        # Distribute fees periodically.
+        if (self.time % self.fee_period) == 0:
+            self.distribute_fees()
+
         # Collect data
         self.collector.collect(self)
+        self.time += 1
