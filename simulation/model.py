@@ -71,13 +71,13 @@ class MarketPlayer(Agent):
             return True
         return False
 
-    def issuance_rights(self) -> float:
+    def max_issuance_rights(self) -> float:
         """The total quantity of nomins this agent has a right to issue."""
         return self.model.cur_to_nom(self.escrowed_curits) * self.model.utilisation_ratio_max
 
     def issue_nomins(self, value:float) -> bool:
         """Issue a positive value of nomins against currently escrowed curits, up to the utilisation ratio maximum."""
-        remaining = self.issuance_rights() - self.issued_nomins
+        remaining = self.max_issuance_rights() - self.issued_nomins
         if 0 <= value <= remaining:
             self.issued_nomins += value
             self.nomins += value
@@ -177,7 +177,7 @@ class HavvenModel(Model):
         self.redemption_fee_rate = 0.02
         
         # TODO: Move fiat fees and currency pool into its own object
-        self.fiat_transfer_fee_rate = 0.01
+        self.fiat_transfer_fee_rate = 0.0
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
@@ -254,32 +254,46 @@ class HavvenModel(Model):
                                   self.transfer_fiat)
 
     def transfer_fiat_fee(self, value):
-        return value * self.fiat_transfer_fee
+        return value * self.fiat_transfer_fee_rate
 
     def transfer_curits_fee(self, value):
-        return value * self.cur_transfer_fee
+        return value * self.cur_transfer_fee_rate
 
     def transfer_nomins_fee(self, value):
-        return value * self.nom_transfer_fee
+        return value * self.nom_transfer_fee_rate
 
     def transfer_fiat_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of fiat."""
-        return 0 <= value <= sender.fiat
+        return 0 <= value + self.transfer_fiat_fee(value) <= sender.fiat
     
     def transfer_curits_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of curits."""
-        return 0 <= value + self.transfer_curits_fee(value) <= sender.fiat
+        return 0 <= value + self.transfer_curits_fee(value) <= sender.curits
     
     def transfer_nomins_success(self, sender:MarketPlayer, value:float) -> bool:
         """True iff the sender could successfully send a value of nomins."""
-        return 0 <= value + self.transfer_nomins_fee(value) <= sender.fiat
+        return 0 <= value + self.transfer_nomins_fee(value) <= sender.nomins
+
+    def max_transferrable_fiat(self, principal):
+        """A user can transfer slightly less than their total balance when fees are taken into account."""
+        return principal / (1 + self.fiat_transfer_fee_rate)
+
+    def max_transferrable_curits(self, principal):
+        """A user can transfer slightly less than their total balance when fees are taken into account."""
+        return principal / (1 + self.cur_transfer_fee_rate)
+
+    def max_transferrable_fiat(self, principal):
+        """A user can transfer slightly less than their total balance when fees are taken into account."""
+        return principal / (1 + self.nom_transfer_fee_rate)
 
     def transfer_fiat(self, sender:MarketPlayer, recipient:MarketPlayer, value:float) -> bool:
         """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
         Return True on success."""
         if self.transfer_fiat_success(sender, value):
-            sender.fiat -= value
+            fee = self.transfer_fiat_fee(value)
+            sender.fiat -= value + fee
             recipient.fiat += value
+            self.fiat += fee
             return True
         return False
     
