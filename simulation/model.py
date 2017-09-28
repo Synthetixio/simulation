@@ -3,39 +3,15 @@ import random
 import numpy as np
 from scipy.stats import skewnorm
 
-from mesa import Agent, Model
+from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 import orderbook
-from agents import MarketPlayer
+import modelstats
+from agents import MarketPlayer, Banker
 
-
-# Functions for extracting aggregate information from the Havven model.
-
-def wealth_sd(model:"HavvenModel") -> float:
-    """Return the standard deviation of wealth in the economy."""
-    num_agents = len(model.schedule.agents)
-    wealths = [a.wealth() for a in model.schedule.agents]
-    mean_wealth = sum(wealths)/num_agents
-    sum_squared_diffs = sum([(w - mean_wealth)**2 for w in wealths])
-    return (sum_squared_diffs/(num_agents - 1))**0.5
-
-def gini(model:"HavvenModel") -> float:
-    """Return the gini coefficient in the economy."""
-    n, s_wealth = len(model.schedule.agents), sorted([a.wealth() for a in model.schedule.agents])
-    return 1 + (1/n) - 2*(sum(x*(n-i) for i, x in enumerate(s_wealth)) / (n*sum(s_wealth)))
-
-def max_wealth(model:"HavvenModel") -> float:
-    """Return the wealth of the richest person in the economy."""
-    w = [a.wealth() for a in model.schedule.agents]
-    return max(w)
-
-def min_wealth(model:"HavvenModel") -> float:
-    """Return the wealth of the poorest person in the economy."""
-    w = [a.wealth() for a in model.schedule.agents]
-    return min(w)
 
 class HavvenModel(Model):
     """
@@ -46,23 +22,24 @@ class HavvenModel(Model):
     including liquidity, volatility, wealth concentration, velocity of money and so on.
     """
 
-    def __init__(self, N, max_endowment=1000):
+    def __init__(self, N, max_fiat_endowment=1000):
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
-        self.collector = DataCollector(model_reporters={"Gini": gini,
-                                                        "Wealth SD": wealth_sd,
-                                                        "Max Wealth": max_wealth,
-                                                        "Min Wealth": min_wealth},
+        self.collector = DataCollector(model_reporters={"Gini": modelstats.gini,
+                                                        "Nomins": lambda model: model.nomin_supply,
+                                                        "Escrowed Curits": lambda model: model.escrowed_curits,
+                                                        "Wealth SD": modelstats.wealth_sd,
+                                                        "Max Wealth": modelstats.max_wealth,
+                                                        "Min Wealth": modelstats.min_wealth,
+                                                        "Curit Demand": modelstats.curit_demand,
+                                                        "Curit Supply": modelstats.curit_supply,
+                                                        "Nomin Demand": modelstats.nomin_demand,
+                                                        "Nomin Supply": modelstats.nomin_supply,
+                                                        "Fiat Demand": modelstats.fiat_demand,
+                                                        "Fiat Supply": modelstats.fiat_supply},
                                        agent_reporters={"Wealth": lambda a: a.wealth})
         self.time = 1
-
-        # Add the market participants
-        self.num_agents = N
-        for i in range(self.num_agents):
-            endowment = int(skewnorm.rvs(100)*max_endowment)
-            a = MarketPlayer(i, self, endowment)
-            self.schedule.add(a)
 
         # Market variables
 
@@ -74,7 +51,6 @@ class HavvenModel(Model):
         self.curit_supply = 10.0**9
         self.nomin_supply = 0.0
         self.escrowed_curits = 0.0
-        self.issued_nomins = 0.0
         
         # Havven's own capital supplies
         self.curits = self.curit_supply
@@ -96,10 +72,30 @@ class HavvenModel(Model):
 
         # Order books
         # If a book is X_Y_market, then buyers hold X and sellers hold Y.
-        self.nom_cur_market = orderbook.OrderBook(self.nom_cur_match)
-        self.fiat_cur_market = orderbook.OrderBook(self.fiat_cur_match)
-        self.fiat_nom_market = orderbook.OrderBook(self.fiat_nom_match)
-    
+        self.nom_cur_market = orderbook.OrderBook("NOM/CUR", self.nom_cur_match)
+        self.fiat_cur_market = orderbook.OrderBook("FIAT/CUR", self.fiat_cur_match)
+        self.fiat_nom_market = orderbook.OrderBook("FIAT/NOM", self.fiat_nom_match)
+
+
+        # Add the market participants
+        self.num_agents = N
+        for i in range(self.num_agents):
+            endowment = int(skewnorm.rvs(100)*max_fiat_endowment)
+            a = Banker(i, self, curits=endowment)
+            self.schedule.add(a)
+
+        reserve_bank = MarketPlayer(self.num_agents, self, 0)
+        self.endow_curits(reserve_bank, N * max_fiat_endowment)
+        self.schedule.add(reserve_bank)
+        reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment)
+
+    def endow_curits(self, agent:MarketPlayer, curits:int):
+        """Grant an agent an endowment of curits."""
+        if curits > 0:
+            value = min(self.curits, curits)
+            agent.curits += value
+            self.curits -= value
+
     def __bid_ask_match__(self, bid, ask, bid_success, ask_success, bid_transfer, ask_transfer) -> bool:
         """
         Trade between the given bid and ask if they can, with the given transfer and success functions.
@@ -138,6 +134,8 @@ class HavvenModel(Model):
             ask.cancel()
         if bid.quantity == 0:
             bid.cancel()
+
+        print(f"{self.name} matched '{bid}' with '{ask}'.")
 
         return True
 
@@ -285,6 +283,8 @@ class HavvenModel(Model):
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
             self.distribute_fees()
+
+        print(self.nomin_supply)
 
         # Collect data
         self.collector.collect(self)

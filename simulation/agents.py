@@ -1,4 +1,7 @@
+import random
+
 from mesa import Agent
+
 import model
 
 class MarketPlayer(Agent):
@@ -8,11 +11,11 @@ class MarketPlayer(Agent):
     to trade in the marketplace. Its aim is to increase its own wealth.
     """
 
-    def __init__(self, unique_id, model, endowment):
+    def __init__(self, unique_id, model, fiat=0, curits=0, nomins=0):
         super().__init__(unique_id, model)
-        self.fiat = endowment 
-        self.curits = 0
-        self.nomins = 0
+        self.fiat = fiat
+        self.curits = curits
+        self.nomins = nomins
         self.escrowed_curits = 0
         self.issued_nomins = 0
 
@@ -45,6 +48,15 @@ class MarketPlayer(Agent):
             return True
         return False
 
+    def unescrow_curits(self, value:float) -> bool:
+        """Unescrow a quantity of curits, if there are not too many issued nomins locking it."""
+        if 0 <= value <= available_escrowed_curits(value):
+            self.curits += value
+            self.escrowed_curits -= value
+            self.model.escrowed_curits -= value
+            return True
+        return False
+
     def available_escrowed_curits(self) -> float:
         """Return the quantity of escrowed curits which is not locked by issued nomins (may be negative)."""
         return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
@@ -52,14 +64,6 @@ class MarketPlayer(Agent):
     def unavailable_escrowed_curits(self) -> float:
         """Return the quantity of escrowed curits which is locked by having had nomins issued against it (may be greater than total escrowed curits)."""
         return self.model.nom_to_cur(self.issued_nomins)
-
-    def unescrow_curits(self, value:float) -> bool:
-        """Unescrow a quantity of curits, if there are not too many issued nomins locking it."""
-        if 0 <= value <= available_escrowed_curits(value):
-            self.curits += value
-            self.escrowed_curits -= value
-            return True
-        return False
 
     def max_issuance_rights(self) -> float:
         """The total quantity of nomins this agent has a right to issue."""
@@ -71,6 +75,7 @@ class MarketPlayer(Agent):
         if 0 <= value <= remaining:
             self.issued_nomins += value
             self.nomins += value
+            self.model.nomin_supply += value
             return True
         return False
 
@@ -79,6 +84,7 @@ class MarketPlayer(Agent):
         if 0 <= value <= self.nomins and value <= self.issued_nomins:
             self.nomins -= value
             self.issued_nomins -= value
+            self.model.nomin_supply -= value
             return True
         return False
     
@@ -120,37 +126,20 @@ class MarketPlayer(Agent):
     def step(self) -> None:
         pass
 
+class Banker(MarketPlayer):
+    """Test Agent: Wants to buy curits and issue nomins, in order to accrue fees."""
 
-
-
-"""
-class RandomActor(model.MarketPlayer):
-    # Actions: 
-    #  * Transfer to another agent (fiat, nomins, curits)
-    #  * buy/sell on the exchange
-    #  * issue nomins
-    #  * burn nomins 
-    #  * (escrowing and unescrowing curits are just functions of issuing and burning nomins -- might need a state machine here)
-
-    def can_transfer_fiat(self):
-        pass
-
-    def can_transfer_curits(self):
-        pass
-    
-    def can_transfer_curits(self):
-        pass
-
-class Banker(model.MarketPlayer):
-    Wants to buy curits and issue nomins, in order to accrue fees.
-
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fiat_curit_order = self.sell_fiat_for_curits(0)
         self.nomin_curit_order = self.sell_nomins_for_curits(0)
+        self.rate = random.random() * 0.2
 
     def step(self):
-        if not self.fiat_curit_order.active:
-
         if self.fiat > 0:
-            self.model.cur_fiat_market.sell
-"""
+            self.fiat_curit_order.cancel()
+            self.sell_fiat_for_nomins(self.fiat * self.rate)
+
+        issuable = self.max_issuance_rights() - self.issued_nomins
+        if issuable > 0:
+            self.issue_nomins(issuable)

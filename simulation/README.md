@@ -20,7 +20,7 @@ Or, to open the experiments notebook:
 
 There will be three components to this simulation:
 
-* The agents themselves; possible future players:
+* The agents themselves. possible future players:
     * market makers
     * arbitrageurs
     * day-trading speculators
@@ -28,13 +28,15 @@ There will be three components to this simulation:
     * merchants / citizens
     * cryptocurrency refugees
     * attackers
-* The currency environment of Havven itself;
-* A virtual exchange to go between `NOM`, `CUR`, and `USD`;
+* The currency environment of Havven itself
+* A virtual exchange to go between `NOM`, `CUR`, and `USD`
 
 ## Technicals
 It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the following files:
 
-* `run.py` - the main entry point for the program;
-* `server.py` - the simulation and visualisation server are instantiated here;
-* `model.py` - The actual ABM itself is defined here;
-* `orderbook.py` - An order book class for constructing markets between the three main currencies.
+* `run.py` - the main entry point for the program
+* `server.py` - the simulation and visualisation server are instantiated here
+* `model.py` - the actual ABM of Havven itself
+* `orderbook.py` - an order book class for constructing markets between the three main currencies
+* `agents.py` - economic actors who will interact with the model and the order book
+* `modelstats.py` - statistical functions for examining interesting economic properties of the Havven model

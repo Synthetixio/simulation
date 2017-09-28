@@ -22,6 +22,9 @@ class Order:
         else:
             self.quantity = 0
             self.cancel()
+    
+    def __str__(self):
+        return f"{self.quantity}x{self.price} @ {self.time} by {self.issuer.unique_id}"
 
 class Bid(Order):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
@@ -53,6 +56,9 @@ class Bid(Order):
             self.time = self.book.time
             self.book.buy_orders.add(order)
             self.book.step()
+    
+    def __str__(self):
+        return "Bid: " + super().__str__()
 
 
 class Ask(Order):
@@ -86,12 +92,15 @@ class Ask(Order):
             self.book.sell_orders.add(order)
             self.book.step()
 
+    def __str__(self):
+        return "Ask: " + super().__str__()
 
 class OrderBook:
     """An order book for Havven agents to interact with.
     This one is generic, but there will have to be three markets in Havven (nom-cur, fiat-cur, fiat-nom)."""
 
-    def __init__(self, match):
+    def __init__(self, name, match):
+        self.name = name
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
         self.buy_orders = SortedListWithKey(key=Bid.comparator)
@@ -135,27 +144,24 @@ class OrderBook:
     
     def highest_bid(self) -> float:
         """Return the highest available buy price."""
-        return self.buy_orders[0].price if len(self.buy_orders) else None
+        return self.buy_orders[0].price if len(self.buy_orders) else self.price
     
     def lowest_ask(self) -> float:
         """Return the lowest available sell price."""
-        return self.sell_orders[0].price if len(self.sell_orders) else None
+        return self.sell_orders[0].price if len(self.sell_orders) else self.price
 
     def spread(self) -> float:
         """Return the gap between best buy and sell prices."""
-        lowest_ask, highest_bid = self.lowest_ask(), self.highest_bid()
-        if lowest_ask is None or highest_bid is None:
-            return None
-        return lowest_ask - highest_bid
+        return self.lowest_ask() - self.highest_bid()
     
     def resolve(self):
         """Match bids with asks and perform any trades that can be made."""
         prev_bid, prev_ask = None, None
-        spread = None
+        spread = 0
         # Repeatedly match the best pair of orders until no more matches can succeed.
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.
-        while spread is not None and spread <= 0 and \
+        while spread <= 0 and len(self.buy_orders) and len(self.sell_orders) and \
               not (prev_bid == self.buy_orders[0] and prev_ask == self.sell_orders[0]):
             prev_bid, prev_ask = self.buy_orders[0], self.sell_orders[0]
             self.match(prev_bid, prev_ask)
