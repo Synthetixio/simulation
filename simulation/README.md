@@ -12,7 +12,7 @@ To run the simulation, invoke:
 
 ```python3 run.py```
 
-Or, to open the experiments notebook,
+Or, to open the experiments notebook:
 
 ```jupyter notebook experiments.ipynb```
 

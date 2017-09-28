@@ -19,34 +19,77 @@ class Order:
     def update_quantity(self, quantity:float):
         if quantity >= 0:
             self.quantity = quantity
+        else:
+            self.quantity = 0
+            self.cancel()
 
 class Bid(Order):
+    """A bid order. Instantiating one of these will automatically add it to its order book."""
+    def __init__(self, price:float, quantity:float, issuer:"MarketPlayer", book:"OrderBook"):
+        super().__init__(price, book.time, quantity, issuer, book)
+        if quantity <= 0:
+            self.active = False
+        else:
+            issuer.orders.add(self)
+            book.buy_orders.add(self)
+            book.step()
+
     @classmethod
     def comparator(cls, bid:"Bid"):
         return (-bid.price, bid.time)
 
     def cancel(self):
-        self.book.cancel_bid(self)
-        self.issuer.cancel_order(self)
+        if self.active:
+            self.active = False
+            self.book.buy_orders.remove(self)
+            self.book.step()
+            self.issuer.orders.remove(self)
+            self.issuer.notify_cancelled(self)
 
     def update_price(self, price:float):
-        self.book.update_bid_price(price, quantity)
+        if self.active:
+            self.book.buy_orders.remove(order)
+            self.price = price
+            self.time = self.book.time
+            self.book.buy_orders.add(order)
+            self.book.step()
+
 
 class Ask(Order):
+    """An ask order. Instantiating one of these will automatically add it to its order book."""
+    def __init__(self, price:float, quantity:float, issuer:"MarketPlayer", book:"OrderBook"):
+        super().__init__(price, book.time, quantity, issuer, book)
+        if quantity <= 0:
+            self.active = False
+        else:
+            issuer.orders.add(self)
+            book.sell_orders.add(self)
+            book.step()
+
     @classmethod
     def comparator(cls, ask:"Ask"):
         return (ask.price, ask.time)
-    
+
     def cancel(self):
-        self.book.cancel_ask(self)
-        self.issuer.cancel_order(self)
+        if self.active:
+            self.active = False
+            self.book.sell_orders.remove(self)
+            self.book.step()
+            self.issuer.orders.remove(self)
+            self.issuer.notify_cancelled(self)
 
     def update_price(self, price:float):
-        self.book.update_ask_price(price)
+        if self.active:
+            self.book.sell_orders.remove(order)
+            self.price = price
+            self.time = self.book.time
+            self.book.sell_orders.add(order)
+            self.book.step()
+
 
 class OrderBook:
     """An order book for Havven agents to interact with.
-    This one is generic, but there will have to be three markets in Havven (cur-nom, cur-fiat, nom-fiat)."""
+    This one is generic, but there will have to be three markets in Havven (nom-cur, fiat-cur, fiat-nom)."""
 
     def __init__(self, match):
         # Buys and sells should be ordered, by price first, then date.
@@ -55,6 +98,7 @@ class OrderBook:
         # Asks are ordered lowest-first
         self.sell_orders = SortedListWithKey(key=Ask.comparator)
 
+        # TODO: Update the underlying price as we go along.
         self.price = 1.0
         self.time = 0
 
@@ -71,50 +115,23 @@ class OrderBook:
 
     def bid(self, price:float, quantity:float, agent:"MarketPlayer") -> Bid:
         """Submit a new sell order to the book."""
-        order = self.buy_orders.add(Ask(price, self.time, quantity, agent, self))
-        self.step()
-        return order
+        return Bid(price, quantity, agent, self)
 
     def ask(self, price:float, quantity:float, agent:"MarketPlayer") -> Ask:
         """Submit a new buy order to the book."""
-        order = self.sell_orders.add(Ask(price, self.time, quantity, agent, self))
-        self.step()
-        return order
+        return Ask(price, quantity, agent, self)
     
-    def buy(self, quantity:float, agent:"MarketPlayer") -> Bid:
-        """Buy a quantity at the best available price."""
+    def buy(self, quantity:float, agent:"MarketPlayer", premium=0) -> Bid:
+        """Buy a quantity of the sale token at the best available price."""
         lowest_ask = self.lowest_ask()
-        return self.bid(self.price if lowest_ask is None else lowest_ask, quantity, agent)
+        price = (self.price if lowest_ask is None else lowest_ask) + premium
+        return self.bid(price, quantity, agent)
     
-    def sell(self, quantity:float, agent:"MarketPlayer") -> Ask:
-        """Sell a quantity at the best available prices."""
+    def sell(self, quantity:float, agent:"MarketPlayer", discount=0) -> Ask:
+        """Sell a quantity of the sale token at the best available price."""
         highest_bid = self.highest_bid()
-        return self.ask(self.price if highest_bid is None else highest_bid, quantity, agent)
-    
-    def cancel_bid(self, order:Order):
-        """Cancel a previously-existing order."""
-        self.buy_orders.remove(order)
-        order.active = False
-        self.step()
-
-    def cancel_ask(self, order:Order):
-        self.sell_orders.remove(order)
-        order.active = False
-        self.step()
-
-    def update_bid_price(self, order:Order, price:float):
-        self.buy_orders.remove(order)
-        order.price = price
-        order.time = self.time
-        self.buy_orders.add(order)
-        self.step()
-
-    def update_ask_price(self, order:Order, price:float):
-        self.sell_orders.remove(order)
-        order.price = price
-        order.time = self.time
-        self.sell_orders.add(order)
-        self.step()
+        price = (self.price if highest_bid is None else highest_bid) - discount
+        return self.ask(price, quantity, agent)
     
     def highest_bid(self) -> float:
         """Return the highest available buy price."""

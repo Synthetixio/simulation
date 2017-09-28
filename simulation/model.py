@@ -9,95 +9,7 @@ from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 import orderbook
-
-
-class MarketPlayer(Agent):
-    """
-    An agent with a fixed initial wealth in fiat, with which it must buy into the market.
-    The agent may escrow curits in order to issue nomins, and use various strategies in order
-    to trade in the marketplace. Its aim is to increase its own wealth.
-    """
-
-    def __init__(self, unique_id, model, endowment):
-        super().__init__(unique_id, model)
-        self.fiat = endowment 
-        self.curits = 0
-        self.nomins = 0
-        self.escrowed_curits = 0
-        self.issued_nomins = 0
-
-        self.orders = set()
-
-    def wealth(self) -> float:
-        """Return the total wealth of this agent at current fiat prices."""
-        return self.fiat + \
-               self.model.cur_to_fiat(self.curits + self.escrowed_curits) + \
-               self.model.nom_to_fiat(self.nomins - self.issued_nomins)
-
-    def transfer_fiat_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a positive value of fiat to the recipient, if balance is sufficient. Return True on success."""
-        return self.model.transfer_fiat(self, recipient, value)
-    
-    def transfer_curits_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a positive value of curits to the recipient, if balance is sufficient. Return True on success."""
-        return self.model.transfer_curits(self, recipient, value)
-
-    def transfer_nomins_to(self, recipient:"MarketPlayer", value:float) -> bool:
-        """Transfer a positive value of nomins to the recipient, if balance is sufficient. Return True on success."""
-        return self.model.transfer_nomins(self, recipient, value)
-    
-    def escrow_curits(self, value:float) -> bool:
-        """Escrow a positive value of curits in order to be able to issue nomins against them."""
-        if self.curits >= value >= 0:
-            self.curits -= value
-            self.escrowed_curits += value
-            self.model.escrowed_curits += value
-            return True
-        return False
-
-    def available_escrowed_curits(self) -> float:
-        """Return the quantity of escrowed curits which is not locked by issued nomins (may be negative)."""
-        return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
-
-    def unavailable_escrowed_curits(self) -> float:
-        """Return the quantity of escrowed curits which is locked by having had nomins issued against it (may be greater than total escrowed curits)."""
-        return self.model.nom_to_cur(self.issued_nomins)
-
-    def unescrow_curits(self, value:float) -> bool:
-        """Unescrow a quantity of curits, if there are not too many issued nomins locking it."""
-        if 0 <= value <= available_escrowed_curits(value):
-            self.curits += value
-            self.escrowed_curits -= value
-            return True
-        return False
-
-    def max_issuance_rights(self) -> float:
-        """The total quantity of nomins this agent has a right to issue."""
-        return self.model.cur_to_nom(self.escrowed_curits) * self.model.utilisation_ratio_max
-
-    def issue_nomins(self, value:float) -> bool:
-        """Issue a positive value of nomins against currently escrowed curits, up to the utilisation ratio maximum."""
-        remaining = self.max_issuance_rights() - self.issued_nomins
-        if 0 <= value <= remaining:
-            self.issued_nomins += value
-            self.nomins += value
-            return True
-        return False
-
-    def burn_nomins(self, value:float) -> bool:
-        """Burn a positive value of issued nomins, which frees up curits."""
-        if 0 <= value <= self.nomins and value <= self.issued_nomins:
-            self.nomins -= value
-            self.issued_nomins -= value
-            return True
-        return False
-
-    def cancel_order(self, order):
-        if order in self.orders:
-            self.orders.remove(order)
-
-    def step(self) -> None:
-        pass
+from agents import MarketPlayer
 
 
 # Functions for extracting aggregate information from the Havven model.
@@ -184,13 +96,13 @@ class HavvenModel(Model):
 
         # Order books
         # If a book is X_Y_market, then buyers hold X and sellers hold Y.
-        self.cur_nom_market = orderbook.OrderBook(self.cur_nom_match)
-        self.cur_fiat_market = orderbook.OrderBook(self.cur_fiat_match)
-        self.nom_fiat_market = orderbook.OrderBook(self.nom_fiat_match)
+        self.nom_cur_market = orderbook.OrderBook(self.nom_cur_match)
+        self.fiat_cur_market = orderbook.OrderBook(self.fiat_cur_match)
+        self.fiat_nom_market = orderbook.OrderBook(self.fiat_nom_match)
     
-    def __x_y_transfer__(self, bid, ask, x_success, y_success, x_transfer, y_transfer) -> bool:
+    def __bid_ask_match__(self, bid, ask, bid_success, ask_success, bid_transfer, ask_transfer) -> bool:
         """
-        Trade between the given ask and bid if they can, with the given transfer and success functions.
+        Trade between the given bid and ask if they can, with the given transfer and success functions.
         Cancel any orders which the agent cannot afford to service.
         """
         if ask.price > bid.price:
@@ -206,18 +118,18 @@ class HavvenModel(Model):
         # Only perform the actual transfer if it would be successful.
         # Cancel any orders that would not succeed.
         fail = False
-        if not x_success(bid.issuer, ask.issuer, buy_val):
+        if not bid_success(bid.issuer, ask.issuer, buy_val):
             bid.cancel()
             fail = True
-        if not y_success(ask.issuer, bid.issuer, quantity):
+        if not ask_success(ask.issuer, bid.issuer, quantity):
             ask.cancel()
             fail = True
         if fail:
             return False
         
         # Perform the actual transfers
-        x_transfer(bid.issuer, ask.issuer, buy_val)
-        y_transfer(ask.issuer, bid.issuer, quantity)
+        bid_transfer(bid.issuer, ask.issuer, buy_val)
+        ask_transfer(ask.issuer, bid.issuer, quantity)
 
         # Update the orders, and cancel any with 0 remaining quantity.
         ask.quantity -= quantity
@@ -229,29 +141,29 @@ class HavvenModel(Model):
 
         return True
 
-    def cur_nom_match(self, bid, ask) -> bool:
-        """Buyer offers curits in exchange for nomins from the seller."""
-        return self.__x_y_match__(bid, ask,
-                                  self.transfer_curits_success,
-                                  self.transfer_nomins_success,
-                                  self.transfer_curits,
-                                  self.transfer_nomins)
+    def nom_cur_match(self, bid, ask) -> bool:
+        """Buyer offers nomins in exchange for curits from the seller."""
+        return self.__bid_ask_match__(bid, ask,
+                                      self.transfer_nomins_success,
+                                      self.transfer_curits_success,
+                                      self.transfer_nomins,
+                                      self.transfer_curits)
 
-    def cur_fiat_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
-        """Buyer offers curits in exchange for fiat from the seller."""
-        return self.__x_y_match__(bid, ask,
-                                  self.transfer_curits_success,
-                                  self.transfer_fiat_success,
-                                  self.transfer_curits,
-                                  self.transfer_fiat)
+    def fiat_cur_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+        """Buyer offers fiat in exchange for curits from the seller."""
+        return self.__bid_ask_match__(bid, ask,
+                                      self.transfer_fiat_success,
+                                      self.transfer_curits_success,
+                                      self.transfer_fiat,
+                                      self.transfer_curits)
 
-    def nom_fiat_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
-        """Buyer offers nomins in exchange for fiat from the seller."""
-        return self.__x_y_match__(bid, ask,
-                                  self.transfer_nomins_success,
-                                  self.transfer_fiat_success,
-                                  self.transfer_nomins,
-                                  self.transfer_fiat)
+    def fiat_nom_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+        """Buyer offers fiat in exchange for nomins from the seller."""
+        return self.__bid_ask_match__(bid, ask,
+                                      self.transfer_fiat_success,
+                                      self.transfer_nomins_success,
+                                      self.transfer_fiat,
+                                      self.transfer_nomins)
 
     def transfer_fiat_fee(self, value):
         return value * self.fiat_transfer_fee_rate
@@ -366,9 +278,9 @@ class HavvenModel(Model):
         self.schedule.step()
 
         # Resolve outstanding trades
-        self.cur_nom_market.resolve()
-        self.cur_fiat_market.resolve()
-        self.nom_fiat_market.resolve()
+        self.nom_cur_market.resolve()
+        self.fiat_cur_market.resolve()
+        self.fiat_nom_market.resolve()
 
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
