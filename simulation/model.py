@@ -135,7 +135,7 @@ class HavvenModel(Model):
         if bid.quantity == 0:
             bid.cancel()
 
-        print(f"{self.name} matched '{bid}' with '{ask}'.")
+        # print(f"{self.name} matched '{bid}' with '{ask}'.")
 
         return True
 
@@ -283,8 +283,6 @@ class HavvenModel(Model):
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
             self.distribute_fees()
-
-        print(self.nomin_supply)
 
         # Collect data
         self.collector.collect(self)
