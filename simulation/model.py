@@ -55,6 +55,7 @@ class HavvenModel(Model):
         # Havven's own capital supplies
         self.curits = self.curit_supply
         self.nomins = 0
+        self.fiat = 0
 
         # Fees
         self.fee_period = 100
@@ -81,13 +82,14 @@ class HavvenModel(Model):
         self.num_agents = N
         for i in range(self.num_agents):
             endowment = int(skewnorm.rvs(100)*max_fiat_endowment)
-            a = Banker(i, self, curits=endowment)
+            a = Banker(i, self, fiat=endowment)
             self.schedule.add(a)
 
         reserve_bank = MarketPlayer(self.num_agents, self, 0)
         self.endow_curits(reserve_bank, N * max_fiat_endowment)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment)
+        reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment)
 
     def endow_curits(self, agent:MarketPlayer, curits:int):
         """Grant an agent an endowment of curits."""
@@ -114,10 +116,10 @@ class HavvenModel(Model):
         # Only perform the actual transfer if it would be successful.
         # Cancel any orders that would not succeed.
         fail = False
-        if not bid_success(bid.issuer, ask.issuer, buy_val):
+        if not bid_success(bid.issuer, buy_val):
             bid.cancel()
             fail = True
-        if not ask_success(ask.issuer, bid.issuer, quantity):
+        if not ask_success(ask.issuer, quantity):
             ask.cancel()
             fail = True
         if fail:
@@ -135,8 +137,6 @@ class HavvenModel(Model):
         if bid.quantity == 0:
             bid.cancel()
 
-        # print(f"{self.name} matched '{bid}' with '{ask}'.")
-
         return True
 
     def nom_cur_match(self, bid, ask) -> bool:
@@ -147,7 +147,7 @@ class HavvenModel(Model):
                                       self.transfer_nomins,
                                       self.transfer_curits)
 
-    def fiat_cur_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+    def fiat_cur_match(self, bid, ask) -> bool:
         """Buyer offers fiat in exchange for curits from the seller."""
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
@@ -155,7 +155,7 @@ class HavvenModel(Model):
                                       self.transfer_fiat,
                                       self.transfer_curits)
 
-    def fiat_nom_match(self, buyer:MarketPlayer, seller:MarketPlayer, buy_val:float, sell_val:float) -> bool:
+    def fiat_nom_match(self, bid, ask) -> bool:
         """Buyer offers fiat in exchange for nomins from the seller."""
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
@@ -275,6 +275,9 @@ class HavvenModel(Model):
         # Agents submit trades
         self.schedule.step()
 
+        # Collect data
+        self.collector.collect(self)
+
         # Resolve outstanding trades
         self.nom_cur_market.resolve()
         self.fiat_cur_market.resolve()
@@ -284,6 +287,4 @@ class HavvenModel(Model):
         if (self.time % self.fee_period) == 0:
             self.distribute_fees()
 
-        # Collect data
-        self.collector.collect(self)
         self.time += 1

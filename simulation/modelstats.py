@@ -49,6 +49,6 @@ def nomin_demand(model:"HavvenModel") -> float:
     return cur + fiat
 
 def nomin_supply(model:"HavvenModel") -> float:
-    cur = sum([bid.quantity * bid.price for ask in model.nom_cur_market.buy_orders])
+    cur = sum([bid.quantity * bid.price for bid in model.nom_cur_market.buy_orders])
     fiat = sum([ask.quantity for ask in model.fiat_nom_market.sell_orders])
     return cur + fiat

@@ -166,3 +166,5 @@ class OrderBook:
             prev_bid, prev_ask = self.buy_orders[0], self.sell_orders[0]
             self.match(prev_bid, prev_ask)
             spread = self.spread()
+        
+        self.price = (self.lowest_ask() + self.highest_bid()) / 2

@@ -133,12 +133,19 @@ class Banker(MarketPlayer):
         super().__init__(*args, **kwargs)
         self.fiat_curit_order = self.sell_fiat_for_curits(0)
         self.nomin_curit_order = self.sell_nomins_for_curits(0)
-        self.rate = random.random() * 0.2
+        self.rate = random.random() * 0.02
 
     def step(self):
         if self.fiat > 0:
             self.fiat_curit_order.cancel()
-            self.sell_fiat_for_nomins(self.fiat * self.rate)
+            self.fiat_curit_order = self.sell_fiat_for_curits(self.fiat * self.rate)
+        
+        if self.nomins > 0:
+            self.nomin_curit_order.cancel()
+            self.nomin_curit_order = self.sell_nomins_for_curits(self.nomins)
+
+        if self.curits > 0:
+            self.escrow_curits(self.curits)
 
         issuable = self.max_issuance_rights() - self.issued_nomins
         if issuable > 0:
