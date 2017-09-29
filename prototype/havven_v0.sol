@@ -1,3 +1,55 @@
+/*
+-----------------------------------------------------------------
+FILE INFORMATION
+-----------------------------------------------------------------
+file: 		Havven.sol
+version:	0.1
+author:		Block8 Technologies, in partnership with Havven
+
+		Anton Jurisevic
+		Michael Spain
+		Samuel Brooks
+		Tim Bass
+		Kain Warrick
+
+date:		yyyy-mm-dd
+
+checked:	-
+approved:	-
+
+-----------------------------------------------------------------
+MODULE DESCRIPTION
+-----------------------------------------------------------------
+This code is the solidity implementation of the havven stablecoin system.
+
+
+-----------------------------------------------------------------
+LICENCE INFORMATION
+-----------------------------------------------------------------
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+See MIT Licence for further details.
+<https://opensource.org/licenses/MIT>.
+
+-----------------------------------------------------------------
+RELEASE NOTES
+-----------------------------------------------------------------
+- prototype code still under development
+
+
+
+
+
+-----------------------------------------------------------------
+Block8 Technologies are accellerating blockchain technology
+through incubating meaningful, next-generation businesses.
+Find out more at block8.io
+-----------------------------------------------------------------
+
+*/
+
+
 pragma solidity ^0.4.11;
 
 /*    - Prefer exceptions to return values. (Too paranoid?)
