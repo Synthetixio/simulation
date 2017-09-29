@@ -39,9 +39,15 @@ def make_server(n_agents=200, px_width=500, px_height=500):
     chart6 = ChartModule([{"Label": "Fiat Demand", "Color": "green"},
                           {"Label": "Fiat Supply", "Color": "cyan"}],
                          data_collector_name="collector")
+    
+    chart7 = ChartModule([{"Label": "Fee Pool", "Color": "blue"}],
+                         data_collector_name="collector")
+
+    chart8 = ChartModule([{"Label": "Fees Distributed", "Color": "blue"}],
+                         data_collector_name="collector")
 
     n_slider = UserSettableParameter('slider', "Number of Agents", n_agents, 2, 2000, 1)
 
-    server = ModularServer(HavvenModel, [chart, chart2, chart3, chart4, chart5, chart6], "Havven Model",
+    server = ModularServer(HavvenModel, [chart, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "Havven Model",
                         {"N": n_slider})
     return server
