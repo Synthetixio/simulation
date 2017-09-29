@@ -1,12 +1,14 @@
 """modelstats.py: Functions for extracting aggregate information from the Havven model."""
 
+from statistics import mean, stdev
+
+
+def mean_profit_percentage(model:"HavvenModel") -> float:
+    return mean(a.profit_percentage() for a in model.schedule.agents)
+
 def wealth_sd(model:"HavvenModel") -> float:
     """Return the standard deviation of wealth in the economy."""
-    num_agents = len(model.schedule.agents)
-    wealths = [a.wealth() for a in model.schedule.agents]
-    mean_wealth = sum(wealths)/num_agents
-    sum_squared_diffs = sum([(w - mean_wealth)**2 for w in wealths])
-    return (sum_squared_diffs/(num_agents - 1))**0.5
+    return stdev(a.wealth() for a in model.schedule.agents)
 
 def gini(model:"HavvenModel") -> float:
     """Return the gini coefficient in the economy."""

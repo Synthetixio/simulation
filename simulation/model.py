@@ -26,19 +26,22 @@ class HavvenModel(Model):
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
-        self.collector = DataCollector(model_reporters={"Gini": modelstats.gini,
-                                                        "Nomins": lambda model: model.nomin_supply,
-                                                        "Escrowed Curits": lambda model: model.escrowed_curits,
-                                                        "Wealth SD": modelstats.wealth_sd,
-                                                        "Max Wealth": modelstats.max_wealth,
-                                                        "Min Wealth": modelstats.min_wealth,
-                                                        "Curit Demand": modelstats.curit_demand,
-                                                        "Curit Supply": modelstats.curit_supply,
-                                                        "Nomin Demand": modelstats.nomin_demand,
-                                                        "Nomin Supply": modelstats.nomin_supply,
-                                                        "Fiat Demand": modelstats.fiat_demand,
-                                                        "Fiat Supply": modelstats.fiat_supply},
-                                       agent_reporters={"Wealth": lambda a: a.wealth})
+        self.datacollector = DataCollector(model_reporters={"Gini": modelstats.gini,
+                                                            "Nomins": lambda model: model.nomin_supply,
+                                                            "Escrowed Curits": lambda model: model.escrowed_curits,
+                                                            "Wealth SD": modelstats.wealth_sd,
+                                                            "Max Wealth": modelstats.max_wealth,
+                                                            "Min Wealth": modelstats.min_wealth,
+                                                            "Profit %": modelstats.mean_profit_percentage,
+                                                            "Curit Demand": modelstats.curit_demand,
+                                                            "Curit Supply": modelstats.curit_supply,
+                                                            "Nomin Demand": modelstats.nomin_demand,
+                                                            "Nomin Supply": modelstats.nomin_supply,
+                                                            "Fiat Demand": modelstats.fiat_demand,
+                                                            "Fiat Supply": modelstats.fiat_supply,
+                                                            "Fee Pool": lambda model: model.nomins,
+                                                            "Fees Distributed": lambda model: model.fees_distributed},
+                                           agent_reporters={"Wealth": lambda a: a.wealth})
         self.time = 1
 
         # Market variables
@@ -58,15 +61,16 @@ class HavvenModel(Model):
         self.fiat = 0
 
         # Fees
-        self.fee_period = 100
+        self.fee_period = 50
+        self.fees_distributed = 0.0
         self.nom_transfer_fee_rate = 0.005
         self.cur_transfer_fee_rate = 0.01
         # TODO: charge issuance and redemption fees
         self.issuance_fee_rate = 0.01
         self.redemption_fee_rate = 0.02
-        
         # TODO: Move fiat fees and currency pool into its own object
         self.fiat_transfer_fee_rate = 0.0
+
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
@@ -77,16 +81,17 @@ class HavvenModel(Model):
         self.fiat_cur_market = orderbook.OrderBook("FIAT/CUR", self.fiat_cur_match)
         self.fiat_nom_market = orderbook.OrderBook("FIAT/NOM", self.fiat_nom_match)
 
-
         # Add the market participants
+        total_endowment = 0
         self.num_agents = N
         for i in range(self.num_agents):
             endowment = int(skewnorm.rvs(100)*max_fiat_endowment)
             a = Banker(i, self, fiat=endowment)
             self.schedule.add(a)
+            total_endowment += endowment
 
         reserve_bank = MarketPlayer(self.num_agents, self, 0)
-        self.endow_curits(reserve_bank, N * max_fiat_endowment)
+        self.endow_curits(reserve_bank, 2 * N * max_fiat_endowment)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment)
         reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment)
@@ -260,23 +265,23 @@ class HavvenModel(Model):
         # TODO: * distribute by escrowed curits
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
-
-        # Held curits
-        unit = self.nomins / self.curit_supply
+    
+        pre_fees = self.nomins
         for agent in self.schedule.agents:
             if self.nomins == 0:
                 break
-            qty = min(agent.curits * unit, self.nomins)
+            qty = min(agent.issued_nomins / self.nomins, self.nomins)
             agent.nomins += qty
             self.nomins -= qty
-        
+            self.fees_distributed += qty
+    
     def step(self) -> None:
         """Advance the model by one step."""
         # Agents submit trades
         self.schedule.step()
 
         # Collect data
-        self.collector.collect(self)
+        self.datacollector.collect(self)
 
         # Resolve outstanding trades
         self.nom_cur_market.resolve()
