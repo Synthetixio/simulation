@@ -96,6 +96,10 @@ class HavvenModel(Model):
         reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment)
         reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment)
 
+    def fiat_value(self, curits, nomins, fiat):
+        """Return the equivalent fiat value of the given currency basket."""
+        return self.cur_to_fiat(curits) + self.model.nom_to_fiat(nomins) + fiat
+
     def endow_curits(self, agent:MarketPlayer, curits:int):
         """Grant an agent an endowment of curits."""
         if curits > 0:
@@ -111,10 +115,10 @@ class HavvenModel(Model):
         if ask.price > bid.price:
             return False
         
-        # Price will be favourable to whoever went first.
-        # The earlier poster does no worse than their posted price, but may do better;
-        # while the later poster transacts at their posted price.
-        price = ask.price if ask.time > bid.time else bid.price
+        # Price will be favourable to whoever went second.
+        # The earlier poster trades at their posted price,
+        # while the later poster transacts at a price no worse than posted; they may do better.
+        price = ask.price if ask.time < bid.time else bid.price
         quantity = min(ask.quantity, bid.quantity)
         buy_val = quantity*price
 
