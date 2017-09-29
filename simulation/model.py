@@ -26,21 +26,22 @@ class HavvenModel(Model):
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
-        self.collector = DataCollector(model_reporters={"Gini": modelstats.gini,
-                                                        "Nomins": lambda model: model.nomin_supply,
-                                                        "Escrowed Curits": lambda model: model.escrowed_curits,
-                                                        "Wealth SD": modelstats.wealth_sd,
-                                                        "Max Wealth": modelstats.max_wealth,
-                                                        "Min Wealth": modelstats.min_wealth,
-                                                        "Curit Demand": modelstats.curit_demand,
-                                                        "Curit Supply": modelstats.curit_supply,
-                                                        "Nomin Demand": modelstats.nomin_demand,
-                                                        "Nomin Supply": modelstats.nomin_supply,
-                                                        "Fiat Demand": modelstats.fiat_demand,
-                                                        "Fiat Supply": modelstats.fiat_supply,
-                                                        "Fee Pool": lambda model: model.nomins,
-                                                        "Fees Distributed": lambda model: model.fees_distributed},
-                                       agent_reporters={"Wealth": lambda a: a.wealth})
+        self.datacollector = DataCollector(model_reporters={"Gini": modelstats.gini,
+                                                            "Nomins": lambda model: model.nomin_supply,
+                                                            "Escrowed Curits": lambda model: model.escrowed_curits,
+                                                            "Wealth SD": modelstats.wealth_sd,
+                                                            "Max Wealth": modelstats.max_wealth,
+                                                            "Min Wealth": modelstats.min_wealth,
+                                                            "Profit %": modelstats.mean_profit_percentage,
+                                                            "Curit Demand": modelstats.curit_demand,
+                                                            "Curit Supply": modelstats.curit_supply,
+                                                            "Nomin Demand": modelstats.nomin_demand,
+                                                            "Nomin Supply": modelstats.nomin_supply,
+                                                            "Fiat Demand": modelstats.fiat_demand,
+                                                            "Fiat Supply": modelstats.fiat_supply,
+                                                            "Fee Pool": lambda model: model.nomins,
+                                                            "Fees Distributed": lambda model: model.fees_distributed},
+                                           agent_reporters={"Wealth": lambda a: a.wealth})
         self.time = 1
 
         # Market variables
@@ -280,7 +281,7 @@ class HavvenModel(Model):
         self.schedule.step()
 
         # Collect data
-        self.collector.collect(self)
+        self.datacollector.collect(self)
 
         # Resolve outstanding trades
         self.nom_cur_market.resolve()

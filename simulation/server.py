@@ -16,38 +16,32 @@ def agent_portrayal(agent):
             "Layer": 0}
 
 def make_server(n_agents=200, px_width=500, px_height=500):
-    chart = ChartModule([{"Label": "Gini", "Color": "red"},
-                         {"Label": "Wealth SD", "Color": "blue"}],
-                        data_collector_name="collector")
+    charts = [ChartModule([{"Label": "Gini", "Color": "red"},
+                           {"Label": "Wealth SD", "Color": "blue"}]),
 
-    chart2 = ChartModule([{"Label": "Max Wealth", "Color": "purple"},
-                          {"Label": "Min Wealth", "Color": "orange"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Max Wealth", "Color": "purple"},
+                           {"Label": "Min Wealth", "Color": "orange"}]),
+
+              ChartModule([{"Label": "Profit %", "Color": "red"}]),
     
-    chart3 = ChartModule([{"Label": "Nomins", "Color": "blue"},
-                          {"Label": "Escrowed Curits", "Color": "red"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Nomins", "Color": "blue"},
+                           {"Label": "Escrowed Curits", "Color": "red"}]),
 
-    chart4 = ChartModule([{"Label": "Curit Demand", "Color": "red"},
-                          {"Label": "Curit Supply", "Color": "orange"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Curit Demand", "Color": "red"},
+                           {"Label": "Curit Supply", "Color": "orange"}]),
 
-    chart5 = ChartModule([{"Label": "Nomin Demand", "Color": "blue"},
-                          {"Label": "Nomin Supply", "Color": "purple"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Nomin Demand", "Color": "blue"},
+                           {"Label": "Nomin Supply", "Color": "purple"}]),
 
-    chart6 = ChartModule([{"Label": "Fiat Demand", "Color": "green"},
-                          {"Label": "Fiat Supply", "Color": "cyan"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Fiat Demand", "Color": "green"},
+                           {"Label": "Fiat Supply", "Color": "cyan"}]),
     
-    chart7 = ChartModule([{"Label": "Fee Pool", "Color": "blue"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Fee Pool", "Color": "blue"}]),
 
-    chart8 = ChartModule([{"Label": "Fees Distributed", "Color": "blue"}],
-                         data_collector_name="collector")
+              ChartModule([{"Label": "Fees Distributed", "Color": "blue"}])]
 
     n_slider = UserSettableParameter('slider', "Number of Agents", n_agents, 2, 2000, 1)
 
-    server = ModularServer(HavvenModel, [chart, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "Havven Model",
+    server = ModularServer(HavvenModel, charts, "Havven Model",
                         {"N": n_slider})
     return server

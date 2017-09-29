@@ -19,6 +19,8 @@ class MarketPlayer(Agent):
         self.escrowed_curits = 0
         self.issued_nomins = 0
 
+        self.initial_wealth = self.wealth()
+
         self.orders = set()
 
     def wealth(self) -> float:
@@ -26,6 +28,15 @@ class MarketPlayer(Agent):
         return self.fiat + \
                self.model.cur_to_fiat(self.curits + self.escrowed_curits) + \
                self.model.nom_to_fiat(self.nomins - self.issued_nomins)
+
+    def profit(self) -> float:
+        return self.wealth() - self.initial_wealth
+
+    def profit_percentage(self) -> float:
+        if self.initial_wealth != 0:
+            return self.profit() / self.initial_wealth
+        else:
+            return 0
 
     def transfer_fiat_to(self, recipient:"MarketPlayer", value:float) -> bool:
         """Transfer a positive value of fiat to the recipient, if balance is sufficient. Return True on success."""
@@ -127,7 +138,7 @@ class MarketPlayer(Agent):
         pass
 
 class Banker(MarketPlayer):
-    """Test Agent: Wants to buy curits and issue nomins, in order to accrue fees."""
+    """Wants to buy curits and issue nomins, in order to accrue fees."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,3 +161,8 @@ class Banker(MarketPlayer):
         issuable = self.max_issuance_rights() - self.issued_nomins
         if issuable > 0:
             self.issue_nomins(issuable)
+
+
+class Arbitrageur(MarketPlayer):
+    """Wants to find arbitrage cycles and exploit them to equalise prices."""
+
