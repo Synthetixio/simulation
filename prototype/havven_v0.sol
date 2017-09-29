@@ -10,7 +10,7 @@ author:		Block8 Technologies, in partnership with Havven
 		Michael Spain
 		Samuel Brooks
 		Tim Bass
-		Kain Warrick
+		Kain Warwick
 
 date:		yyyy-mm-dd
 
