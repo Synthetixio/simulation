@@ -3,6 +3,7 @@
 \usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage{svg}
+\usepackage{cite}
 \begin{document}
 
 % Macros
@@ -38,18 +39,41 @@ If you see an unfamiliar symbol in section 1, look up its definition in section 
 
 \pagebreak
 \subsection{Restatement of Purpose}
-We want to make a stablecoin in order to provide a currency which is a viable medium of exchange.
-Evidently, such a coin must have a relatively stable price. We will do this by allowing users to back it,
-automatically expanding and contracting the money supply as the well of capital fluctuates in value.
-To this end, we will provide two intertwined tokens.
-\paragraph{Curits} The reserve tokens, which users buy to obtain a part share in the entire system. The holders
-of this token are providing collateral for the system, and in so doing, assume some level of risk, but will
-be rewarded with fees the system levies automatically as part of its usual operation. The capitalisation
-of the reserve market reflects the value of the entire system.
-\paragraph{Nomins} The exchange tokens. Philosophically, we would like the nomin to be a utilon, a constant
+
+\paragraph{TODO}
+We need to differentiate Havven from both MakerDAO and Hayek Money, or explain why they are unviable.\\
+
+We would like to design a stablecoin; for any currency which is a viable medium of exchange
+must have a relatively stable price.\\
+
+In his discussion of Hayek money, Ametrano correctly makes the point that Bitcoin
+serves the purpose of crypto-gold much better than it does crypto-unit-of-account, due to its volatility and
+constrained supply.~\cite{ametrano2016hayek}
+
+\noindent By contrast, governments, which mint their own currencies, very sensibly execute discretionary
+stabilisation policies that manipulate the circulating supply.
+This powerful and necessary lever is not available to Bitcoin and other supply-constrained
+currencies of its type; instead we propose a system whose monetary policy is algorithmically
+countercyclical rather than deflationary. \\
+
+It should be possible by automatic means to incentivise issuance of tokens when they are demanded,
+and destruction when they are not. So, users of this prospective currency will be allowed to
+capitalise it, while the system automatically expands and contracts the money supply as its well of backing
+fluctuates in value. By this mechanism we might produce a more perfect currency whose supply floats with
+necessity, but which is not liable to debasement by selfish or misguided actors.
+Ideally we also remove some of the distortions of traditional monetary policy which, when it is expansionary,
+shrinks the purchasing power in every account which is not a direct beneficiary of that policy.
+In this fashion, we will provide two intertwined currencies which serve very different purposes.
+
+\paragraph{Curit} The reserve token, which users buy to obtain a part share in the entire system. The holders
+of this token are providing collateral for the system, and in so doing, assuming some level of risk.
+To compensate this risk, curit-holders will be rewarded with fees the system levies automatically as
+part of its usual operation. The capitalisation of the reserve market reflects the system's aggregate value.
+
+\paragraph{Nomin} The exchange token. Philosophically, we would like the nomin to be a utilon, a constant
 unit of utility, and so the system should stabilise its price in terms of some external, relatively-stable
-currency, or perhaps a commodity basket in order to insulate the nomin price from the volatility of its 
-underpinning currency. Each holder of curits is granted the right to issue their own nomins, in proportion
+currency or commodity basket, in order to insulate the nomin price from the volatility of its 
+underpinning reserve. Each holder of curits is granted the right to issue their own nomins, in proportion
 with the value of the curits they hold and are willing to escrow. If the user wishes to redeem their escrowed curits,
 they must present the system with nomins, in order to freely trade them again. Other than just price stability,
 the system should also encourage liquidity, if nomins are to be actually-useful as a medium of exchange.
@@ -110,7 +134,7 @@ We must improve the marginal benefit of issuing nomins into circulation in order
 this tragedy of the commons situation. So fees must be paid to those who issue nomins, not just
 those who hold curits.
 
-\paragraph{When fees can be collected}
+\paragraph{Fee collection}
 The system can potentially charge fees whenever any value is transferred, or any state is updated.
 There are only a few circumstances that these things happen:
 \begin{itemize}
@@ -119,9 +143,20 @@ There are only a few circumstances that these things happen:
     \item Nomin issuance
     \item Curit redemption
 \end{itemize}
-The fee schedule could be altered dynamically in order to stabilise the system. It's even conceivable
-that the system could set negative fee rates if it needed to.
-We might also charge punitive fees if a user is above the targeted utilisation ratio.
+
+The question is what levels to place these fees at. We might in general like to set
+higher curit than nomin transfer fees, making the stablecoin itself a lower friction market,
+in order to incentivise its use for exchange. Meanwhile, issuance and redemption fees will
+change the difficulty of entering and exiting the issuance game.
+
+It's also possible for fees to float. The fee schedule could be altered dynamically in order
+to stabilise the system. It's even conceivable that the system could set negative fee rates if it needed to.
+We might charge punitive fees if a user is above the targeted utilisation ratio.
+
+One example: if nomin liquidity is low, meaning the system wants to incentivise issuance,
+then nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued
+by issuers, thus incentivising issuance and at the same time making it more expensive to transact in nomins,
+reducing demand and decreasing the liquidity requirements.
 
 
 \pagebreak
@@ -137,6 +172,11 @@ the other hand, who issues nomins and then spends them, would be forced to buy n
 order to redeem their escrowed curits.
 
 But how to encourage a user to actually increase liquidity by buying goods with the nomins they hold? 
+
+\subsubsection{Non-discretionary Issuance}
+
+<Listed on exchange versus motility>
+
 
 
 \subsubsection{Motility}
@@ -166,11 +206,11 @@ connected component of the transaction graph as quickly as possible, then circul
     V_{a \rightarrow b} \ &:= \ \sum_{t \in T_{a \rightarrow b}}{v_t} \ \ \text{(the total value transferred from \(a\) to \(b\))} \\
     V_{a}^{in} \ &:= \ \sum_{p \in A}{V_{p \rightarrow a}} \\
     V_{a}^{out} \ &:= \ \sum_{p \in A}{V_{a \rightarrow p}} \\
-    \intertext{Note that \(T_{a \rightarrow a} := \varnothing \), and hence \(V_{a \rightarrow a} = 0\)
-               (accounts can't transfer to themselves).}
     \intertext{We might interpret \((A, T)\) as a weighted multigraph of transactions, 
-               with each transaction \(t \in T_{a \rightarrow b}\)
-               corresponding to a weighted edge in that graph between nodes \(a\) and \(b\).}
+               with each transaction \(t \in T_{a \rightarrow b}\) corresponding to a weighted
+               edge in that graph between nodes \(a\) and \(b\).
+               Note that \(T_{a \rightarrow a} := \varnothing \), and hence \(V_{a \rightarrow a} = 0\)
+               (accounts can't transfer to themselves).}
 \end{align*}
 
 \noindent We would like to know how likely a nomin is to be spent soon from a given account.
@@ -321,4 +361,8 @@ S_r \ && (\frac{1}{\text{sec}}) && &\text{: average redemption rate}
 &Ag_{nx} &:= V_n \cdot F_{nx} \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{: fees taken from nomin transfers.}
 \end{align*}
 
+
+\pagebreak
+\bibliography{citations.bib}
+\bibliographystyle{plain}
 \end{document}
