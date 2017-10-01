@@ -42,11 +42,11 @@ class MarketPlayer(Agent):
         else:
             return 0
 
-    def transfer_fiat_to(self, recipient:"MarketPlayer", value:float) -> bool:
+    def transfer_fiat_to(self, recipient: "MarketPlayer", value: float) -> bool:
         """Transfer a positive value of fiat to the recipient, if balance is sufficient. Return True on success."""
         return self.model.transfer_fiat(self, recipient, value)
-    
-    def transfer_curits_to(self, recipient:"MarketPlayer", value:float) -> bool:
+
+    def transfer_curits_to(self, recipient: "MarketPlayer", value:float) -> bool:
         """Transfer a positive value of curits to the recipient, if balance is sufficient. Return True on success."""
         return self.model.transfer_curits(self, recipient, value)
 
@@ -122,6 +122,7 @@ class MarketPlayer(Agent):
  
     def sell_curits_for_fiat(self, quantity):
         order = self.model.fiat_cur_market.sell(quantity, self)
+        self.orders.add(order)
         return order
  
     def sell_fiat_for_nomins(self, quantity):
@@ -149,16 +150,18 @@ class Banker(MarketPlayer):
         self.name = f"Banker {self.unique_id}"
         self.fiat_curit_order = self.sell_fiat_for_curits(0)
         self.nomin_curit_order = self.sell_nomins_for_curits(0)
-        self.rate = random.random() * 0.02
+        self.rate = random.random() * 0.05
 
     def step(self):
         if self.fiat > 0:
             self.fiat_curit_order.cancel()
-            self.fiat_curit_order = self.sell_fiat_for_curits(self.fiat * self.rate)
-        
+            fiat = self.model.max_transferrable_fiat(self.fiat)
+            self.fiat_curit_order = self.sell_fiat_for_curits(fiat * self.rate)
+
         if self.nomins > 0:
             self.nomin_curit_order.cancel()
-            self.nomin_curit_order = self.sell_nomins_for_curits(self.nomins)
+            nomins = self.model.max_transferrable_nomins(self.nomins)
+            self.nomin_curit_order = self.sell_nomins_for_curits(nomins)
 
         if self.curits > 0:
             self.escrow_curits(self.curits)

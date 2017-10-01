@@ -1,4 +1,4 @@
-from mesa.visualization.modules import CanvasGrid
+"""server.py: Functions for setting up the simulation/visualisation server."""
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
@@ -6,7 +6,8 @@ from mesa.visualization.UserParam import UserSettableParameter
 import model
 
 
-def make_server(n_agents=200, px_width=500, px_height=500):
+def make_server(n_agents: int = 200, cont_orders: bool = True) -> ModularServer:
+    """Set up the simulation/visualisation server and return it."""
     charts = [ChartModule([{"Label": "Havven Nomins", "Color": "blue"},
                            {"Label": "Havven Curits", "Color": "red"},
                            {"Label": "Havven Fiat", "Color": "green"}]),
@@ -18,7 +19,7 @@ def make_server(n_agents=200, px_width=500, px_height=500):
                            {"Label": "Min Wealth", "Color": "orange"}]),
 
               ChartModule([{"Label": "Profit %", "Color": "red"}]),
-    
+
               ChartModule([{"Label": "Nomins", "Color": "blue"},
                            {"Label": "Escrowed Curits", "Color": "red"}]),
 
@@ -30,13 +31,13 @@ def make_server(n_agents=200, px_width=500, px_height=500):
 
               ChartModule([{"Label": "Fiat Demand", "Color": "green"},
                            {"Label": "Fiat Supply", "Color": "cyan"}]),
-    
+
               ChartModule([{"Label": "Fee Pool", "Color": "blue"}]),
 
               ChartModule([{"Label": "Fees Distributed", "Color": "blue"}])]
 
     n_slider = UserSettableParameter('slider', "Number of agents", n_agents, 2, 2000, 1)
-    match_checkbox = UserSettableParameter('checkbox', "Continuous order matching", True)
+    match_checkbox = UserSettableParameter('checkbox', "Continuous order matching", cont_orders)
 
     server = ModularServer(model.Havven, charts, "Havven Model",
                            {"N": n_slider, "match_on_order": match_checkbox})

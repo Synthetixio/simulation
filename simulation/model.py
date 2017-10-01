@@ -97,10 +97,10 @@ class Havven(Model):
             total_endowment += endowment
 
         reserve_bank = MarketPlayer(self.num_agents, self, 0)
-        self.endow_curits(reserve_bank, 2 * N * max_fiat_endowment)
+        self.endow_curits(reserve_bank, 6 * N * max_fiat_endowment)
         self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment)
-        reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment)
+        reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment * 3)
+        reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment * 3)
 
     def fiat_value(self, curits, nomins, fiat):
         """Return the equivalent fiat value of the given currency basket."""
@@ -144,13 +144,9 @@ class Havven(Model):
         bid_transfer(bid.issuer, ask.issuer, buy_val)
         ask_transfer(ask.issuer, bid.issuer, quantity)
 
-        # Update the orders, and cancel any with 0 remaining quantity.
-        ask.quantity -= quantity
-        bid.quantity -= quantity
-        if ask.quantity == 0:
-            ask.cancel()
-        if bid.quantity == 0:
-            bid.cancel()
+        # Update the orders, cancelling any with 0 remaining quantity.
+        ask.update_quantity(ask.quantity - quantity)
+        bid.update_quantity(bid.quantity - quantity)
 
         return True
 

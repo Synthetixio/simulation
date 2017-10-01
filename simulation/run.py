@@ -1,5 +1,6 @@
+"""run.py: main entrypoint for the Havven simulation."""
 import server
 
-s = server.make_server()
-s.port = 8521
-s.launch()
+S = server.make_server()
+S.port = 8521
+S.launch()
