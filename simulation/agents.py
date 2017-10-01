@@ -11,8 +11,9 @@ class MarketPlayer(Agent):
     to trade in the marketplace. Its aim is to increase its own wealth.
     """
 
-    def __init__(self, unique_id, model, fiat=0, curits=0, nomins=0):
+    def __init__(self, unique_id, model, fiat=0, curits=0, nomins=0) -> None:
         super().__init__(unique_id, model)
+        self.name = f"Player {unique_id}"
         self.fiat = fiat
         self.curits = curits
         self.nomins = nomins
@@ -22,6 +23,9 @@ class MarketPlayer(Agent):
         self.initial_wealth = self.wealth()
 
         self.orders = set()
+
+    def __str__(self) -> str:
+        return self.name
 
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
@@ -142,6 +146,7 @@ class Banker(MarketPlayer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.name = f"Banker {self.unique_id}"
         self.fiat_curit_order = self.sell_fiat_for_curits(0)
         self.nomin_curit_order = self.sell_nomins_for_curits(0)
         self.rate = random.random() * 0.02
@@ -165,6 +170,9 @@ class Banker(MarketPlayer):
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.name = f"Arbitrageur {self.unique_id}"
 
     def find_cycle(self):
         # The only cycles that exist are NOM -> CUR -> FIAT -> NOM,
