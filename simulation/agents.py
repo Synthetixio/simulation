@@ -4,7 +4,7 @@ import random
 
 from mesa import Agent
 
-from orderbook import Order, Ask, Bid
+import orderbook as ob
 import model
 
 class MarketPlayer(Agent):
@@ -14,7 +14,7 @@ class MarketPlayer(Agent):
     to trade in the marketplace. Its aim is to increase its own wealth.
     """
 
-    def __init__(self, unique_id: int, havven: model.Havven,
+    def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0, nomins: float = 0.0) -> None:
         super().__init__(unique_id, havven)
         self.name: str = f"Player {unique_id}"
@@ -26,7 +26,7 @@ class MarketPlayer(Agent):
 
         self.initial_wealth: float = self.wealth()
 
-        self.orders: Set[Order] = set()
+        self.orders: Set["ob.Order"] = set()
 
     def __str__(self) -> str:
         return self.name
@@ -115,40 +115,40 @@ class MarketPlayer(Agent):
             return True
         return False
 
-    def sell_nomins_for_curits(self, quantity: float) -> Bid:
+    def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
         price = self.model.nom_cur_market.lowest_ask_price()
         order = self.model.nom_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
-    def sell_curits_for_nomins(self, quantity: float) -> Ask:
+    def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         order = self.model.nom_cur_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
-    def sell_fiat_for_curits(self, quantity: float) -> Bid:
+    def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         price = self.model.fiat_cur_market.lowest_ask_price()
         order = self.model.fiat_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
-    def sell_curits_for_fiat(self, quantity: float) -> Ask:
+    def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         order = self.model.fiat_cur_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
-    def sell_fiat_for_nomins(self, quantity: float) -> Bid:
+    def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         price = self.model.fiat_nom_market.lowest_ask_price()
         order = self.model.fiat_nom_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
-    def sell_nomins_for_fiat(self, quantity: float) -> Ask:
+    def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         order = self.model.fiat_nom_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
-    def notify_cancelled(self, order: Order) -> None:
+    def notify_cancelled(self, order: "ob.Order") -> None:
         pass
 
     def step(self) -> None:
