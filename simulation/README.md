@@ -40,3 +40,12 @@ It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the followi
 * `orderbook.py` - an order book class for constructing markets between the three main currencies
 * `agents.py` - economic actors who will interact with the model and the order book
 * `modelstats.py` - statistical functions for examining interesting economic properties of the Havven model
+
+## TODO
+
+* Type annotations and mypy everywhere
+* Add all necessary agents
+* Speed up the simulation (jupyter line_profiler, Cython, pure-python, pypy, pandas optimisation, better algorithms)
+* Convert to fixed-point decimals?
+* Make things pretty
+* Run experiments
