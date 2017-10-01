@@ -1,0 +1,14 @@
+*.pyc
+__pycache__
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.bbl
+*.blg
+block8logo_svg*
+.DS_Store
+.vscode
+.ipynb_checkpoints
+.mypy_cache
