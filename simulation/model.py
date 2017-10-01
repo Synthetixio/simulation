@@ -13,7 +13,7 @@ import modelstats
 from agents import MarketPlayer, Banker
 
 
-class HavvenModel(Model):
+class Havven(Model):
     """
     An agent-based model of the Havven stablecoin system. This class will provide the basic
     market functionality of havven, an exchange, and a place for the market agents to live and
@@ -22,7 +22,7 @@ class HavvenModel(Model):
     including liquidity, volatility, wealth concentration, velocity of money and so on.
     """
 
-    def __init__(self, N, max_fiat_endowment=1000, match_on_order=True):
+    def __init__(self, N, max_fiat_endowment=1000, match_on_order=True) -> None:
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
@@ -276,7 +276,6 @@ class HavvenModel(Model):
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
-        print(f"Distributing fees: {self.nomins}")
         pre_fees = self.nomins
         for agent in self.schedule.agents:
             if self.nomins == 0:

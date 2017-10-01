@@ -38,6 +38,6 @@ def make_server(n_agents=200, px_width=500, px_height=500):
     n_slider = UserSettableParameter('slider', "Number of agents", n_agents, 2, 2000, 1)
     match_checkbox = UserSettableParameter('checkbox', "Continuous order matching", True)
 
-    server = ModularServer(model.HavvenModel, charts, "Havven Model",
+    server = ModularServer(model.Havven, charts, "Havven Model",
                            {"N": n_slider, "match_on_order": match_checkbox})
     return server
