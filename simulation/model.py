@@ -35,7 +35,7 @@ class Havven(Model):
                                                             "Wealth SD": modelstats.wealth_sd,
                                                             "Max Wealth": modelstats.max_wealth,
                                                             "Min Wealth": modelstats.min_wealth,
-                                                            "Profit %": modelstats.mean_profit_percentage,
+                                                            "Profit %": modelstats.mean_profit_fraction,
                                                             "Curit Demand": modelstats.curit_demand,
                                                             "Curit Supply": modelstats.curit_supply,
                                                             "Nomin Demand": modelstats.nomin_demand,

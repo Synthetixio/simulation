@@ -3,8 +3,8 @@
 from statistics import mean, stdev
 
 
-def mean_profit_percentage(havven) -> float:
-    return mean(a.profit_percentage() for a in havven.schedule.agents)
+def mean_profit_fraction(havven) -> float:
+    return mean(a.profit_fraction() for a in havven.schedule.agents)
 
 def wealth_sd(havven) -> float:
     """Return the standard deviation of wealth in the economy."""
