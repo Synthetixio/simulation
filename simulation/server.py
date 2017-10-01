@@ -2,7 +2,8 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from model import HavvenModel
+
+import model
 
 
 def make_server(n_agents=200, px_width=500, px_height=500):
@@ -30,8 +31,9 @@ def make_server(n_agents=200, px_width=500, px_height=500):
 
               ChartModule([{"Label": "Fees Distributed", "Color": "blue"}])]
 
-    n_slider = UserSettableParameter('slider', "Number of Agents", n_agents, 2, 2000, 1)
+    n_slider = UserSettableParameter('slider', "Number of agents", n_agents, 2, 2000, 1)
+    match_checkbox = UserSettableParameter('checkbox', "Continuous order matching", True)
 
-    server = ModularServer(HavvenModel, charts, "Havven Model",
-                        {"N": n_slider})
+    server = ModularServer(model.HavvenModel, charts, "Havven Model",
+                        {"N": n_slider, "match_on_trade": match_checkbox})
     return server

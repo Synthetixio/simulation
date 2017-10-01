@@ -22,7 +22,7 @@ class HavvenModel(Model):
     including liquidity, volatility, wealth concentration, velocity of money and so on.
     """
 
-    def __init__(self, N, max_fiat_endowment=1000):
+    def __init__(self, N, max_fiat_endowment=1000, match_on_order=True):
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
@@ -75,11 +75,15 @@ class HavvenModel(Model):
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
 
+        # If true, match orders whenever an order is posted,
+        # otherwise do so at the end of each period
+        self.match_on_order = match_on_order
+
         # Order books
         # If a book is X_Y_market, then buyers hold X and sellers hold Y.
-        self.nom_cur_market = orderbook.OrderBook("NOM/CUR", self.nom_cur_match)
-        self.fiat_cur_market = orderbook.OrderBook("FIAT/CUR", self.fiat_cur_match)
-        self.fiat_nom_market = orderbook.OrderBook("FIAT/NOM", self.fiat_nom_match)
+        self.nom_cur_market = orderbook.OrderBook("NOM/CUR", self.nom_cur_match, self.match_on_order)
+        self.fiat_cur_market = orderbook.OrderBook("FIAT/CUR", self.fiat_cur_match, self.match_on_order)
+        self.fiat_nom_market = orderbook.OrderBook("FIAT/NOM", self.fiat_nom_match, self.match_on_order)
 
         # Add the market participants
         total_endowment = 0
@@ -98,7 +102,7 @@ class HavvenModel(Model):
 
     def fiat_value(self, curits, nomins, fiat):
         """Return the equivalent fiat value of the given currency basket."""
-        return self.cur_to_fiat(curits) + self.model.nom_to_fiat(nomins) + fiat
+        return self.cur_to_fiat(curits) + self.nom_to_fiat(nomins) + fiat
 
     def endow_curits(self, agent:MarketPlayer, curits:int):
         """Grant an agent an endowment of curits."""
@@ -201,7 +205,7 @@ class HavvenModel(Model):
         """A user can transfer slightly less than their total balance when fees are taken into account."""
         return principal / (1 + self.cur_transfer_fee_rate)
 
-    def max_transferrable_fiat(self, principal):
+    def max_transferrable_nomins(self, principal):
         """A user can transfer slightly less than their total balance when fees are taken into account."""
         return principal / (1 + self.nom_transfer_fee_rate)
 
@@ -288,9 +292,10 @@ class HavvenModel(Model):
         self.datacollector.collect(self)
 
         # Resolve outstanding trades
-        self.nom_cur_market.resolve()
-        self.fiat_cur_market.resolve()
-        self.fiat_nom_market.resolve()
+        if not self.match_on_order:
+            self.nom_cur_market.match()
+            self.fiat_cur_market.match()
+            self.fiat_nom_market.match()
 
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
