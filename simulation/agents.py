@@ -25,9 +25,9 @@ class MarketPlayer(Agent):
 
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
-        return self.fiat + \
-               self.model.cur_to_fiat(self.curits + self.escrowed_curits) + \
-               self.model.nom_to_fiat(self.nomins - self.issued_nomins)
+        return self.model.fiat_value(self.curits + self.escrowed_curits,
+                                     self.nomins - self.issued_nomins,
+                                     self.fiat)
 
     def profit(self) -> float:
         return self.wealth() - self.initial_wealth
@@ -61,7 +61,7 @@ class MarketPlayer(Agent):
 
     def unescrow_curits(self, value:float) -> bool:
         """Unescrow a quantity of curits, if there are not too many issued nomins locking it."""
-        if 0 <= value <= available_escrowed_curits(value):
+        if 0 <= value <= self.available_escrowed_curits():
             self.curits += value
             self.escrowed_curits -= value
             self.model.escrowed_curits -= value
@@ -100,7 +100,7 @@ class MarketPlayer(Agent):
         return False
     
     def sell_nomins_for_curits(self, quantity):
-        price = self.model.nom_cur_market.lowest_ask()
+        price = self.model.nom_cur_market.lowest_ask_price()
         order = self.model.nom_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
@@ -111,7 +111,7 @@ class MarketPlayer(Agent):
         return order
 
     def sell_fiat_for_curits(self, quantity):
-        price = self.model.fiat_cur_market.lowest_ask()
+        price = self.model.fiat_cur_market.lowest_ask_price()
         order = self.model.fiat_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
@@ -121,7 +121,7 @@ class MarketPlayer(Agent):
         return order
  
     def sell_fiat_for_nomins(self, quantity):
-        price = self.model.fiat_nom_market.lowest_ask()
+        price = self.model.fiat_nom_market.lowest_ask_price()
         order = self.model.fiat_nom_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
@@ -166,3 +166,35 @@ class Banker(MarketPlayer):
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
 
+    def find_cycle(self):
+        # The only cycles that exist are NOM -> CUR -> FIAT -> NOM,
+        # and its reverse.
+        # The bot will act to place orders in all markets at once, 
+        # if there is an arbitrage opportunity, taking into account
+        # the fee rates.
+
+        #ncp = self.model.nom_cur_market.price
+        #cfp = 1 / self.model.fiat_cur_market.price
+        #fnp = self.model.fiat_nom_market.price
+
+        #if ncp * cfp * fnp > 1:
+        #elif ncp * cfp 
+        pass
+
+    def forward_best_price_quantities(self):
+        ncq = min(self.model.nom_cur_market.buy_orders[0].quantity, self.nomins)
+        cfq = min(self.model.fiat_cur_market.sell_orders[0].quantity, self.curits)
+        fnq = min(self.model.fiat_nom_market.buy_orders[0].quantity, self.fiat)
+        return (ncq, cfq, fnq)
+    
+    def forward_asset_levels(self, quantities):
+        pass
+        
+    def reverse_best_price_quantities(self):
+        cnq = min(self.model.nom_cur_market.sell_orders[0].quantity, self.curits)
+        nfq = min(self.model.fiat_nom_market.sell_orders[0].quantity, self.nomins)
+        fcq = min(self.model.fiat_cur_market.buy_orders[0].quantity, self.fiat)
+        return (ncq, cfq, fnq)
+
+    def equalise_tokens(self):
+        pass
