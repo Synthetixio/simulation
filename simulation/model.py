@@ -26,9 +26,12 @@ class HavvenModel(Model):
         # Mesa setup
         self.running = True
         self.schedule = RandomActivation(self)
-        self.datacollector = DataCollector(model_reporters={"Gini": modelstats.gini,
-                                                            "Nomins": lambda model: model.nomin_supply,
-                                                            "Escrowed Curits": lambda model: model.escrowed_curits,
+        self.datacollector = DataCollector(model_reporters={"Havven Nomins": lambda havven: havven.nomins,
+                                                            "Havven Curits": lambda havven: havven.curits,
+                                                            "Havven Fiat": lambda havven: havven.fiat,
+                                                            "Gini": modelstats.gini,
+                                                            "Nomins": lambda havven: havven.nomin_supply,
+                                                            "Escrowed Curits": lambda havven: havven.escrowed_curits,
                                                             "Wealth SD": modelstats.wealth_sd,
                                                             "Max Wealth": modelstats.max_wealth,
                                                             "Min Wealth": modelstats.min_wealth,
@@ -39,8 +42,8 @@ class HavvenModel(Model):
                                                             "Nomin Supply": modelstats.nomin_supply,
                                                             "Fiat Demand": modelstats.fiat_demand,
                                                             "Fiat Supply": modelstats.fiat_supply,
-                                                            "Fee Pool": lambda model: model.nomins,
-                                                            "Fees Distributed": lambda model: model.fees_distributed},
+                                                            "Fee Pool": lambda havven: havven.nomins,
+                                                            "Fees Distributed": lambda havven: havven.fees_distributed},
                                            agent_reporters={"Wealth": lambda a: a.wealth})
         self.time = 1
 
@@ -70,7 +73,6 @@ class HavvenModel(Model):
         self.redemption_fee_rate = 0.02
         # TODO: Move fiat fees and currency pool into its own object
         self.fiat_transfer_fee_rate = 0.0
-
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max = 1.0
@@ -273,7 +275,8 @@ class HavvenModel(Model):
         # TODO: * distribute by escrowed curits
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
-    
+
+        print(f"Distributing fees: {self.nomins}")
         pre_fees = self.nomins
         for agent in self.schedule.agents:
             if self.nomins == 0:

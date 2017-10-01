@@ -7,7 +7,11 @@ import model
 
 
 def make_server(n_agents=200, px_width=500, px_height=500):
-    charts = [ChartModule([{"Label": "Gini", "Color": "red"},
+    charts = [ChartModule([{"Label": "Havven Nomins", "Color": "blue"},
+                           {"Label": "Havven Curits", "Color": "red"},
+                           {"Label": "Havven Fiat", "Color": "green"}]),
+
+              ChartModule([{"Label": "Gini", "Color": "red"},
                            {"Label": "Wealth SD", "Color": "blue"}]),
 
               ChartModule([{"Label": "Max Wealth", "Color": "purple"},
@@ -35,5 +39,5 @@ def make_server(n_agents=200, px_width=500, px_height=500):
     match_checkbox = UserSettableParameter('checkbox', "Continuous order matching", True)
 
     server = ModularServer(model.HavvenModel, charts, "Havven Model",
-                        {"N": n_slider, "match_on_trade": match_checkbox})
+                           {"N": n_slider, "match_on_order": match_checkbox})
     return server
