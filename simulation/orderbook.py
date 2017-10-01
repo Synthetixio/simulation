@@ -24,7 +24,7 @@ class Order:
             self.cancel()
     
     def __str__(self) -> str:
-        return f"{self.quantity}x{self.price} @ {self.time} by {self.issuer.unique_id}"
+        return f"{self.quantity}x{self.price} @ {self.time} by {self.issuer}"
 
 class Bid(Order):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
