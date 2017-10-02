@@ -33,8 +33,8 @@ class Havven(Model):
         # Mesa setup
         super().__init__()
         self.schedule = RandomActivation(self)
-        self.datacollector = DataCollector(model_reporters
-                                           ={"Havven Nomins": lambda h: h.nomins,
+        self.datacollector = DataCollector(model_reporters=
+                                            {"Havven Nomins": lambda h: h.nomins,
                                              "Havven Curits": lambda h: h.curits,
                                              "Havven Fiat": lambda h: h.fiat,
                                              "Gini": ms.gini,
