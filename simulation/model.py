@@ -53,7 +53,6 @@ class Havven(Model):
                                              "Fee Pool": lambda h: h.nomins,
                                              "Fees Distributed": lambda h: h.fees_distributed},
                                            agent_reporters={"Wealth": lambda a: a.wealth})
-
         self.time: int = 1
 
         # Market variables
