@@ -10,27 +10,39 @@ import agents as ag
 
 class Order:
     """A single order, including price, quantity, and the agent which submitted it."""
-    def __init__(self, price: float, time: int, quantity: float, issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
+    def __init__(self, price: float, time: int, quantity: float,
+                 issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
         self.time = time
         self.quantity = quantity
         self.issuer = issuer
         self.book = book
         self.active = True
-    
+
+    def cancel(self) -> None:
+        """Remove this order from the issuer and the order book if it's active."""
+        pass
+
+    def update_price(self, price: float) -> None:
+        """Update this order's price, updating its timestamp, possibly reordering its order book."""
+        pass
+
     def update_quantity(self, quantity: float) -> None:
+        """Update the quantity of this order, cancelling it if the quantity is not positive."""
         if quantity >= 0:
             self.quantity = quantity
         else:
             self.quantity = 0
             self.cancel()
-    
+
     def __str__(self) -> str:
-        return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) @ {self.time} by {self.issuer}"
+        return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
+               f"@ {self.time} by {self.issuer}"
 
 class Bid(Order):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price:float, quantity:float, issuer: "ag.MarketPlayer", book:"OrderBook") -> None:
+    def __init__(self, price: float, quantity: float,
+                 issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
             self.active = False
@@ -40,7 +52,8 @@ class Bid(Order):
             book.step()
 
     @classmethod
-    def comparator(cls, bid:"Bid"):
+    def comparator(cls, bid: "Bid"):
+        """Bids are sorted first by descending price and then by ascending time."""
         return (-bid.price, bid.time)
 
     def cancel(self) -> None:
@@ -51,21 +64,22 @@ class Bid(Order):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price:float) -> None:
+    def update_price(self, price: float) -> None:
         if self.active:
             self.book.buy_orders.remove(self)
             self.price = price
             self.time = self.book.time
             self.book.buy_orders.add(self)
             self.book.step()
-    
+
     def __str__(self) -> str:
         return "Bid: " + super().__str__()
 
 
 class Ask(Order):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price:float, quantity:float, issuer: "ag.MarketPlayer", book:"OrderBook") -> None:
+    def __init__(self, price: float, quantity: float,
+                 issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
             self.active = False
@@ -75,7 +89,8 @@ class Ask(Order):
             book.step()
 
     @classmethod
-    def comparator(cls, ask:"Ask"):
+    def comparator(cls, ask: "Ask"):
+        """Asks are sorted first by ascending price and then by ascending time."""
         return (ask.price, ask.time)
 
     def cancel(self) -> None:
@@ -86,7 +101,7 @@ class Ask(Order):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price:float) -> None:
+    def update_price(self, price: float) -> None:
         if self.active:
             self.book.sell_orders.remove(self)
             self.price = price
@@ -98,34 +113,34 @@ class Ask(Order):
         return "Ask: " + super().__str__()
 
 
+# A type for matching functions in the order book.
 Matcher = Callable[[Bid, Ask], bool]
 
 
 class OrderBook:
-    """An order book for Havven agents to interact with.
-    This one is generic, but there will have to be three markets in Havven (nom-cur, fiat-cur, fiat-nom)."""
-
+    """An order book for Havven agents to interact with.""" \
+    """This one is generic, but there will have to be a market for each currency pair."""
 
     def __init__(self, name: str, matcher: Matcher, match_on_order: bool = True) -> None:
-        self.name = name
+        self.name: str = name
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
-        self.buy_orders = SortedListWithKey(key=Bid.comparator)
+        self.buy_orders: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
         # Asks are ordered lowest-first
-        self.sell_orders = SortedListWithKey(key=Ask.comparator)
+        self.sell_orders: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
 
-        self.price = 1.0
-        self.time = 0
+        self.price: float = 1.0
+        self.time: int = 0
 
         # match should be a function: match(bid, ask)
         # which resolves the given order pair,
         # which transfers buy_val of the buyer's good to the seller,
         # which transfers sell_val of the seller's good to the buyer,
         # and which returns True iff the transfer succeeded.
-        self.matcher = matcher
+        self.matcher: Matcher = matcher
 
         # Try to match orders after each trade is submitted
-        self.match_on_order = match_on_order
+        self.match_on_order: bool = match_on_order
 
     def step(self) -> None:
         """Advance the time on this order book by one step."""
@@ -197,5 +212,5 @@ class OrderBook:
             prev_bid, prev_ask = self.buy_orders[0], self.sell_orders[0]
             self.matcher(prev_bid, prev_ask)
             spread = self.spread()
-        
+
         self.price = (self.lowest_ask_price() + self.highest_bid_price()) / 2
