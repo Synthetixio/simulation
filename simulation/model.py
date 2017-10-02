@@ -1,6 +1,8 @@
+"""model.py: The havven model itself lives here."""
+
+from typing import Callable
 import random
 
-import numpy as np
 from scipy.stats import skewnorm
 
 from mesa import Model
@@ -13,6 +15,11 @@ import modelstats as ms
 import agents as ag
 
 
+# Function signatures for transfers.
+TransferTest = Callable[[ag.MarketPlayer, float], bool]
+TransferFunction = Callable[[ag.MarketPlayer, ag.MarketPlayer, float], bool]
+
+
 class Havven(Model):
     """
     An agent-based model of the Havven stablecoin system. This class will provide the basic
@@ -22,29 +29,31 @@ class Havven(Model):
     including liquidity, volatility, wealth concentration, velocity of money and so on.
     """
 
-    def __init__(self, N: int, max_fiat_endowment: float = 1000, match_on_order: bool = True) -> None:
+    def __init__(self, N: int, max_fiat: float = 1000, match_on_order: bool = True) -> None:
         # Mesa setup
-        self.running = True
+        super().__init__()
         self.schedule = RandomActivation(self)
-        self.datacollector = DataCollector(model_reporters={"Havven Nomins": lambda havven: havven.nomins,
-                                                            "Havven Curits": lambda havven: havven.curits,
-                                                            "Havven Fiat": lambda havven: havven.fiat,
-                                                            "Gini": ms.gini,
-                                                            "Nomins": lambda havven: havven.nomin_supply,
-                                                            "Escrowed Curits": lambda havven: havven.escrowed_curits,
-                                                            "Wealth SD": ms.wealth_sd,
-                                                            "Max Wealth": ms.max_wealth,
-                                                            "Min Wealth": ms.min_wealth,
-                                                            "Profit %": ms.mean_profit_fraction,
-                                                            "Curit Demand": ms.curit_demand,
-                                                            "Curit Supply": ms.curit_supply,
-                                                            "Nomin Demand": ms.nomin_demand,
-                                                            "Nomin Supply": ms.nomin_supply,
-                                                            "Fiat Demand": ms.fiat_demand,
-                                                            "Fiat Supply": ms.fiat_supply,
-                                                            "Fee Pool": lambda havven: havven.nomins,
-                                                            "Fees Distributed": lambda havven: havven.fees_distributed},
+        self.datacollector = DataCollector(model_reporters
+                                           ={"Havven Nomins": lambda h: h.nomins,
+                                             "Havven Curits": lambda h: h.curits,
+                                             "Havven Fiat": lambda h: h.fiat,
+                                             "Gini": ms.gini,
+                                             "Nomins": lambda h: h.nomin_supply,
+                                             "Escrowed Curits": lambda h: h.escrowed_curits,
+                                             "Wealth SD": ms.wealth_sd,
+                                             "Max Wealth": ms.max_wealth,
+                                             "Min Wealth": ms.min_wealth,
+                                             "Profit %": ms.mean_profit_fraction,
+                                             "Curit Demand": ms.curit_demand,
+                                             "Curit Supply": ms.curit_supply,
+                                             "Nomin Demand": ms.nomin_demand,
+                                             "Nomin Supply": ms.nomin_supply,
+                                             "Fiat Demand": ms.fiat_demand,
+                                             "Fiat Supply": ms.fiat_supply,
+                                             "Fee Pool": lambda h: h.nomins,
+                                             "Fees Distributed": lambda h: h.fees_distributed},
                                            agent_reporters={"Wealth": lambda a: a.wealth})
+
         self.time: int = 1
 
         # Market variables
@@ -57,7 +66,7 @@ class Havven(Model):
         self.curit_supply: float = 10.0**9
         self.nomin_supply: float = 0.0
         self.escrowed_curits: float = 0.0
-        
+
         # Havven's own capital supplies
         self.curits: float = self.curit_supply
         self.nomins: float = 0.0
@@ -68,9 +77,11 @@ class Havven(Model):
         self.fees_distributed: float = 0.0
         self.nom_transfer_fee_rate: float = 0.005
         self.cur_transfer_fee_rate: float = 0.01
+
         # TODO: charge issuance and redemption fees
         self.issuance_fee_rate: float = 0.01
         self.redemption_fee_rate: float = 0.02
+
         # TODO: Move fiat fees and currency pool into its own object
         self.fiat_transfer_fee_rate: float = 0.0
 
@@ -83,41 +94,47 @@ class Havven(Model):
 
         # Order books
         # If a book is X_Y_market, then buyers hold X and sellers hold Y.
-        self.nom_cur_market: ob.OrderBook = ob.OrderBook("NOM/CUR", self.nom_cur_match, self.match_on_order)
-        self.fiat_cur_market: ob.OrderBook = ob.OrderBook("FIAT/CUR", self.fiat_cur_match, self.match_on_order)
-        self.fiat_nom_market: ob.OrderBook = ob.OrderBook("FIAT/NOM", self.fiat_nom_match, self.match_on_order)
+        self.nom_cur_market: ob.OrderBook = ob.OrderBook("NOM/CUR", self.nom_cur_match,
+                                                         self.match_on_order)
+        self.fiat_cur_market: ob.OrderBook = ob.OrderBook("FIAT/CUR", self.fiat_cur_match,
+                                                          self.match_on_order)
+        self.fiat_nom_market: ob.OrderBook = ob.OrderBook("FIAT/NOM", self.fiat_nom_match,
+                                                          self.match_on_order)
 
         # Add the market participants
         total_endowment = 0.0
         self.num_agents: int = N
         for i in range(self.num_agents):
-            endowment = int(skewnorm.rvs(100)*max_fiat_endowment)
+            endowment = int(skewnorm.rvs(100)*max_fiat)
             a = ag.Banker(i, self, fiat=endowment)
             self.schedule.add(a)
             total_endowment += endowment
 
         reserve_bank = ag.MarketPlayer(self.num_agents, self, 0)
-        self.endow_curits(reserve_bank, 6 * N * max_fiat_endowment)
+        self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(N * max_fiat_endowment * 3)
-        reserve_bank.sell_curits_for_nomins(N * max_fiat_endowment * 3)
+        reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
+        reserve_bank.sell_curits_for_nomins(N * max_fiat* 3)
 
-    def fiat_value(self, curits: float, nomins: float, fiat: float):
+    def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
         return self.cur_to_fiat(curits) + self.nom_to_fiat(nomins) + fiat
 
-    def endow_curits(self, agent: ag.MarketPlayer, curits: float):
+    def endow_curits(self, agent: ag.MarketPlayer, curits: float) -> None:
         """Grant an agent an endowment of curits."""
         if curits > 0:
             value = min(self.curits, curits)
             agent.curits += value
             self.curits -= value
 
-    def __bid_ask_match__(self, bid, ask, bid_success, ask_success, bid_transfer, ask_transfer) -> bool:
+    def __bid_ask_match__(self, bid: ob.Bid, ask: ob.Ask,
+                          bid_success: TransferTest, ask_success: TransferTest,
+                          bid_transfer: TransferFunction, ask_transfer: TransferFunction) -> bool:
         """
-        Trade between the given bid and ask if they can, with the given transfer and success functions.
-        Cancel any orders which the agent cannot afford to service.
+        If possible, match the given bid and ask, with the given transfer and success functions.
+        Cancel any orders which an agent cannot afford to service.
         """
+
         if ask.price > bid.price:
             return False
 
@@ -175,12 +192,15 @@ class Havven(Model):
                                       self.transfer_nomins)
 
     def transfer_fiat_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of fiat."""
         return value * self.fiat_transfer_fee_rate
 
     def transfer_curits_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of curits."""
         return value * self.cur_transfer_fee_rate
 
     def transfer_nomins_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of nomins."""
         return value * self.nom_transfer_fee_rate
 
     def transfer_fiat_success(self, sender: ag.MarketPlayer, value: float) -> bool:
@@ -195,21 +215,22 @@ class Havven(Model):
         """True iff the sender could successfully send a value of nomins."""
         return 0 <= value + self.transfer_nomins_fee(value) <= sender.nomins
 
-    def max_transferrable_fiat(self, principal: float):
-        """A user can transfer slightly less than their total balance when fees are taken into account."""
+    def max_transferrable_fiat(self, principal: float) -> float:
+        """A user can transfer less than their total balance when fees are taken into account."""
         return principal / (1 + self.fiat_transfer_fee_rate)
 
-    def max_transferrable_curits(self, principal: float):
-        """A user can transfer slightly less than their total balance when fees are taken into account."""
+    def max_transferrable_curits(self, principal: float) -> float:
+        """A user can transfer less than their total balance when fees are taken into account."""
         return principal / (1 + self.cur_transfer_fee_rate)
 
-    def max_transferrable_nomins(self, principal: float):
-        """A user can transfer slightly less than their total balance when fees are taken into account."""
+    def max_transferrable_nomins(self, principal: float) -> float:
+        """A user can transfer less than their total balance when fees are taken into account."""
         return principal / (1 + self.nom_transfer_fee_rate)
 
-    def transfer_fiat(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer, value: float) -> bool:
-        """Transfer a positive value of fiat currency from the sender to the recipient, if balance is sufficient.
-        Return True on success."""
+    def transfer_fiat(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
+                      value: float) -> bool:
+        """Transfer a positive value of fiat currency from the sender to the recipient, """ \
+        """if balance is sufficient. Return True on success."""
         if self.transfer_fiat_success(sender, value):
             fee = self.transfer_fiat_fee(value)
             sender.fiat -= value + fee
@@ -217,10 +238,11 @@ class Havven(Model):
             self.fiat += fee
             return True
         return False
-    
-    def transfer_curits(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer, value: float) -> bool:
-        """Transfer a positive value of curits from the sender to the recipient, if balance is sufficient.
-        Return True on success."""
+
+    def transfer_curits(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
+                        value: float) -> bool:
+        """Transfer a positive value of curits from the sender to the recipient, """ \
+        """if balance is sufficient. Return True on success."""
         if self.transfer_curits_success(sender, value):
             fee = self.transfer_curits_fee(value)
             sender.curits -= value + fee
@@ -228,26 +250,27 @@ class Havven(Model):
             self.curits += fee
             return True
         return False
-    
-    def transfer_nomins(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer, value: float) -> bool:
-        """Transfer a positive value of nomins from the sender to the recipient, if balance is sufficient.
-        Return True on success."""
+
+    def transfer_nomins(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
+                        value: float) -> bool:
+        """Transfer a positive value of nomins from the sender to the recipient, """ \
+        """if balance is sufficient. Return True on success."""
         if self.transfer_nomins_success(sender, value):
             fee = self.transfer_nomins_fee(value)
             sender.nomins -= value + fee
             recipient.nomins += value
             self.nomins += fee
             return True
-        return False 
+        return False
 
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
         return (value * self.curit_price) / self.nomin_price
-    
+
     def cur_to_fiat(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in fiat."""
         return value * self.curit_price
-    
+
     def nom_to_cur(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in curits."""
         return (value * self.nomin_price) / self.curit_price
@@ -264,7 +287,7 @@ class Havven(Model):
         """Convert a quantity of fiat to its equivalent value in nomins."""
         return value / self.nomin_price
 
-    def distribute_fees(self):
+    def distribute_fees(self) -> None:
         """Distribute currently held nomins to holders of curits."""
         # Different fee modes:
         #  * distributed by held curits
@@ -280,7 +303,7 @@ class Havven(Model):
             agent.nomins += qty
             self.nomins -= qty
             self.fees_distributed += qty
-    
+
     def step(self) -> None:
         """Advance the model by one step."""
         # Agents submit trades

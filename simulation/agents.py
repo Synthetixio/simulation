@@ -87,7 +87,7 @@ class MarketPlayer(Agent):
         return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
 
     def unavailable_escrowed_curits(self) -> float:
-        """Return the quantity of escrowed curits locked by having had nomins issued against it. """ \
+        """Return the quantity of locked escrowed curits, having had nomins issued against it. """ \
         """May be greater than total escrowed curits."""
         return self.model.nom_to_cur(self.issued_nomins)
 
@@ -116,39 +116,46 @@ class MarketPlayer(Agent):
         return False
 
     def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of nomins in to buy curits."""
         price = self.model.nom_cur_market.lowest_ask_price()
         order = self.model.nom_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of curits in to buy nomins."""
         order = self.model.nom_cur_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of fiat in to buy curits."""
         price = self.model.fiat_cur_market.lowest_ask_price()
         order = self.model.fiat_cur_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of curits in to buy fiat."""
         order = self.model.fiat_cur_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of fiat in to buy nomins."""
         price = self.model.fiat_nom_market.lowest_ask_price()
         order = self.model.fiat_nom_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of nomins in to buy fiat."""
         order = self.model.fiat_nom_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
     def notify_cancelled(self, order: "ob.Order") -> None:
+        """Notify this agent that its order was cancelled."""
         pass
 
     def step(self) -> None:
@@ -190,6 +197,7 @@ class Arbitrageur(MarketPlayer):
         self.name = f"Arbitrageur {self.unique_id}"
 
     def find_cycle(self):
+        """Find an exploitable arbitrage cycle."""
         # The only cycles that exist are NOM -> CUR -> FIAT -> NOM,
         # and its reverse.
         # The bot will act to place orders in all markets at once,
