@@ -1,3 +1,8 @@
+"""
+Addons to the mesa visualization system to allow for different graphs and the
+viewing of agent variables in a graph format
+"""
+
 from mesa.visualization.ModularVisualization import VisualizationElement
 import numpy as np
 import random
@@ -6,25 +11,23 @@ class BarGraphModule(VisualizationElement):
     """
     Displays a simple bar graph of the selected attributes of the agents
     """
-    # package_includes = ["Chart.min.js"]
     package_includes = []
     local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
         "visualization/js/chartist-plugin-tooltip.js", "visualization/js/BarGraphModule.js"]
 
-    def __init__(self, series, num_agents, height=200, width=500, data_collector_name="datacollector"):
+    def __init__(self, series: list, num_agents: int, height: int=200, width: int=500,
+                                        data_collector_name: str="datacollector") -> None:
         self.series = series
         self.num_agents = num_agents
         self.height = height
-
         # currently width does nothing, as it stretches the whole page
         self.width = width
         self.data_collector_name = data_collector_name
 
         new_element = f"new BarGraphModule(\"{series[0]['Label']}\",{num_agents}, {width}, {height})"
-
         self.js_code = f"elements.push({new_element});"
 
-    def render(self, model):
+    def render(self, model: "Havven") -> list:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
@@ -33,7 +36,8 @@ class BarGraphModule(VisualizationElement):
         for s in self.series:
             name = s['Label']
             try:
-                # skip the MarketPlayer who is added onto the end as he overshadows all the others
+                # skip the MarketPlayer who is added onto the end as he overshadows
+                # the wealth of all the others
                 for item in sorted(data_collector.agent_vars[name][-1])[:-1]:
                     vals.append(item[1]())
             except:
@@ -42,13 +46,17 @@ class BarGraphModule(VisualizationElement):
 
 
 class OrderBookModule(VisualizationElement):
-
+    """
+    Display a depth graph for orderbooks to show the quantity of buy/sell orders
+    for the given market
+    """
     package_includes = []
 
     local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
         "visualization/js/chartist-plugin-tooltip.js", "visualization/js/DepthGraphModule.js"]
 
-    def __init__(self, series, height=300, width=500, data_collector_name="datacollector"):
+    def __init__(self, series: list, height: int=300, width: int=500,
+                                data_collector_name: str="datacollector") -> None:
         self.series = series
         self.height = height
         # currently width does nothing, as it stretches the whole page
@@ -58,7 +66,7 @@ class OrderBookModule(VisualizationElement):
         new_element = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
         self.js_code = f"elements.push({new_element});"
 
-    def render(self, model):
+    def render(self, model: "Havven") -> list:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
