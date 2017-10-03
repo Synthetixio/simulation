@@ -33,29 +33,33 @@ class Havven(Model):
         # Mesa setup
         super().__init__()
         self.schedule = RandomActivation(self)
-        self.datacollector = DataCollector(model_reporters=
-                                            {"Havven Nomins": lambda h: h.nomins,
-                                             "Havven Curits": lambda h: h.curits,
-                                             "Havven Fiat": lambda h: h.fiat,
-                                             "Gini": ms.gini,
-                                             "Nomins": lambda h: h.nomin_supply,
-                                             "Escrowed Curits": lambda h: h.escrowed_curits,
-                                             "Wealth SD": ms.wealth_sd,
-                                             "Max Wealth": ms.max_wealth,
-                                             "Min Wealth": ms.min_wealth,
-                                             "Profit %": ms.mean_profit_fraction,
-                                             "Curit Demand": ms.curit_demand,
-                                             "Curit Supply": ms.curit_supply,
-                                             "Nomin Demand": ms.nomin_demand,
-                                             "Nomin Supply": ms.nomin_supply,
-                                             "Fiat Demand": ms.fiat_demand,
-                                             "Fiat Supply": ms.fiat_supply,
-                                             "Fee Pool": lambda h: h.nomins,
-                                             "Fees Distributed": lambda h: h.fees_distributed,
-                                             "NomCurOrderBook": lambda h: h.nom_cur_market,
-                                             "FiatCurOrderBook": lambda h: h.fiat_cur_market,
-                                             "FiatNomOrderBook": lambda h: h.fiat_nom_market},
-                                           agent_reporters={"Wealth": lambda a: a.wealth})
+        self.datacollector = DataCollector(
+                model_reporters = {
+                        "Havven Nomins": lambda h: h.nomins,
+                         "Havven Curits": lambda h: h.curits,
+                         "Havven Fiat": lambda h: h.fiat,
+                         "Gini": ms.gini,
+                         "Nomins": lambda h: h.nomin_supply,
+                         "Escrowed Curits": lambda h: h.escrowed_curits,
+                         "Wealth SD": ms.wealth_sd,
+                         "Max Wealth": ms.max_wealth,
+                         "Min Wealth": ms.min_wealth,
+                         "Profit %": ms.mean_profit_fraction,
+                         "Curit Demand": ms.curit_demand,
+                         "Curit Supply": ms.curit_supply,
+                         "Nomin Demand": ms.nomin_demand,
+                         "Nomin Supply": ms.nomin_supply,
+                         "Fiat Demand": ms.fiat_demand,
+                         "Fiat Supply": ms.fiat_supply,
+                         "Fee Pool": lambda h: h.nomins,
+                         "Fees Distributed": lambda h: h.fees_distributed,
+                         "NomCurOrderBook": lambda h: h.nom_cur_market,
+                         "FiatCurOrderBook": lambda h: h.fiat_cur_market,
+                         "FiatNomOrderBook": lambda h: h.fiat_nom_market
+                }, agent_reporters = {
+                         "Wealth": lambda a: a.wealth
+                })
+
         self.time: int = 1
 
         # Market variables

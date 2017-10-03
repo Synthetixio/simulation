@@ -2,7 +2,7 @@
 from mesa.visualization.modules import ChartModule
 #from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from visualization.ModularServer import ModularServer
+from mesa.visualization.ModularVisualization import ModularServer
 import model
 
 from visualization.mesa_visulization_addons import BarGraphModule, OrderBookModule
@@ -39,9 +39,9 @@ def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
 
             ChartModule([{"Label": "Fees Distributed", "Color": "blue"}]),
 
-            BarGraphModule([{"Label": "Wealth"}], n_agents, 300, 1000),
+            BarGraphModule([{"Label": "Wealth"}], n_agents), # require a number of agents for bar graphs, as they are agent based
 
-            OrderBookModule([{"Label": "FiatCurOrderBook"}], 300, 1000)
+            OrderBookModule([{"Label": "FiatCurOrderBook"}])
     ]
 
     n_slider = UserSettableParameter('slider', "Number of agents", n_agents, 2, 2000, 1)

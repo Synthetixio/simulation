@@ -51,6 +51,7 @@ var DepthGraphModule = function(graph_id, width, height) {
     this.render = function(new_data) {
         buys = new_data[0];
         sells = new_data[1];
+        // data is in the form (rate, quantity)
 
         // TODO: add data to the graphs
 
@@ -58,6 +59,7 @@ var DepthGraphModule = function(graph_id, width, height) {
     };
 
     this.reset = function() {
+        // TODO: reset to 0, this is just for testing, to show what it looks like
         for (var i in chart.data.series[0]) {
             i = parseInt(i);
             if (i < chart.data.series[0].length/2) {
