@@ -13,7 +13,7 @@ class BarGraphModule(VisualizationElement):
     """
     package_includes = []
     local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
-        "visualization/js/chartist-plugin-tooltip.js", "visualization/js/BarGraphModule.js"]
+        "visualization/js/BarGraphModule.js"]
 
     def __init__(self, series: list, num_agents: int, height: int=200, width: int=500,
                                         data_collector_name: str="datacollector") -> None:
@@ -53,7 +53,7 @@ class OrderBookModule(VisualizationElement):
     package_includes = []
 
     local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
-        "visualization/js/chartist-plugin-tooltip.js", "visualization/js/DepthGraphModule.js"]
+        "visualization/js/DepthGraphModule.js"]
 
     def __init__(self, series: list, height: int=300, width: int=500,
                                 data_collector_name: str="datacollector") -> None:
@@ -66,10 +66,13 @@ class OrderBookModule(VisualizationElement):
         new_element = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
         self.js_code = f"elements.push({new_element});"
 
+
+
     def render(self, model: "Havven") -> list:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
+        self.data_test = [(round(random.random()*2, 2), random.random()*8) for i in range(100)]
         data_collector = getattr(model, self.data_collector_name)
         vals = []
         for s in self.series:
@@ -80,25 +83,33 @@ class OrderBookModule(VisualizationElement):
             buys = {}
             sells = {}
             try:
-                orderbook = data_collector.model_vars[name][-1]
-                for item in orderbook.buy_orders:
-                    if item.price not in buys:
-                        buys[item.price] = item.quantity
+                # orderbook = data_collector.model_vars[name][-1]
+                # for item in orderbook.buy_orders:
+                #     if item.price not in buys:
+                #         buys[item.price] = item.quantity
+                #     else:
+                #         buys[item.price] += item.quantity
+                #
+                # for item in orderbook.sell_orders:
+                #     if item.price not in sells:
+                #         sells[item.price] = item.quantity
+                #     else:
+                #         sells[item.price] += item.quantity
+                for item in self.data_test:
+                    if item[0] < 1:
+                        if item[0] not in buys:
+                            buys[item[0]] = item[1]
+                        else:
+                            buys[item[0]] += item[1]
                     else:
-                        buys[item.price] += item.quantity
-
-                for item in orderbook.sell_orders:
-                    if item.price not in sells:
-                        sells[item.price] = item.quantity
-                    else:
-                        sells[item.price] += item.quantity
+                        if item[0] not in sells:
+                            sells[item[0]] = item[1]
+                        else:
+                            sells[item[0]] += item[1]
             except:
                 pass
+
             buys = sorted(buys.items(), key=lambda x:x[0])
             sells = sorted(sells.items(), key=lambda x:x[0])
-
-        # TODO: the graph is receiving data in the form (rate, quant) but the
-        #       quantity isn't accumulated over the multiple rates
-        #       that needs to be done either here or in the js
 
         return [buys, sells]

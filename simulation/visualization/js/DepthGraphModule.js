@@ -49,11 +49,60 @@ var DepthGraphModule = function(graph_id, width, height) {
     var chart = new Chartist.Line('#'+graph_id+'buys', data, options);
 
     this.render = function(new_data) {
+        // hardcoded length of 50 for buys, and 50 for sells on the graph
         buys = new_data[0];
         sells = new_data[1];
-        // data is in the form (rate, quantity)
+        this.reset();
 
-        // TODO: add data to the graphs
+        // data is in the form (rate, quantity)
+        var min_buy = buys[0][0];
+        var max_buy = buys[buys.length-1][0];
+
+        var min_sell = sells[0][0];
+        var max_sell = sells[sells.length-1][0];
+        console.log(min_sell, max_sell)
+        var buy_quant = 0;
+        var curr_ind = 50;
+
+        for (var i = buys.length-1; i>=0; i--) {
+          var price = buys[i][0];
+          buy_quant += buys[i][1];
+          while (price < ((curr_ind*(max_buy-min_buy)/50)+min_buy)) {
+            curr_ind--;
+          }
+          chart.data.series[0][curr_ind-1] = buy_quant;
+          chart.data.labels[curr_ind-1] = price;
+        }
+
+
+        var sell_quant = 0;
+        var curr_ind = 0;
+
+        for (var i in sells) {
+          var price = sells[i][0];
+          sell_quant += sells[i][1];
+          console.log(curr_ind, price, min_sell+(curr_ind*(max_sell-min_sell)/50))
+          while (price > (curr_ind*(max_sell-min_sell)/50)+min_sell) {
+            curr_ind++;
+          }
+
+          chart.data.series[1][curr_ind+50] = sell_quant;
+          chart.data.labels[curr_ind+50] = price;
+        }
+
+        for (var i=49; i>=0;i--) {
+          if (chart.data.series[0][i] == 0) {
+            chart.data.series[0][i] = chart.data.series[0][i+1];
+          }
+        }
+
+        for (var i=50; i<100;i++) {
+          if (chart.data.series[1][i] == 0) {
+            chart.data.series[1][i] = chart.data.series[1][i-1];
+          }
+        }
+
+        console.log(chart.data);
 
         chart.update();
     };
@@ -63,13 +112,12 @@ var DepthGraphModule = function(graph_id, width, height) {
         for (var i in chart.data.series[0]) {
             i = parseInt(i);
             if (i < chart.data.series[0].length/2) {
-              chart.data.series[0][i] = chart.data.series[0].length/2-i;
+              chart.data.series[0][i] = 0;
               chart.data.series[1][i] = 0;
             } else {
-              chart.data.series[1][i] = -chart.data.series[0].length/2+i;
+              chart.data.series[1][i] = 0;
               chart.data.series[0][i] = 0;
             }
-
         }
         // for (var i in chart2.data.series[0]) {
         //     chart2.data.series[0][i] = i+1;
