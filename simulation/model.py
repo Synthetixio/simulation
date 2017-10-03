@@ -51,7 +51,10 @@ class Havven(Model):
                                              "Fiat Demand": ms.fiat_demand,
                                              "Fiat Supply": ms.fiat_supply,
                                              "Fee Pool": lambda h: h.nomins,
-                                             "Fees Distributed": lambda h: h.fees_distributed},
+                                             "Fees Distributed": lambda h: h.fees_distributed,
+                                             "NomCurOrderBook": lambda h: h.nom_cur_market,
+                                             "FiatCurOrderBook": lambda h: h.fiat_cur_market,
+                                             "FiatNomOrderBook": lambda h: h.fiat_nom_market},
                                            agent_reporters={"Wealth": lambda a: a.wealth})
         self.time: int = 1
 
@@ -308,9 +311,6 @@ class Havven(Model):
         # Agents submit trades
         self.schedule.step()
 
-        # Collect data
-        self.datacollector.collect(self)
-
         # Resolve outstanding trades
         if not self.match_on_order:
             self.nom_cur_market.match()
@@ -320,5 +320,8 @@ class Havven(Model):
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
             self.distribute_fees()
+
+        # Collect data
+        self.datacollector.collect(self)
 
         self.time += 1

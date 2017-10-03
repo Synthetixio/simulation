@@ -1,27 +1,26 @@
 // DepthGraphModule.js
 
 
-var BarGraphModule = function(num_agents, width, height) {
+var BarGraphModule = function(graph_id, num_agents, width, height) {
     console.log(Chartist);
     // Create the elements
     // Create the tag:
-    var div_tag = "<div class='ct-chart ct-square' style='stroke:blue;'></div>";
+    var div_tag = "<div id='"+graph_id+"' class='ct-chart'></div>";
     // Append it to body:
     var div = $(div_tag)[0];
     $("body").append(div);
     // Prep the chart properties and series:
-    data = []
+    var dataseries = []
     // add 0 for each bin, and a bin label
     bins = []
     for (var i=0; i<num_agents; i++) {
-        data.push(num_agents - i)
+        dataseries.push(num_agents - i)
         bins.push(i);
     }
     var data = {
-      // labels: bins,
-      // series: [data]
-      labels: [1,2,3,4,5],
-      series: [[5,4,3,2,1]]
+
+      labels: bins,
+      series: [dataseries]
     };
 
 
@@ -35,12 +34,14 @@ var BarGraphModule = function(num_agents, width, height) {
       height: height+'px',
       chartPadding: {
         right: 40
-      }
+      },
+      plugins: [Chartist.plugins.tooltip()]
     };
     // Create the chart object
-    var chart = new Chartist.Bar('.ct-chart', data, options);
+    var chart = new Chartist.Bar('#'+graph_id, data, options);
 
     this.render = function(new_data) {
+        // function to modify the chart data
         var chart_len = chart.data.series[0].length;
         // if chart_len > new_data.len
         for (var i = 0; i < chart_len - new_data.length; i++) {

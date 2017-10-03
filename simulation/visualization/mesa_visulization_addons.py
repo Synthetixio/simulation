@@ -3,28 +3,28 @@ import numpy as np
 import random
 
 class BarGraphModule(VisualizationElement):
+    """
+    Displays a simple bar graph of the selected attributes of the agents
+    """
     # package_includes = ["Chart.min.js"]
     package_includes = []
-    local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js", "visualization/js/BarGraphModule.js"]
+    local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js", "visualization/js/chartist-plugin-tooltip.js", "visualization/js/BarGraphModule.js"]
 
-    def __init__(self, series, num_agents, canvas_height=200, canvas_width=500, data_collector_name="datacollector"):
+    def __init__(self, series, num_agents, height=200, width=500, data_collector_name="datacollector"):
         self.series = series
         self.num_agents = num_agents
-        self.canvas_height = canvas_height
-        self.canvas_width = canvas_width
+        self.height = height
+        self.width = width
         self.data_collector_name = data_collector_name
 
-        new_element = "new BarGraphModule({}, {}, {})"
-        new_element = new_element.format(num_agents,
-                                         canvas_width,
-                                         canvas_height)
-        self.js_code = "elements.push(" + new_element + ");"
+        new_element = f"new BarGraphModule(\"{series[0]['Label']}\",{num_agents}, {width}, {height})"
+
+        self.js_code = f"elements.push({new_element});"
 
     def render(self, model):
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
-
         data_collector = getattr(model, self.data_collector_name)
         vals = []
         for s in self.series:
@@ -35,6 +35,45 @@ class BarGraphModule(VisualizationElement):
                     vals.append(item[1]())
             except:
                 vals = [0 for i in range(self.num_agents)]
-        #vals = [random.randint(0,20) for i in range(len(self.bins))]
-        #hist = np.histogram(vals, bins=self.bins)[0]
         return vals
+
+
+class OrderBookModule(VisualizationElement):
+    package_includes = []
+    local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js", "visualization/js/DepthGraphModule.js"]
+
+    def __init__(self, series, height, width, data_collector_name="datacollector"):
+        self.series = series
+        self.height = height
+        self.width = width
+        self.data_collector_name = data_collector_name
+
+        new_element = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
+        self.js_code = f"elements.push({new_element});"
+
+    def render(self, model):
+        data_collector = getattr(model, self.data_collector_name)
+        vals = []
+        for s in self.series:
+            name = s['Label']
+            buys = {}
+            sells = {}
+            try:
+                orderbook = data_collector.model_vars[name][-1]
+                for item in orderbook.buy_orders:
+                    if item.price not in buys:
+                        buys[item.price] = item.quantity
+                    else:
+                        buys[item.price] += item.quantity
+
+                for item in orderbook.sell_orders:
+                    if item.price not in sells:
+                        sells[item.price] = item.quantity
+                    else:
+                        sells[item.price] += item.quantity
+            except:
+                pass
+            buys = sorted(buys.items(), key=lambda x:x[0])
+            sells = sorted(sells.items(), key=lambda x:x[0])
+
+        return [buys, sells]

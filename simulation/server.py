@@ -5,7 +5,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from visualization.ModularServer import ModularServer
 import model
 
-from visualization.mesa_visulization_addons import BarGraphModule
+from visualization.mesa_visulization_addons import BarGraphModule, OrderBookModule
 
 
 def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
@@ -39,7 +39,9 @@ def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
 
             ChartModule([{"Label": "Fees Distributed", "Color": "blue"}]),
 
-            BarGraphModule([{"Label": "Wealth", "Color":"hot pink"}], n_agents, 400, 1000)
+            BarGraphModule([{"Label": "Wealth"}], n_agents, 300, 1000),
+
+            OrderBookModule([{"Label": "FiatCurOrderBook"}], 300, 1000)
     ]
 
     n_slider = UserSettableParameter('slider', "Number of agents", n_agents, 2, 2000, 1)
