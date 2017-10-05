@@ -256,6 +256,7 @@ class OrderBook:
             # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
             trade = self.matcher(prev_bid, prev_ask)
+
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)

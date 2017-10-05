@@ -136,7 +136,7 @@ class Havven(Model):
         """
         If possible, match the given bid and ask, with the given transfer and success functions.
         Cancel any orders which an agent cannot afford to service.
-        Return true iff the match succeeded.
+        Return a TradeRecord object if the match succeeded, otherwise None.
         """
 
         if ask.price > bid.price:
@@ -175,7 +175,7 @@ class Havven(Model):
     def cur_nom_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers nomins in exchange for curits from the seller.
-        Return true iff the match succeeded.
+        Return a TradeRecord object if the match succeeded, otherwise None.
         """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_nomins_success,
@@ -186,7 +186,7 @@ class Havven(Model):
     def cur_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers fiat in exchange for curits from the seller.
-        Return true iff the match succeeded.
+        Return a TradeRecord object if the match succeeded, otherwise None.
         """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
@@ -197,7 +197,7 @@ class Havven(Model):
     def nom_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers fiat in exchange for nomins from the seller.
-        Return true iff the match succeeded.
+        Return a TradeRecord object if the match succeeded, otherwise None.
         """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
