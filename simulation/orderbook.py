@@ -172,11 +172,8 @@ class OrderBook:
 
     def price_to_buy_quantity(self, quantity: float) -> float:
         """The bid price to buy a certain quantity."""
-        if len(self.asks) == 0:
-            return self.price
-
         cumulative = 0
-        price = self.asks[0].price
+        price = self.price
         for ask in self.asks:
             cumulative += ask.quantity
             price = ask.price
@@ -185,13 +182,10 @@ class OrderBook:
         return price
 
     def price_to_sell_quantity(self, quantity: float) -> float:
-        """The ask price to buy a certain quantity."""
-        if len(self.bids) == 0:
-            return self.price
-
+        """The ask price to sell a certain quantity."""
         cumulative = 0
-        price = self.bids[0].price
-        for bid in self.asks:
+        price = self.price
+        for bid in self.bids:
             cumulative += bid.quantity
             price = bid.price
             if cumulative >= quantity:
