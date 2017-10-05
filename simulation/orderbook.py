@@ -146,7 +146,7 @@ class OrderBook:
         self.match_on_order: bool = match_on_order
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return this market's name."""
         return f"{self.base}/{self.quote}"
 

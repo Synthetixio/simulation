@@ -31,7 +31,7 @@ class MarketPlayer(Agent):
         return self.name
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of this object; its type and its unique id."""
         return f"{self.__class__.__name__} {self.unique_id}"
 
