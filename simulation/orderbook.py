@@ -162,15 +162,41 @@ class OrderBook:
 
     def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0) -> Bid:
         """Buy a quantity of the sale token at the best available price."""
-        lowest_ask = self.lowest_ask_price()
-        price = (self.price if lowest_ask is None else lowest_ask) + premium
+        price = self.price_to_buy_quantity(quantity)
         return self.bid(price, quantity, agent)
 
     def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0) -> Ask:
         """Sell a quantity of the sale token at the best available price."""
-        highest_bid = self.highest_bid_price()
-        price = (self.price if highest_bid is None else highest_bid) - discount
+        price = self.price_to_sell_quantity(quantity)
         return self.ask(price, quantity, agent)
+
+    def price_to_buy_quantity(self, quantity: float) -> float:
+        """The bid price to buy a certain quantity."""
+        if len(self.sell_orders) == 0:
+            return self.price
+
+        cumulative = 0
+        price = self.sell_orders[0].price
+        for ask in self.sell_orders:
+            cumulative += ask.quantity
+            price = ask.price
+            if cumulative >= quantity:
+                break
+        return price
+
+    def price_to_sell_quantity(self, quantity: float) -> float:
+        """The ask price to buy a certain quantity."""
+        if len(self.buy_orders) == 0:
+            return self.price
+
+        cumulative = 0
+        price = self.buy_orders[0].price
+        for bid in self.sell_orders:
+            cumulative += bid.quantity
+            price = bid.price
+            if cumulative >= quantity:
+                break
+        return price
 
     def bids_higher_or_equal(self, price: float) -> Iterable[Bid]:
         """Return an iterator of bids whose prices are no lower than the given price."""
