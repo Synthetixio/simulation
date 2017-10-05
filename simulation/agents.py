@@ -17,7 +17,6 @@ class MarketPlayer(Agent):
     def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0, nomins: float = 0.0) -> None:
         super().__init__(unique_id, havven)
-        self.name: str = f"Player {unique_id}"
         self.fiat: float = fiat
         self.curits: float = curits
         self.nomins: float = nomins
@@ -30,6 +29,11 @@ class MarketPlayer(Agent):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def name(self):
+        """Return the name of this object; its type and its unique id."""
+        return f"{self.__class__.__name__} {self.unique_id}"
 
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
@@ -166,7 +170,6 @@ class Banker(MarketPlayer):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.name = f"Banker {self.unique_id}"
         self.fiat_curit_order = self.sell_fiat_for_curits(0)
         self.nomin_curit_order = self.sell_nomins_for_curits(0)
         self.rate = random.random() * 0.05
@@ -192,9 +195,6 @@ class Banker(MarketPlayer):
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.name = f"Arbitrageur {self.unique_id}"
 
     def find_cycle(self):
         """Find an exploitable arbitrage cycle."""
