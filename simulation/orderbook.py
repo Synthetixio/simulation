@@ -1,6 +1,6 @@
 """orderbook: an order book for trading in a market."""
 
-from typing import Iterable, Callable
+from typing import Iterable, Callable, List, Optional
 from itertools import takewhile
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
@@ -127,7 +127,7 @@ class TradeRecord:
 
 
 # A type for matching functions in the order book.
-Matcher = Callable[[Bid, Ask], bool]
+Matcher = Callable[[Bid, Ask], Optional[TradeRecord]]
 
 class OrderBook:
     """An order book for Havven agents to interact with.""" \
@@ -153,6 +153,9 @@ class OrderBook:
         # which transfers sell_val of the seller's good to the buyer,
         # and which returns True iff the transfer succeeded.
         self.matcher: Matcher = matcher
+
+        # A list of all successful trades.
+        self.history: List[TradeRecord] = []
 
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
@@ -249,8 +252,14 @@ class OrderBook:
         # This relies upon the bid and ask books being maintained ordered.
         while spread <= 0 and len(self.bids) and len(self.asks) and \
               not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
+            
+            # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
-            self.matcher(prev_bid, prev_ask)
+            trade = self.matcher(prev_bid, prev_ask)
+            # If a trade was made, then save it in the history.
+            if trade is not None:
+                self.history.append(trade)
+
             spread = self.spread()
 
         self.price = (self.lowest_ask_price() + self.highest_bid_price()) / 2
