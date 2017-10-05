@@ -113,9 +113,21 @@ class Ask(LimitOrder):
         return "Ask: " + super().__str__()
 
 
+class TradeRecord:
+    """A record of a single trade."""
+    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
+                 price: float, quantity: float) -> None:
+        self.buyer = buyer
+        self.seller = seller
+        self.price = price
+        self.quantity = quantity
+
+    def __str__(self) -> str:
+        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}"
+
+
 # A type for matching functions in the order book.
 Matcher = Callable[[Bid, Ask], bool]
-
 
 class OrderBook:
     """An order book for Havven agents to interact with.""" \
