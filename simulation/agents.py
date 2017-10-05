@@ -117,40 +117,40 @@ class MarketPlayer(Agent):
 
     def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of nomins in to buy curits."""
-        price = self.model.nom_cur_market.lowest_ask_price()
-        order = self.model.nom_cur_market.buy(quantity/price, self)
+        price = self.model.cur_nom_market.lowest_ask_price()
+        order = self.model.cur_nom_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy nomins."""
-        order = self.model.nom_cur_market.sell(quantity, self)
+        order = self.model.cur_nom_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy curits."""
-        price = self.model.fiat_cur_market.lowest_ask_price()
-        order = self.model.fiat_cur_market.buy(quantity/price, self)
+        price = self.model.cur_fiat_market.lowest_ask_price()
+        order = self.model.cur_fiat_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy fiat."""
-        order = self.model.fiat_cur_market.sell(quantity, self)
+        order = self.model.cur_fiat_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy nomins."""
-        price = self.model.fiat_nom_market.lowest_ask_price()
-        order = self.model.fiat_nom_market.buy(quantity/price, self)
+        price = self.model.nom_fiat_market.lowest_ask_price()
+        order = self.model.nom_fiat_market.buy(quantity/price, self)
         self.orders.add(order)
         return order
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of nomins in to buy fiat."""
-        order = self.model.fiat_nom_market.sell(quantity, self)
+        order = self.model.nom_fiat_market.sell(quantity, self)
         self.orders.add(order)
         return order
 
@@ -215,9 +215,9 @@ class Arbitrageur(MarketPlayer):
     def _forward_best_price_quantities_(self) -> Tuple[float, float, float]:
         """The tuple of the quantities available at the best prices in """ \
         """the forward direction around the arbitrage cycle."""
-        ncq = min(sum(b.quantity for b in self.model.nom_cur_market.highest_bids()), self.nomins)
-        cfq = min(sum(a.quantity for a in self.model.fiat_cur_market.lowest_asks()), self.curits)
-        fnq = min(sum(b.quantity for b in self.model.fiat_nom_market.highest_bids()), self.fiat)
+        ncq = min(sum(b.quantity for b in self.model.cur_nom_market.highest_bids()), self.nomins)
+        cfq = min(sum(a.quantity for a in self.model.cur_fiat_market.lowest_asks()), self.curits)
+        fnq = min(sum(b.quantity for b in self.model.nom_fiat_market.highest_bids()), self.fiat)
         return (ncq, cfq, fnq)
 
     def _forward_asset_levels_(self, quantities):
@@ -226,9 +226,9 @@ class Arbitrageur(MarketPlayer):
     def _reverse_best_price_quantities_(self) -> Tuple[float, float, float]:
         """The tuple of the quantities available at the best prices in """ \
         """the reverse direction around the arbitrage cycle."""
-        cnq = min(sum(a.quantity for a in self.model.nom_cur_market.lowest_asks()), self.curits)
-        nfq = min(sum(a.quantity for a in self.model.fiat_nom_market.lowest_asks()), self.nomins)
-        fcq = min(sum(b.quantity for b in self.model.fiat_cur_market.highest_bids()), self.fiat)
+        cnq = min(sum(a.quantity for a in self.model.cur_nom_market.lowest_asks()), self.curits)
+        nfq = min(sum(a.quantity for a in self.model.nom_fiat_market.lowest_asks()), self.nomins)
+        fcq = min(sum(b.quantity for b in self.model.cur_fiat_market.highest_bids()), self.fiat)
         return (cnq, nfq, fcq)
 
     def _equalise_tokens_(self) -> None:

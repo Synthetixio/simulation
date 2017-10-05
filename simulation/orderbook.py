@@ -121,8 +121,11 @@ class OrderBook:
     """An order book for Havven agents to interact with.""" \
     """This one is generic, but there will have to be a market for each currency pair."""
 
-    def __init__(self, name: str, matcher: Matcher, match_on_order: bool = True) -> None:
-        self.name: str = name
+    def __init__(self, base: str, quote: str, matcher: Matcher, match_on_order: bool = True) -> None:
+        # Define the currency pair held by this book.
+        self.base: str = base
+        self.quote: str = quote
+
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
         self.bids: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
@@ -141,6 +144,11 @@ class OrderBook:
 
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
+
+    @property
+    def name(self):
+        """Return this market's name."""
+        return f"{self.base}/{self.quote}"
 
     def step(self) -> None:
         """Advance the time on this order book by one step."""
