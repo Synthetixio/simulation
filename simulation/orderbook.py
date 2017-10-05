@@ -48,7 +48,7 @@ class Bid(Order):
             self.active = False
         else:
             issuer.orders.add(self)
-            book.buy_orders.add(self)
+            book.bids.add(self)
             book.step()
 
     @classmethod
@@ -59,17 +59,17 @@ class Bid(Order):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.book.buy_orders.remove(self)
+            self.book.bids.remove(self)
             self.book.step()
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
     def update_price(self, price: float) -> None:
         if self.active:
-            self.book.buy_orders.remove(self)
+            self.book.bids.remove(self)
             self.price = price
             self.time = self.book.time
-            self.book.buy_orders.add(self)
+            self.book.bids.add(self)
             self.book.step()
 
     def __str__(self) -> str:
@@ -85,7 +85,7 @@ class Ask(Order):
             self.active = False
         else:
             issuer.orders.add(self)
-            book.sell_orders.add(self)
+            book.asks.add(self)
             book.step()
 
     @classmethod
@@ -96,17 +96,17 @@ class Ask(Order):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.book.sell_orders.remove(self)
+            self.book.asks.remove(self)
             self.book.step()
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
     def update_price(self, price: float) -> None:
         if self.active:
-            self.book.sell_orders.remove(self)
+            self.book.asks.remove(self)
             self.price = price
             self.time = self.book.time
-            self.book.sell_orders.add(self)
+            self.book.asks.add(self)
             self.book.step()
 
     def __str__(self) -> str:
@@ -125,9 +125,9 @@ class OrderBook:
         self.name: str = name
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
-        self.buy_orders: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
+        self.bids: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
         # Asks are ordered lowest-first
-        self.sell_orders: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
+        self.asks: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
 
         self.price: float = 1.0
         self.time: int = 0
@@ -172,12 +172,12 @@ class OrderBook:
 
     def price_to_buy_quantity(self, quantity: float) -> float:
         """The bid price to buy a certain quantity."""
-        if len(self.sell_orders) == 0:
+        if len(self.asks) == 0:
             return self.price
 
         cumulative = 0
-        price = self.sell_orders[0].price
-        for ask in self.sell_orders:
+        price = self.asks[0].price
+        for ask in self.asks:
             cumulative += ask.quantity
             price = ask.price
             if cumulative >= quantity:
@@ -186,12 +186,12 @@ class OrderBook:
 
     def price_to_sell_quantity(self, quantity: float) -> float:
         """The ask price to buy a certain quantity."""
-        if len(self.buy_orders) == 0:
+        if len(self.bids) == 0:
             return self.price
 
         cumulative = 0
-        price = self.buy_orders[0].price
-        for bid in self.sell_orders:
+        price = self.bids[0].price
+        for bid in self.asks:
             cumulative += bid.quantity
             price = bid.price
             if cumulative >= quantity:
@@ -200,11 +200,11 @@ class OrderBook:
 
     def bids_higher_or_equal(self, price: float) -> Iterable[Bid]:
         """Return an iterator of bids whose prices are no lower than the given price."""
-        return takewhile(lambda bid: bid.price >= price, self.buy_orders)
+        return takewhile(lambda bid: bid.price >= price, self.bids)
 
     def highest_bid_price(self) -> float:
         """Return the highest available buy price."""
-        return self.buy_orders[0].price if (len(self.buy_orders) > 0) else self.price
+        return self.bids[0].price if (len(self.bids) > 0) else self.price
 
     def highest_bids(self) -> Iterable[Bid]:
         """Return the list of highest-priced bids. May be empty if there are none."""
@@ -212,11 +212,11 @@ class OrderBook:
 
     def asks_lower_or_equal(self, price: float) -> Iterable[Bid]:
         """Return an iterator of asks whose prices are no higher than the given price."""
-        return takewhile(lambda ask: ask.price <= price, self.sell_orders)
+        return takewhile(lambda ask: ask.price <= price, self.asks)
 
     def lowest_ask_price(self) -> float:
         """Return the lowest available sell price."""
-        return self.sell_orders[0].price if (len(self.sell_orders) > 0) else self.price
+        return self.asks[0].price if (len(self.asks) > 0) else self.price
 
     def lowest_asks(self) -> Iterable[Bid]:
         """Return the list of lowest-priced asks. May be empty if there are none."""
@@ -233,9 +233,9 @@ class OrderBook:
         # Repeatedly match the best pair of orders until no more matches can succeed.
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.
-        while spread <= 0 and len(self.buy_orders) and len(self.sell_orders) and \
-              not (prev_bid == self.buy_orders[0] and prev_ask == self.sell_orders[0]):
-            prev_bid, prev_ask = self.buy_orders[0], self.sell_orders[0]
+        while spread <= 0 and len(self.bids) and len(self.asks) and \
+              not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
+            prev_bid, prev_ask = self.bids[0], self.asks[0]
             self.matcher(prev_bid, prev_ask)
             spread = self.spread()
 
