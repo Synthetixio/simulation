@@ -8,8 +8,8 @@ from sortedcontainers import SortedListWithKey
 
 import agents as ag
 
-class Order:
-    """A single order, including price, quantity, and the agent which submitted it."""
+class LimitOrder:
+    """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
     def __init__(self, price: float, time: int, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
@@ -39,7 +39,7 @@ class Order:
         return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
                f"@ {self.time} by {self.issuer}"
 
-class Bid(Order):
+class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
     def __init__(self, price: float, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
@@ -76,7 +76,7 @@ class Bid(Order):
         return "Bid: " + super().__str__()
 
 
-class Ask(Order):
+class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
     def __init__(self, price: float, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:

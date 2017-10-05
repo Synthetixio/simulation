@@ -26,7 +26,7 @@ class MarketPlayer(Agent):
 
         self.initial_wealth: float = self.wealth()
 
-        self.orders: Set["ob.Order"] = set()
+        self.orders: Set["ob.LimitOrder"] = set()
 
     def __str__(self) -> str:
         return self.name
@@ -154,7 +154,7 @@ class MarketPlayer(Agent):
         self.orders.add(order)
         return order
 
-    def notify_cancelled(self, order: "ob.Order") -> None:
+    def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """Notify this agent that its order was cancelled."""
         pass
 
