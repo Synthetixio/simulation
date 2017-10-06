@@ -1,6 +1,6 @@
 """model.py: The havven model itself lives here."""
 
-from typing import Callable
+from typing import Callable, Optional
 import random
 
 from scipy.stats import skewnorm
@@ -93,12 +93,13 @@ class Havven(Model):
         self.match_on_order: bool = match_on_order
 
         # Order books
-        # If a book is X_Y_market, then buyers hold X and sellers hold Y.
-        self.nom_cur_market: ob.OrderBook = ob.OrderBook("NOM/CUR", self.nom_cur_match,
+        # If a book is X_Y_market, then X is the base currency, Y is the quote currency.
+        # That is, buyers hold Y and sellers hold X.
+        self.cur_nom_market: ob.OrderBook = ob.OrderBook("CUR", "NOM", self.cur_nom_match,
                                                          self.match_on_order)
-        self.fiat_cur_market: ob.OrderBook = ob.OrderBook("FIAT/CUR", self.fiat_cur_match,
+        self.cur_fiat_market: ob.OrderBook = ob.OrderBook("CUR", "FIAT", self.cur_fiat_match,
                                                           self.match_on_order)
-        self.fiat_nom_market: ob.OrderBook = ob.OrderBook("FIAT/NOM", self.fiat_nom_match,
+        self.nom_fiat_market: ob.OrderBook = ob.OrderBook("NOM", "FIAT", self.nom_fiat_match,
                                                           self.match_on_order)
 
         # Add the market participants
@@ -128,15 +129,18 @@ class Havven(Model):
             self.curits -= value
 
     def __bid_ask_match__(self, bid: ob.Bid, ask: ob.Ask,
-                          bid_success: TransferTest, ask_success: TransferTest,
-                          bid_transfer: TransferFunction, ask_transfer: TransferFunction) -> bool:
+                          bid_success: TransferTest,
+                          ask_success: TransferTest,
+                          bid_transfer: TransferFunction,
+                          ask_transfer: TransferFunction) -> Optional[ob.TradeRecord]:
         """
         If possible, match the given bid and ask, with the given transfer and success functions.
         Cancel any orders which an agent cannot afford to service.
+        Return a TradeRecord object if the match succeeded, otherwise None.
         """
 
         if ask.price > bid.price:
-            return False
+            return None
 
         # Price will be favourable to whoever went second.
         # The earlier poster trades at their posted price,
@@ -155,9 +159,10 @@ class Havven(Model):
             ask.cancel()
             fail = True
         if fail:
-            return False
+            return None
 
-        # Perform the actual transfers
+        # Perform the actual transfers.
+        # We have already checked above if these would succeed.
         bid_transfer(bid.issuer, ask.issuer, buy_val)
         ask_transfer(ask.issuer, bid.issuer, quantity)
 
@@ -165,26 +170,35 @@ class Havven(Model):
         ask.update_quantity(ask.quantity - quantity)
         bid.update_quantity(bid.quantity - quantity)
 
-        return True
+        return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
 
-    def nom_cur_match(self, bid: ob.Bid, ask: ob.Ask) -> bool:
-        """Buyer offers nomins in exchange for curits from the seller."""
+    def cur_nom_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+        """
+        Buyer offers nomins in exchange for curits from the seller.
+        Return a TradeRecord object if the match succeeded, otherwise None.
+        """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_nomins_success,
                                       self.transfer_curits_success,
                                       self.transfer_nomins,
                                       self.transfer_curits)
 
-    def fiat_cur_match(self, bid: ob.Bid, ask: ob.Ask) -> bool:
-        """Buyer offers fiat in exchange for curits from the seller."""
+    def cur_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+        """
+        Buyer offers fiat in exchange for curits from the seller.
+        Return a TradeRecord object if the match succeeded, otherwise None.
+        """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
                                       self.transfer_curits_success,
                                       self.transfer_fiat,
                                       self.transfer_curits)
 
-    def fiat_nom_match(self, bid: ob.Bid, ask: ob.Ask) -> bool:
-        """Buyer offers fiat in exchange for nomins from the seller."""
+    def nom_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+        """
+        Buyer offers fiat in exchange for nomins from the seller.
+        Return a TradeRecord object if the match succeeded, otherwise None.
+        """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
                                       self.transfer_nomins_success,
@@ -314,9 +328,9 @@ class Havven(Model):
 
         # Resolve outstanding trades
         if not self.match_on_order:
-            self.nom_cur_market.match()
-            self.fiat_cur_market.match()
-            self.fiat_nom_market.match()
+            self.cur_nom_market.match()
+            self.cur_fiat_market.match()
+            self.nom_fiat_market.match()
 
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:

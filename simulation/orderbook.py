@@ -1,6 +1,6 @@
 """orderbook: an order book for trading in a market."""
 
-from typing import Iterable, Callable
+from typing import Iterable, Callable, List, Optional
 from itertools import takewhile
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
@@ -8,8 +8,8 @@ from sortedcontainers import SortedListWithKey
 
 import agents as ag
 
-class Order:
-    """A single order, including price, quantity, and the agent which submitted it."""
+class LimitOrder:
+    """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
     def __init__(self, price: float, time: int, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
@@ -39,7 +39,7 @@ class Order:
         return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
                f"@ {self.time} by {self.issuer}"
 
-class Bid(Order):
+class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
     def __init__(self, price: float, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
@@ -76,7 +76,7 @@ class Bid(Order):
         return "Bid: " + super().__str__()
 
 
-class Ask(Order):
+class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
     def __init__(self, price: float, quantity: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
@@ -113,16 +113,31 @@ class Ask(Order):
         return "Ask: " + super().__str__()
 
 
-# A type for matching functions in the order book.
-Matcher = Callable[[Bid, Ask], bool]
+class TradeRecord:
+    """A record of a single trade."""
+    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
+                 price: float, quantity: float) -> None:
+        self.buyer = buyer
+        self.seller = seller
+        self.price = price
+        self.quantity = quantity
 
+    def __str__(self) -> str:
+        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}"
+
+
+# A type for matching functions in the order book.
+Matcher = Callable[[Bid, Ask], Optional[TradeRecord]]
 
 class OrderBook:
     """An order book for Havven agents to interact with.""" \
     """This one is generic, but there will have to be a market for each currency pair."""
 
-    def __init__(self, name: str, matcher: Matcher, match_on_order: bool = True) -> None:
-        self.name: str = name
+    def __init__(self, base: str, quote: str, matcher: Matcher, match_on_order: bool = True) -> None:
+        # Define the currency pair held by this book.
+        self.base: str = base
+        self.quote: str = quote
+
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
         self.bids: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
@@ -139,8 +154,16 @@ class OrderBook:
         # and which returns True iff the transfer succeeded.
         self.matcher: Matcher = matcher
 
+        # A list of all successful trades.
+        self.history: List[TradeRecord] = []
+
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
+
+    @property
+    def name(self) -> str:
+        """Return this market's name."""
+        return f"{self.base}/{self.quote}"
 
     def step(self) -> None:
         """Advance the time on this order book by one step."""
@@ -229,8 +252,15 @@ class OrderBook:
         # This relies upon the bid and ask books being maintained ordered.
         while spread <= 0 and len(self.bids) and len(self.asks) and \
               not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
+            
+            # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
-            self.matcher(prev_bid, prev_ask)
+            trade = self.matcher(prev_bid, prev_ask)
+
+            # If a trade was made, then save it in the history.
+            if trade is not None:
+                self.history.append(trade)
+
             spread = self.spread()
 
         self.price = (self.lowest_ask_price() + self.highest_bid_price()) / 2
