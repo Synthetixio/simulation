@@ -30,36 +30,36 @@ def min_wealth(havven: "model.Havven") -> float:
 
 def fiat_demand(havven: "model.Havven") -> float:
     """Return the total quantity of fiat presently being bought in the marketplace."""
-    cur = sum([ask.quantity * ask.price for ask in havven.fiat_cur_market.sell_orders])
-    nom = sum([ask.quantity * ask.price for ask in havven.fiat_nom_market.sell_orders])
+    cur = sum([ask.quantity * ask.price for ask in havven.fiat_cur_market.asks])
+    nom = sum([ask.quantity * ask.price for ask in havven.fiat_nom_market.asks])
     return cur + nom
 
 def fiat_supply(havven: "model.Havven") -> float:
     """Return the total quantity of fiat presently being sold in the marketplace."""
-    cur = sum([bid.quantity * bid.price for bid in havven.fiat_cur_market.buy_orders])
-    nom = sum([bid.quantity * bid.price for bid in havven.fiat_nom_market.buy_orders])
+    cur = sum([bid.quantity * bid.price for bid in havven.fiat_cur_market.bids])
+    nom = sum([bid.quantity * bid.price for bid in havven.fiat_nom_market.bids])
     return cur + nom
 
 def curit_demand(havven: "model.Havven") -> float:
     """Return the total quantity of curits presently being bought in the marketplace."""
-    nom = sum([bid.quantity for bid in havven.nom_cur_market.buy_orders])
-    fiat = sum([bid.quantity for bid in havven.fiat_cur_market.buy_orders])
+    nom = sum([bid.quantity for bid in havven.nom_cur_market.bids])
+    fiat = sum([bid.quantity for bid in havven.fiat_cur_market.bids])
     return nom + fiat
 
 def curit_supply(havven: "model.Havven") -> float:
     """Return the total quantity of curits presently being sold in the marketplace."""
-    nom = sum([ask.quantity for ask in havven.fiat_cur_market.sell_orders])
-    fiat = sum([ask.quantity for ask in havven.nom_cur_market.sell_orders])
+    nom = sum([ask.quantity for ask in havven.fiat_cur_market.asks])
+    fiat = sum([ask.quantity for ask in havven.nom_cur_market.asks])
     return nom + fiat
 
 def nomin_demand(havven: "model.Havven") -> float:
     """Return the total quantity of nomins presently being bought in the marketplace."""
-    cur = sum([ask.quantity * ask.price for ask in havven.nom_cur_market.sell_orders])
-    fiat = sum([bid.quantity for bid in havven.fiat_nom_market.buy_orders])
+    cur = sum([ask.quantity * ask.price for ask in havven.nom_cur_market.asks])
+    fiat = sum([bid.quantity for bid in havven.fiat_nom_market.bids])
     return cur + fiat
 
 def nomin_supply(havven: "model.Havven") -> float:
     """Return the total quantity of nomins presently being sold in the marketplace."""
-    cur = sum([bid.quantity * bid.price for bid in havven.nom_cur_market.buy_orders])
-    fiat = sum([ask.quantity for ask in havven.fiat_nom_market.sell_orders])
+    cur = sum([bid.quantity * bid.price for bid in havven.nom_cur_market.bids])
+    fiat = sum([ask.quantity for ask in havven.fiat_nom_market.asks])
     return cur + fiat
