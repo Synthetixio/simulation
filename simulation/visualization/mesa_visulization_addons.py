@@ -3,19 +3,23 @@ Addons to the mesa visualization system to allow for different graphs and the
 viewing of agent variables in a graph format
 """
 
+
 from mesa.visualization.ModularVisualization import VisualizationElement
+
 import numpy as np
 import random
+
+from typing import List, Tuple, Dict, Callable
 
 class BarGraphModule(VisualizationElement):
     """
     Displays a simple bar graph of the selected attributes of the agents
     """
-    package_includes = []
-    local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
+    package_includes: List[str] = []
+    local_includes: List[str] = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
         "visualization/js/BarGraphModule.js"]
 
-    def __init__(self, series: list, height: int=200, width: int=500,
+    def __init__(self, series: List[Dict[str, str]], height: int=200, width: int=500,
                                         data_collector_name: str="datacollector") -> None:
         self.series = series
         self.height = height
@@ -23,21 +27,22 @@ class BarGraphModule(VisualizationElement):
         self.width = width
         self.data_collector_name = data_collector_name
 
-        new_element : str = f"new BarGraphModule(\"{series[0]['Label']}\",0, {width}, {height})"
-        self.js_code : str = f"elements.push({new_element});"
+        new_element: str = f"new BarGraphModule(\"{series[0]['Label']}\",0, {width}, {height})"
+        self.js_code: str = f"elements.push({new_element});"
 
-    def render(self, model: "Havven") -> list:
+    def render(self, model: "Havven") -> List[float]:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
-        data_collector = getattr(model, self.data_collector_name)
-        vals : "List[Tuple[float,float]]" = []
+        data_collector: "DataCollector" = getattr(model, self.data_collector_name)
+        vals : List[float] = []
         for s in self.series:
             name = s['Label']
             try:
                 # skip the MarketPlayer who is added onto the end as he overshadows
                 # the wealth of all the others
-                for item in sorted(data_collector.agent_vars[name][-1])[:-1]:
+                agents: List[Callable[float]] = sorted(data_collector.agent_vars[name][-1])[:-1]
+                for item in agents:
                     vals.append(item[1]())
             except:
                 vals = [0]
@@ -49,12 +54,11 @@ class OrderBookModule(VisualizationElement):
     Display a depth graph for orderbooks to show the quantity of buy/sell orders
     for the given market
     """
-    package_includes = []
-
-    local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
+    package_includes: List[str] = []
+    local_includes: List[str] = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
         "visualization/js/DepthGraphModule.js"]
 
-    def __init__(self, series: list, height: int=300, width: int=500,
+    def __init__(self, series: List[Dict[str, str]], height: int=300, width: int=500,
                                 data_collector_name: str="datacollector") -> None:
         self.series = series
         self.height = height
@@ -62,51 +66,50 @@ class OrderBookModule(VisualizationElement):
         self.width = width
         self.data_collector_name = data_collector_name
 
-        new_element = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
+        new_element: str = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
         self.js_code = f"elements.push({new_element});"
 
-    def render(self, model: "Havven") -> list:
+    def render(self, model: "Havven") -> List[List[Tuple[float,float]]]:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
-        self.data_test = [(random.random()*2, random.random()*8) for i in range(100)]
-        data_collector = getattr(model, self.data_collector_name)
-        vals = []
+        data_collector: "DataCollector" = getattr(model, self.data_collector_name)
+
         for s in self.series:
-            name = s['Label']
+            name: str = s['Label']
 
             # get the buy and sell orders of the named market and add together
             # the quantities or orders with the same rates
-            buys = {}
-            sells = {}
+            bid_dict: Dict[float,float] = {}
+            ask_dict: Dict[float,float] = {}
             try:
-                # orderbook = data_collector.model_vars[name][-1]
-                # for item in orderbook.buy_orders:
-                #     if item.price not in buys:
-                #         buys[item.price] = item.quantity
-                #     else:
-                #         buys[item.price] += item.quantity
-                #
-                # for item in orderbook.sell_orders:
-                #     if item.price not in sells:
-                #         sells[item.price] = item.quantity
-                #     else:
-                #         sells[item.price] += item.quantity
-                for item in self.data_test:
-                    if item[0] < 1:
-                        if item[0] not in buys:
-                            buys[item[0]] = item[1]
-                        else:
-                            buys[item[0]] += item[1]
+                orderbook: "OrderBook" = data_collector.model_vars[name][-1]
+                for item in orderbook.bids:
+                    if item.price not in bid_dict:
+                        bid_dict[item.price] = item.quantity
                     else:
-                        if item[0] not in sells:
-                            sells[item[0]] = item[1]
-                        else:
-                            sells[item[0]] += item[1]
+                        bid_dict[item.price] += item.quantity
+
+                for item in orderbook.asks:
+                    if item.price not in ask_dict:
+                        ask_dict[item.price] = item.quantity
+                    else:
+                        ask_dict[item.price] += item.quantity
+                # for item in self.data_test:
+                #     if item[0] < 1:
+                #         if item[0] not in bid_dict:
+                #             bid_dict[item[0]] = item[1]
+                #         else:
+                #             bid_dict[item[0]] += item[1]
+                #     else:
+                #         if item[0] not in ask_dict:
+                #             ask_dict[item[0]] = item[1]
+                #         else:
+                #             ask_dict[item[0]] += item[1]
             except:
                 pass
 
-            buys = sorted(buys.items(), key=lambda x:x[0])
-            sells = sorted(sells.items(), key=lambda x:x[0])
-
-        return [buys, sells]
+            bids: List[Tuple[float,float]] = sorted(bid_dict.items(), key=lambda x:x[0])
+            asks: List[Tuple[float,float]] = sorted(ask_dict.items(), key=lambda x:x[0])
+        print([bids, asks])
+        return [bids, asks]

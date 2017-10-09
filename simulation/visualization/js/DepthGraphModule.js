@@ -12,7 +12,7 @@ var DepthGraphModule = function(graph_id, width, height) {
 
     // graph settings
     var price_range = 0.25; // show +/- % of current price
-    var segments = 99; // amount of graph segments, should be odd to leave average in middle
+    var segments = 15; // amount of graph segments, should be odd to leave average in middle
     var half_segments = parseInt((segments-1)/2);
     var decimal_places = 3;
     var round_val = Math.pow(10,decimal_places); // for Math.floor(num*val)/val, to get num d.p.
@@ -33,6 +33,7 @@ var DepthGraphModule = function(graph_id, width, height) {
 
     var options = {
       axisX: {
+        // hide every 2nd x-axis label to avoid clutter
         labelInterpolationFnc: function(value, index) {
           return index % 2 === 0 ? value : null;
         }
@@ -59,52 +60,59 @@ var DepthGraphModule = function(graph_id, width, height) {
       var asks = new_data[1];
 
       // data is sorted by rate, in the form [(rate, quantity) ... ]
-      var min_bid = bids[0][0];
-      var max_bid = bids[bids.length-1][0];
+      var min_bid=0, max_bid=0, min_ask=0, max_ask=0;
+      if (bids.length > 0) {
+        var min_bid = bids[0][0];
+        var max_bid = bids[bids.length-1][0];
+      }
 
-      var min_ask = asks[0][0];
-      var max_ask = asks[asks.length-1][0];
+      if (asks.lenth > 0) {
+        var min_ask = asks[0][0];
+        var max_ask = asks[asks.length-1][0];
+      }
 
       var avg_price = (max_bid+min_ask)/2;
 
       // render bids
-
-      var bid_quant = 0; // cumulative quantity of buys
-      var i = bids.length;
-      for (var curr_ind=0; curr_ind<half_segments; curr_ind++) {
-        var price = bids[i-1][0];
-        // while the price is less than the "segment" price cap
-        while (price > (avg_price*(1-(price_range*curr_ind/half_segments)))) {
-          i--;
-          if (i<0) {
-            break;
+      if (bids.length > 0) {
+        var bid_quant = 0; // cumulative quantity of buys
+        var i = bids.length;
+        for (var curr_ind=0; curr_ind<half_segments-1; curr_ind++) {
+          var price = bids[i-1][0];
+          // while the price is less than the "segment" price cap
+          while (price > (avg_price*(1-(price_range*curr_ind/half_segments)))) {
+            i--;
+            if (i<0) {
+              break;
+            }
+            var price = bids[i][0];
+            bid_quant += bids[i][1];
           }
-          var price = bids[i][0];
-          bid_quant += bids[i][1];
+          chart.data.series[0][half_segments-curr_ind] = bid_quant;
+          // show only some decimal places
+          chart.data.labels[half_segments-curr_ind] = Math.round(price * round_val) / round_val;;
         }
-        chart.data.series[0][half_segments-curr_ind] = bid_quant;
-        // show only some decimal places
-        chart.data.labels[half_segments-curr_ind] = Math.round(price * round_val) / round_val;;
       }
 
       // render asks
 
-      var ask_quant = 0;
-
-      var i = 0;
-      for (var curr_ind=half_segments+1; curr_ind<segments; curr_ind++) {
-        var price = asks[i][0];
-        while (price < (avg_price*(1+(price_range*(curr_ind-half_segments)/half_segments)))) {
-          i++;
-          if (i>=asks.length) {
-            break;
-          }
+      if (asks.length > 0) {
+        var ask_quant = 0;
+        var i = 0;
+        for (var curr_ind=half_segments+1; curr_ind<segments; curr_ind++) {
           var price = asks[i][0];
-          ask_quant += asks[i][1];
+          while (price < (avg_price*(1+(price_range*(curr_ind-half_segments)/half_segments)))) {
+            i++;
+            if (i>=asks.length) {
+              break;
+            }
+            var price = asks[i][0];
+            ask_quant += asks[i][1];
+          }
+          chart.data.series[1][curr_ind] = ask_quant;
+          // show only some decimal places
+          chart.data.labels[curr_ind] = Math.round(price * round_val) / round_val;
         }
-        chart.data.series[1][curr_ind] = ask_quant;
-        // show only some decimal places
-        chart.data.labels[curr_ind] = Math.round(price * round_val) / round_val;
       }
 
 

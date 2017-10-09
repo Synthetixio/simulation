@@ -24,11 +24,6 @@ var BarGraphModule = function(graph_id, num_agents, width, height) {
 
 
     var options = {
-      axisX: {
-        labelInterpolationFnc: function(value, index) {
-          return index % 2 === 0 ? value : null;
-        }
-      },
       fullWidth: true,
       height: height+'px',
       chartPadding: {
