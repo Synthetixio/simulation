@@ -15,24 +15,23 @@ class BarGraphModule(VisualizationElement):
     local_includes = ["visualization/css/chartist.min.css", "visualization/js/chartist.min.js",
         "visualization/js/BarGraphModule.js"]
 
-    def __init__(self, series: list, num_agents: int, height: int=200, width: int=500,
+    def __init__(self, series: list, height: int=200, width: int=500,
                                         data_collector_name: str="datacollector") -> None:
         self.series = series
-        self.num_agents = num_agents
         self.height = height
         # currently width does nothing, as it stretches the whole page
         self.width = width
         self.data_collector_name = data_collector_name
 
-        new_element = f"new BarGraphModule(\"{series[0]['Label']}\",{num_agents}, {width}, {height})"
-        self.js_code = f"elements.push({new_element});"
+        new_element : str = f"new BarGraphModule(\"{series[0]['Label']}\",0, {width}, {height})"
+        self.js_code : str = f"elements.push({new_element});"
 
     def render(self, model: "Havven") -> list:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
         data_collector = getattr(model, self.data_collector_name)
-        vals = []
+        vals : "List[Tuple[float,float]]" = []
         for s in self.series:
             name = s['Label']
             try:
@@ -41,7 +40,7 @@ class BarGraphModule(VisualizationElement):
                 for item in sorted(data_collector.agent_vars[name][-1])[:-1]:
                     vals.append(item[1]())
             except:
-                vals = [0 for i in range(self.num_agents)]
+                vals = [0]
         return vals
 
 
@@ -66,13 +65,11 @@ class OrderBookModule(VisualizationElement):
         new_element = f"new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})"
         self.js_code = f"elements.push({new_element});"
 
-
-
     def render(self, model: "Havven") -> list:
         """
         return the data to be sent to the websocket to be rendered on the run page
         """
-        self.data_test = [(round(random.random()*2, 2), random.random()*8) for i in range(100)]
+        self.data_test = [(random.random()*2, random.random()*8) for i in range(100)]
         data_collector = getattr(model, self.data_collector_name)
         vals = []
         for s in self.series:
