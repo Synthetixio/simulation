@@ -17,7 +17,6 @@ class BarGraphModule(VisualizationElement):
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
-        "visualization/css/chartist.min.css",
         "visualization/js/chartist.min.js",
         "visualization/js/BarGraphModule.js"
     ]
@@ -66,7 +65,6 @@ class OrderBookModule(VisualizationElement):
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
-        "visualization/css/chartist.min.css",
         "visualization/js/chartist.min.js",
         "visualization/js/DepthGraphModule.js"
     ]

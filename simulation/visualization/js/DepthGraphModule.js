@@ -95,7 +95,7 @@ var DepthGraphModule = function(graph_id, width, height) {
               break;
             }
           }
-          chart.data.series[0][half_segments-curr_ind] = bid_quant;
+          chart.data.series[1][half_segments-curr_ind] = bid_quant;
           // show only some decimal places
           chart.data.labels[half_segments-curr_ind] = Math.round(price * round_val) / round_val;;
         }
@@ -116,7 +116,7 @@ var DepthGraphModule = function(graph_id, width, height) {
               break;
             }
           }
-          chart.data.series[1][curr_ind] = ask_quant;
+          chart.data.series[0][curr_ind] = ask_quant;
           // show only some decimal places
           chart.data.labels[curr_ind] = Math.round(price * round_val) / round_val;
         }
@@ -125,14 +125,14 @@ var DepthGraphModule = function(graph_id, width, height) {
 
       // make any 0 values take the values of its neighbors
       for (var i=half_segments; i>=0;i--) {
-        if (chart.data.series[0][i] == 0) {
-          chart.data.series[0][i] = chart.data.series[0][i+1];
+        if (chart.data.series[1][i] == 0) {
+          chart.data.series[1][i] = chart.data.series[1][i+1];
         }
       }
 
       for (var i=half_segments+1; i<segments;i++) {
-        if (chart.data.series[1][i] == 0) {
-          chart.data.series[1][i] = chart.data.series[1][i-1];
+        if (chart.data.series[0][i] == 0) {
+          chart.data.series[0][i] = chart.data.series[0][i-1];
         }
       }
 
