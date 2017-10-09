@@ -95,17 +95,7 @@ class OrderBookModule(VisualizationElement):
                         ask_dict[item.price] = item.quantity
                     else:
                         ask_dict[item.price] += item.quantity
-                # for item in self.data_test:
-                #     if item[0] < 1:
-                #         if item[0] not in bid_dict:
-                #             bid_dict[item[0]] = item[1]
-                #         else:
-                #             bid_dict[item[0]] += item[1]
-                #     else:
-                #         if item[0] not in ask_dict:
-                #             ask_dict[item[0]] = item[1]
-                #         else:
-                #             ask_dict[item[0]] += item[1]
+
             except:
                 pass
 
