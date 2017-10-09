@@ -3,15 +3,19 @@
 
 var DepthGraphModule = function(graph_id, width, height) {
     // Create the elements
-    // Create the tag:
-    var div_tag = "<div id='" + graph_id + "buys' class='ct-chart'></div>";
+    // Create the tags:
+    var div_tag = `<div class="row" style="padding-left: 30px; margin:0">
+          <p style="float:left; padding-right: 5px;">Price range(1%-100%): </p>
+          <input type="range" id="price_range`+graph_id+`" value="0.25" min="0" max="1" step="0.01" style="width: 80%"/>
+          <div id='`+graph_id+`' class='ct-chart'></div>
+          </div>`;
     // Append it to body:
     var div = $(div_tag)[0];
     $("body").append(div);
     // Prep the chart properties and series:
 
     // graph settings
-    var price_range = 0.25; // show +/- % of current price
+    var price_range = $("#price_range"+graph_id).value; // show +/- % of current price
     var segments = 15; // amount of graph segments, should be odd to leave average in middle
     var half_segments = parseInt((segments-1)/2);
     var decimal_places = 3;
@@ -41,7 +45,8 @@ var DepthGraphModule = function(graph_id, width, height) {
       fullWidth: true,
       height: height+'px',
       chartPadding: {
-        right: 20
+        right: 30,
+        left: -10
       },
       showArea: true,
       showPoint: true,
@@ -49,26 +54,27 @@ var DepthGraphModule = function(graph_id, width, height) {
     };
 
     // Create the chart object
-    var chart = new Chartist.Line('#'+graph_id+'buys', data, options);
+    var chart = new Chartist.Line('#'+graph_id, data, options);
 
     this.render = function(new_data) {
 
 
       this.reset();
-
+      var price_range = parseFloat($("#price_range"+graph_id)[0].value);
+      console.log(price_range);
       var bids = new_data[0];
       var asks = new_data[1];
 
       // data is sorted by rate, in the form [(rate, quantity) ... ]
       var min_bid=0, max_bid=0, min_ask=0, max_ask=0;
       if (bids.length > 0) {
-        var min_bid = bids[0][0];
-        var max_bid = bids[bids.length-1][0];
+        min_bid = bids[0][0];
+        max_bid = bids[bids.length-1][0];
       }
 
-      if (asks.lenth > 0) {
-        var min_ask = asks[0][0];
-        var max_ask = asks[asks.length-1][0];
+      if (asks.length > 0) {
+        min_ask = asks[0][0];
+        max_ask = asks[asks.length-1][0];
       }
 
       var avg_price = (max_bid+min_ask)/2;
@@ -76,17 +82,18 @@ var DepthGraphModule = function(graph_id, width, height) {
       // render bids
       if (bids.length > 0) {
         var bid_quant = 0; // cumulative quantity of buys
-        var i = bids.length;
-        for (var curr_ind=0; curr_ind<half_segments-1; curr_ind++) {
-          var price = bids[i-1][0];
+        var i = bids.length-1;
+        for (var curr_ind=0; curr_ind<half_segments; curr_ind++) {
+          var price = bids[i][0];
+
           // while the price is less than the "segment" price cap
           while (price > (avg_price*(1-(price_range*curr_ind/half_segments)))) {
+            var price = bids[i][0];
+            bid_quant += bids[i][1];
             i--;
             if (i<0) {
               break;
             }
-            var price = bids[i][0];
-            bid_quant += bids[i][1];
           }
           chart.data.series[0][half_segments-curr_ind] = bid_quant;
           // show only some decimal places
@@ -102,12 +109,12 @@ var DepthGraphModule = function(graph_id, width, height) {
         for (var curr_ind=half_segments+1; curr_ind<segments; curr_ind++) {
           var price = asks[i][0];
           while (price < (avg_price*(1+(price_range*(curr_ind-half_segments)/half_segments)))) {
+            var price = asks[i][0];
+            ask_quant += asks[i][1];
             i++;
             if (i>=asks.length) {
               break;
             }
-            var price = asks[i][0];
-            ask_quant += asks[i][1];
           }
           chart.data.series[1][curr_ind] = ask_quant;
           // show only some decimal places

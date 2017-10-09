@@ -4,6 +4,7 @@
 var BarGraphModule = function(graph_id, num_agents, width, height) {
     // Create the elements
     // Create the tag:
+
     var div_tag = "<div id='"+graph_id+"' class='ct-chart'></div>";
     // Append it to body:
     var div = $(div_tag)[0];

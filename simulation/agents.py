@@ -158,6 +158,42 @@ class MarketPlayer(Agent):
         self.orders.add(order)
         return order
 
+    def place_curits_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
+        """place a bid for quantity curits, at a given rate of fiat"""
+        order: "ob.Bid" = self.model.cur_fiat_market.bid(rate, quantity, self)
+        self.orders.add(order) # TODO: isn't this is already added in the Bid/Ask itself already?
+        return order
+
+    def place_curits_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
+        """place an ask for fiat with quantity curits, at a given rate of fiat"""
+        order: "ob.Ask" = self.model.cur_fiat_market.ask(rate, quantity, self)
+        self.orders.add(order)
+        return order
+
+    def place_nomins_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
+        """place a bid for quantity nomins, at a given rate of fiat"""
+        order: "ob.Bid" = self.model.nom_fiat_market.bid(rate, quantity, self)
+        self.orders.add(order)
+        return order
+
+    def place_nomins_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
+        """place an ask for fiat with quantity nomins, at a given rate of fiat"""
+        order: "ob.Ask" = self.model.nom_fiat_market.ask(rate, quantity, self)
+        self.orders.add(order)
+        return order
+
+    def place_curits_nomins_bid(self, quantity: float, rate: float) -> "ob.Bid":
+        """place a bid for quantity curits, at a given rate of nomins"""
+        order: "ob.Bid" = self.model.cur_nom_market.bid(rate, quantity, self)
+        self.orders.add(order)
+        return order
+
+    def place_curits_nomins_ask(self, quantity: float, rate: float) -> "ob.Ask":
+        """place an ask for curits with quantity nomins, at a given rate of curits"""
+        order: "ob.Ask" = self.model.cur_nom_market.ask(rate, quantity, self)
+        self.orders.add(order)
+        return order
+
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """Notify this agent that its order was cancelled."""
         pass
@@ -233,3 +269,13 @@ class Arbitrageur(MarketPlayer):
 
     def _equalise_tokens_(self) -> None:
         pass
+
+class Randomizer(MarketPlayer):
+    """Places random bids and asks"""
+    def step(self) -> None:
+        if self.fiat > 0:
+            for i in range(10):
+                if random.random() > 0.5:
+                    self.place_curits_fiat_bid(self.fiat/10, round(random.random(), 3))
+                else:
+                    self.place_curits_fiat_ask(self.fiat/10, round(1+random.random(), 3))

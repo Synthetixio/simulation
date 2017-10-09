@@ -117,7 +117,10 @@ class Havven(Model):
             self.schedule.add(a)
             total_endowment += endowment
 
-        reserve_bank = ag.MarketPlayer(self.num_agents, self, 0)
+        randomizer = ag.Randomizer(i+1, self, fiat=max_fiat)
+        self.schedule.add(randomizer)
+
+        reserve_bank = ag.MarketPlayer(self.num_agents+1, self, 0)
         self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
