@@ -259,7 +259,6 @@ class Arbitrageur(MarketPlayer):
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # cur -> fiat -> nom -> cur
-            #cf_price = self.model.cur_fiat_market.highest_bid_price()
             init_wealth = self.wealth()
             fn_price = 1.0 / self.model.nom_fiat_market.lowest_ask_price()
             nc_price = 1.0 / self.model.cur_nom_market.lowest_ask_price()
@@ -276,13 +275,10 @@ class Arbitrageur(MarketPlayer):
 
             n_qty = min(self.nomins, nc_qty * nc_price)
             self.sell_nomins_for_curits(n_qty)
-            print(f"{self} fwd: {init_wealth}->{self.wealth()}")
 
         elif self._reverse_multiple_() > 1.1:
             # Trade in the reverse direction
             # cur -> nom -> fiat -> cur
-            #cn_price = self.model.cur_nom_market.highest_bid_price()
-            #nf_price = self.model.nom_fiat_market.highest_bid_price()
             init_wealth = self.wealth()
             fc_price = 1.0 / self.model.cur_fiat_market.lowest_ask_price()
 
@@ -298,7 +294,6 @@ class Arbitrageur(MarketPlayer):
 
             f_qty = min(self.fiat, fc_qty * fc_price)
             self.sell_nomins_for_curits(n_qty)
-            print(f"{self} rev: {init_wealth}->{self.wealth()}")
 
     def _cycle_fee_rate_(self) -> float:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
@@ -336,15 +331,18 @@ class Arbitrageur(MarketPlayer):
         pass
 
 class Randomizer(MarketPlayer):
-    """Places random bids and asks."""
+    """Places random bids and asks near current market prices."""
 
     def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0,
                  nomins: float = 0.0,
-                 variance: float = 0.05, order_lifetime = 10) -> None:
+                 variance: float = 0.05, order_lifetime = 30) -> None:
         super().__init__(unique_id, havven, fiat, curits, nomins)
         self.variance = variance
+        """This agent will place orders within (+/-)variance*price of the going rate."""
+
         self.order_lifetime = order_lifetime
+        """Orders older than this lifetime will be cancelled."""
 
     def step(self) -> None:
         condemned = []
@@ -360,37 +358,37 @@ class Randomizer(MarketPlayer):
 
         action()
 
-    def _cur_fiat_bid_(self):
+    def _cur_fiat_bid_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
         self.place_curits_fiat_bid(self.fiat/10, price + movement)
 
-    def _cur_fiat_ask_(self):
+    def _cur_fiat_ask_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
         self.place_curits_fiat_ask(self.fiat/10, price + movement)
 
-    def _nom_fiat_bid_(self):
+    def _nom_fiat_bid_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
         self.place_nomins_fiat_bid(self.fiat/10, price + movement)
 
-    def _nom_fiat_ask_(self):
+    def _nom_fiat_ask_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
         self.place_nomins_fiat_ask(self.fiat/10, price + movement)
 
-    def _cur_nom_bid_(self):
+    def _cur_nom_bid_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
         self.place_curits_nomins_bid(self.fiat/10, price + movement)
 
-    def _cur_nom_ask_(self):
+    def _cur_nom_ask_(self) -> None:
         price = self.model.cur_fiat_market.price
         movement = round((2*random.random() - 1) * \
                          price * self.variance, 3)
