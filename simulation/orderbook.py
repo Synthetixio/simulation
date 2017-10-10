@@ -45,7 +45,7 @@ class Bid(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
-            self.cancel()
+            self.active = False  # bid will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.bids.add(self)
@@ -82,7 +82,7 @@ class Ask(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
-            self.cancel()
+            self.active = False  # ask will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.asks.add(self)

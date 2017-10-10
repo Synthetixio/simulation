@@ -1,10 +1,11 @@
 """server.py: Functions for setting up the simulation/visualisation server."""
 
-import model
-
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer
+
+import model
+
 from visualization.mesa_visulization_addons import (
         BarGraphModule, OrderBookModule)
 

@@ -61,7 +61,6 @@ var DepthGraphModule = function(graph_id, width, height) {
 
       this.reset();
       var price_range = parseFloat($("#price_range"+graph_id)[0].value);
-      console.log(price_range);
       var bids = new_data[0];
       var asks = new_data[1];
 
