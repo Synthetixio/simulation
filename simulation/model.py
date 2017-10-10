@@ -22,37 +22,45 @@ TransferFunction = Callable[[ag.MarketPlayer, ag.MarketPlayer, float], bool]
 
 class Havven(Model):
     """
-    An agent-based model of the Havven stablecoin system. This class will provide the basic
-    market functionality of havven, an exchange, and a place for the market agents to live and
-    interact.
-    The aim is to stabilise the nomin price, but we would also like to measure other quantities
-    including liquidity, volatility, wealth concentration, velocity of money and so on.
+    An agent-based model of the Havven stablecoin system. This class will
+      provide the basic market functionality of havven, an exchange, and a
+      place for the market agents to live and interact.
+    The aim is to stabilise the nomin price, but we would also like to measure
+      other quantities including liquidity, volatility, wealth concentration,
+      velocity of money and so on.
     """
 
-    def __init__(self, N: int, max_fiat: float = 1000, match_on_order: bool = True) -> None:
+    def __init__(self, N: int, max_fiat: float = 1000,
+                 match_on_order: bool = True) -> None:
         # Mesa setup
         super().__init__()
         self.schedule = RandomActivation(self)
-        self.datacollector = DataCollector(model_reporters=
-                                            {"Havven Nomins": lambda h: h.nomins,
-                                             "Havven Curits": lambda h: h.curits,
-                                             "Havven Fiat": lambda h: h.fiat,
-                                             "Gini": ms.gini,
-                                             "Nomins": lambda h: h.nomin_supply,
-                                             "Escrowed Curits": lambda h: h.escrowed_curits,
-                                             "Wealth SD": ms.wealth_sd,
-                                             "Max Wealth": ms.max_wealth,
-                                             "Min Wealth": ms.min_wealth,
-                                             "Profit %": ms.mean_profit_fraction,
-                                             "Curit Demand": ms.curit_demand,
-                                             "Curit Supply": ms.curit_supply,
-                                             "Nomin Demand": ms.nomin_demand,
-                                             "Nomin Supply": ms.nomin_supply,
-                                             "Fiat Demand": ms.fiat_demand,
-                                             "Fiat Supply": ms.fiat_supply,
-                                             "Fee Pool": lambda h: h.nomins,
-                                             "Fees Distributed": lambda h: h.fees_distributed},
-                                           agent_reporters={"Wealth": lambda a: a.wealth})
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Havven Nomins": lambda h: h.nomins,
+                "Havven Curits": lambda h: h.curits,
+                "Havven Fiat": lambda h: h.fiat,
+                "Gini": ms.gini,
+                "Nomins": lambda h: h.nomin_supply,
+                "Escrowed Curits": lambda h: h.escrowed_curits,
+                "Wealth SD": ms.wealth_sd,
+                "Max Wealth": ms.max_wealth,
+                "Min Wealth": ms.min_wealth,
+                "Profit %": ms.mean_profit_fraction,
+                "Curit Demand": ms.curit_demand,
+                "Curit Supply": ms.curit_supply,
+                "Nomin Demand": ms.nomin_demand,
+                "Nomin Supply": ms.nomin_supply,
+                "Fiat Demand": ms.fiat_demand,
+                "Fiat Supply": ms.fiat_supply,
+                "Fee Pool": lambda h: h.nomins,
+                "Fees Distributed": lambda h: h.fees_distributed,
+                "NomCurOrderBook": lambda h: h.cur_nom_market,
+                "FiatCurOrderBook": lambda h: h.cur_fiat_market,
+                "FiatNomOrderBook": lambda h: h.nom_fiat_market
+            }, agent_reporters={
+                "Wealth": lambda a: a.wealth
+            })
 
         self.time: int = 1
 
@@ -89,18 +97,22 @@ class Havven(Model):
         self.utilisation_ratio_max: float = 1.0
 
         # If true, match orders whenever an order is posted,
-        # otherwise do so at the end of each period
+        #   otherwise do so at the end of each period
         self.match_on_order: bool = match_on_order
 
         # Order books
-        # If a book is X_Y_market, then X is the base currency, Y is the quote currency.
+        # If a book is X_Y_market, then X is the base currency,
+        #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
-        self.cur_nom_market: ob.OrderBook = ob.OrderBook("CUR", "NOM", self.cur_nom_match,
-                                                         self.match_on_order)
-        self.cur_fiat_market: ob.OrderBook = ob.OrderBook("CUR", "FIAT", self.cur_fiat_match,
-                                                          self.match_on_order)
-        self.nom_fiat_market: ob.OrderBook = ob.OrderBook("NOM", "FIAT", self.nom_fiat_match,
-                                                          self.match_on_order)
+        self.cur_nom_market: ob.OrderBook = ob.OrderBook(
+            "CUR", "NOM", self.cur_nom_match, self.match_on_order
+        )
+        self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
+            "CUR", "FIAT", self.cur_fiat_match, self.match_on_order
+        )
+        self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
+            "NOM", "FIAT", self.nom_fiat_match, self.match_on_order
+        )
 
         # Add the market participants
         total_endowment = 0.0
@@ -111,11 +123,14 @@ class Havven(Model):
             self.schedule.add(a)
             total_endowment += endowment
 
-        reserve_bank = ag.MarketPlayer(self.num_agents, self, 0)
+        randomizer = ag.Randomizer(i+1, self, fiat=max_fiat)
+        self.schedule.add(randomizer)
+
+        reserve_bank = ag.MarketPlayer(self.num_agents+1, self, 0)
         self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
-        reserve_bank.sell_curits_for_nomins(N * max_fiat* 3)
+        reserve_bank.sell_curits_for_nomins(N * max_fiat * 3)
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
@@ -128,13 +143,14 @@ class Havven(Model):
             agent.curits += value
             self.curits -= value
 
-    def __bid_ask_match__(self, bid: ob.Bid, ask: ob.Ask,
-                          bid_success: TransferTest,
-                          ask_success: TransferTest,
-                          bid_transfer: TransferFunction,
-                          ask_transfer: TransferFunction) -> Optional[ob.TradeRecord]:
+    def __bid_ask_match__(
+            self, bid: ob.Bid, ask: ob.Ask,
+            bid_success: TransferTest, ask_success: TransferTest,
+            bid_transfer: TransferFunction,
+            ask_transfer: TransferFunction) -> Optional[ob.TradeRecord]:
         """
-        If possible, match the given bid and ask, with the given transfer and success functions.
+        If possible, match the given bid and ask, with the given transfer
+          and success functions.
         Cancel any orders which an agent cannot afford to service.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
@@ -144,7 +160,8 @@ class Havven(Model):
 
         # Price will be favourable to whoever went second.
         # The earlier poster trades at their posted price,
-        # while the later poster transacts at a price no worse than posted; they may do better.
+        #   while the later poster transacts at a price no worse than posted;
+        #   they may do better.
         price = ask.price if ask.time < bid.time else bid.price
         quantity = min(ask.quantity, bid.quantity)
         buy_val = quantity*price
@@ -172,7 +189,8 @@ class Havven(Model):
 
         return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
 
-    def cur_nom_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+    def cur_nom_match(self, bid: ob.Bid,
+                      ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers nomins in exchange for curits from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -183,7 +201,8 @@ class Havven(Model):
                                       self.transfer_nomins,
                                       self.transfer_curits)
 
-    def cur_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+    def cur_fiat_match(self, bid: ob.Bid,
+                       ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers fiat in exchange for curits from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -194,7 +213,8 @@ class Havven(Model):
                                       self.transfer_fiat,
                                       self.transfer_curits)
 
-    def nom_fiat_match(self, bid: ob.Bid, ask: ob.Ask) -> Optional[ob.TradeRecord]:
+    def nom_fiat_match(self, bid: ob.Bid,
+                       ask: ob.Ask) -> Optional[ob.TradeRecord]:
         """
         Buyer offers fiat in exchange for nomins from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -217,34 +237,48 @@ class Havven(Model):
         """Return the fee charged for transferring a value of nomins."""
         return value * self.nom_transfer_fee_rate
 
-    def transfer_fiat_success(self, sender: ag.MarketPlayer, value: float) -> bool:
+    def transfer_fiat_success(self, sender: ag.MarketPlayer,
+                              value: float) -> bool:
         """True iff the sender could successfully send a value of fiat."""
         return 0 <= value + self.transfer_fiat_fee(value) <= sender.fiat
 
-    def transfer_curits_success(self, sender: ag.MarketPlayer, value: float) -> bool:
+    def transfer_curits_success(self, sender: ag.MarketPlayer,
+                                value: float) -> bool:
         """True iff the sender could successfully send a value of curits."""
         return 0 <= value + self.transfer_curits_fee(value) <= sender.curits
 
-    def transfer_nomins_success(self, sender: ag.MarketPlayer, value: float) -> bool:
+    def transfer_nomins_success(self, sender: ag.MarketPlayer,
+                                value: float) -> bool:
         """True iff the sender could successfully send a value of nomins."""
         return 0 <= value + self.transfer_nomins_fee(value) <= sender.nomins
 
     def max_transferrable_fiat(self, principal: float) -> float:
-        """A user can transfer less than their total balance when fees are taken into account."""
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+          """
         return principal / (1 + self.fiat_transfer_fee_rate)
 
     def max_transferrable_curits(self, principal: float) -> float:
-        """A user can transfer less than their total balance when fees are taken into account."""
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+        """
         return principal / (1 + self.cur_transfer_fee_rate)
 
     def max_transferrable_nomins(self, principal: float) -> float:
-        """A user can transfer less than their total balance when fees are taken into account."""
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+        """
         return principal / (1 + self.nom_transfer_fee_rate)
 
-    def transfer_fiat(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
-                      value: float) -> bool:
-        """Transfer a positive value of fiat currency from the sender to the recipient, """ \
-        """if balance is sufficient. Return True on success."""
+    def transfer_fiat(self, sender: ag.MarketPlayer,
+                      recipient: ag.MarketPlayer, value: float) -> bool:
+        """
+        Transfer a positive value of fiat currency from the sender to the
+          recipient, if balance is sufficient. Return True on success.
+        """
         if self.transfer_fiat_success(sender, value):
             fee = self.transfer_fiat_fee(value)
             sender.fiat -= value + fee
@@ -253,10 +287,12 @@ class Havven(Model):
             return True
         return False
 
-    def transfer_curits(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
-                        value: float) -> bool:
-        """Transfer a positive value of curits from the sender to the recipient, """ \
-        """if balance is sufficient. Return True on success."""
+    def transfer_curits(self, sender: ag.MarketPlayer,
+                        recipient: ag.MarketPlayer, value: float) -> bool:
+        """
+        Transfer a positive value of curits from the sender to the recipient,
+          if balance is sufficient. Return True on success.
+        """
         if self.transfer_curits_success(sender, value):
             fee = self.transfer_curits_fee(value)
             sender.curits -= value + fee
@@ -265,10 +301,12 @@ class Havven(Model):
             return True
         return False
 
-    def transfer_nomins(self, sender: ag.MarketPlayer, recipient: ag.MarketPlayer,
-                        value: float) -> bool:
-        """Transfer a positive value of nomins from the sender to the recipient, """ \
-        """if balance is sufficient. Return True on success."""
+    def transfer_nomins(self, sender: ag.MarketPlayer,
+                        recipient: ag.MarketPlayer, value: float) -> bool:
+        """
+        Transfer a positive value of nomins from the sender to the recipient,
+          if balance is sufficient. Return True on success.
+        """
         if self.transfer_nomins_success(sender, value):
             fee = self.transfer_nomins_fee(value)
             sender.nomins -= value + fee
@@ -323,9 +361,6 @@ class Havven(Model):
         # Agents submit trades
         self.schedule.step()
 
-        # Collect data
-        self.datacollector.collect(self)
-
         # Resolve outstanding trades
         if not self.match_on_order:
             self.cur_nom_market.match()
@@ -335,5 +370,8 @@ class Havven(Model):
         # Distribute fees periodically.
         if (self.time % self.fee_period) == 0:
             self.distribute_fees()
+
+        # Collect data
+        self.datacollector.collect(self)
 
         self.time += 1

@@ -29,7 +29,7 @@ class LimitOrder:
 
     def update_quantity(self, quantity: float) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
-        if quantity >= 0:
+        if quantity > 0:
             self.quantity = quantity
         else:
             self.quantity = 0
@@ -45,7 +45,7 @@ class Bid(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
-            self.active = False
+            self.active = False  # bid will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.bids.add(self)
@@ -82,7 +82,7 @@ class Ask(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, issuer, book)
         if quantity <= 0:
-            self.active = False
+            self.active = False  # ask will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.asks.add(self)
@@ -252,9 +252,10 @@ class OrderBook:
         # This relies upon the bid and ask books being maintained ordered.
         while spread <= 0 and len(self.bids) and len(self.asks) and \
               not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
-            
+
             # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
+
             trade = self.matcher(prev_bid, prev_ask)
 
             # If a trade was made, then save it in the history.
