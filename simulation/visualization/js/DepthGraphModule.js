@@ -5,6 +5,7 @@ var DepthGraphModule = function(graph_id, width, height) {
     // Create the elements
     // Create the tags:
     var div_tag = `<div class="row" style="padding-left: 30px; margin:0">
+          <p>`+graph_id+`</p>
           <p style="float:left; padding-right: 5px;">Price range(1%-100%): </p>
           <input type="range" id="price_range`+graph_id+`" value="0.25" min="0" max="1" step="0.01" style="width: 80%"/>
           <div id='`+graph_id+`' class='ct-chart'></div>
@@ -57,7 +58,6 @@ var DepthGraphModule = function(graph_id, width, height) {
     var chart = new Chartist.Line('#'+graph_id, data, options);
 
     this.render = function(new_data) {
-
 
       this.reset();
       var price_range = parseFloat($("#price_range"+graph_id)[0].value);
