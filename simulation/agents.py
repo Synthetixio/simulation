@@ -131,8 +131,10 @@ class MarketPlayer(Agent):
             self.model.utilisation_ratio_max
 
     def issue_nomins(self, value: float) -> bool:
-        """Issue a positive value of nomins against currently escrowed curits,
-        """up to the utilisation ratio maximum."""
+        """
+        Issue a positive value of nomins against currently escrowed curits,
+          up to the utilisation ratio maximum.
+        """
         remaining = self.max_issuance_rights() - self.issued_nomins
         if 0 <= value <= remaining:
             self.issued_nomins += value
