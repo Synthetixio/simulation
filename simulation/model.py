@@ -118,25 +118,32 @@ class Havven(Model):
         )
 
         # Add the market participants
-        total_endowment = 0.0
         self.num_agents: int = N
-        for i in range(self.num_agents):
+
+        fractions = {"banks": 0.25,
+                     "arbs": 0.25,
+                     "rands": 0.5}
+
+        num_banks = int(N * fractions["banks"])
+        num_rands = int(N * fractions["rands"])
+        num_arbs = int(N * fractions["arbs"])
+
+        i = 0
+
+        for _ in range(num_banks):
             endowment = int(skewnorm.rvs(100)*max_fiat)
-            a = ag.Banker(i, self, fiat=endowment)
-            self.schedule.add(a)
-            total_endowment += endowment
-
-        num_random = 15
-        for i in range(num_random):
-            self.schedule.add(ag.Randomizer(self.num_agents + i, self, fiat=3*max_fiat))
-
-        num_arbs = 15
-        for i in range(num_arbs):
-            arbitrageur = ag.Arbitrageur(self.num_agents + num_random + i, self, 0)
+            self.schedule.add(ag.Banker(i, self, fiat=endowment))
+            i += 1
+        for _ in range(num_rands):
+            self.schedule.add(ag.Randomizer(i, self, fiat=3*max_fiat))
+            i += 1
+        for _ in range(num_arbs):
+            arbitrageur = ag.Arbitrageur(i, self, 0)
             self.endow_curits(arbitrageur, max_fiat)
             self.schedule.add(arbitrageur)
+            i += 1
 
-        reserve_bank = ag.MarketPlayer(self.num_agents+num_random+num_arbs, self, 0)
+        reserve_bank = ag.MarketPlayer(i, self, 0)
         self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
