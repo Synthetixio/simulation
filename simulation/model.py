@@ -123,18 +123,21 @@ class Havven(Model):
             self.schedule.add(a)
             total_endowment += endowment
 
-        randomizer = ag.Randomizer(i+1, self, fiat=max_fiat)
-        self.schedule.add(randomizer)
+        num_random = 15
+        for i in range(num_random):
+            self.schedule.add(ag.Randomizer(self.num_agents + i, self, fiat=3*max_fiat))
 
-        reserve_bank = ag.MarketPlayer(self.num_agents+1, self, 0)
+        num_arbs = 15
+        for i in range(num_arbs):
+            arbitrageur = ag.Arbitrageur(self.num_agents + num_random + i, self, 0)
+            self.endow_curits(arbitrageur, max_fiat)
+            self.schedule.add(arbitrageur)
+
+        reserve_bank = ag.MarketPlayer(self.num_agents+num_random+num_arbs, self, 0)
         self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
         reserve_bank.sell_curits_for_nomins(N * max_fiat * 3)
-
-        arbitrageur = ag.Arbitrageur(self.num_agents+1, self, 0)
-        self.endow_curits(arbitrageur, max_fiat)
-        self.schedule.add(arbitrageur)
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""

@@ -7,8 +7,9 @@ from mesa.visualization.ModularVisualization import VisualizationElement
 
 import numpy as np
 import random
-
 from typing import List, Tuple, Dict, Callable
+
+import model
 
 
 class BarGraphModule(VisualizationElement):
@@ -33,7 +34,7 @@ class BarGraphModule(VisualizationElement):
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",0,{width},{height}));"""
 
-    def render(self, model: "Havven") -> List[float]:
+    def render(self, model: "model.Havven") -> List[float]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
