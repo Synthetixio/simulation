@@ -100,6 +100,7 @@ class OrderBookModule(VisualizationElement):
             ask_dict: Dict[float, float] = {}
             try:
                 orderbook: "OrderBook" = data_collector.model_vars[name][-1]
+
                 for item in orderbook.bids:
                     if item.price not in bid_dict:
                         bid_dict[item.price] = item.quantity
