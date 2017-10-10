@@ -117,6 +117,10 @@ class Havven(Model):
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
         reserve_bank.sell_curits_for_nomins(N * max_fiat* 3)
 
+        arbitrageur = ag.Arbitrageur(self.num_agents+1, self, 0)
+        self.endow_curits(arbitrageur, max_fiat)
+        self.schedule.add(arbitrageur)
+
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
         return self.cur_to_fiat(curits) + self.nom_to_fiat(nomins) + fiat

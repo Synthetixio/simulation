@@ -53,18 +53,24 @@ class MarketPlayer(Agent):
             return 0
 
     def transfer_fiat_to(self, recipient: "MarketPlayer", value: float) -> bool:
-        """Transfer a positive value of fiat to the recipient, if balance is sufficient. """ \
-        """Return True on success."""
+        """
+        Transfer a positive value of fiat to the recipient, if balance is sufficient.
+        Return True on success.
+        """
         return self.model.transfer_fiat(self, recipient, value)
 
     def transfer_curits_to(self, recipient: "MarketPlayer", value: float) -> bool:
-        """Transfer a positive value of curits to the recipient, if balance is sufficient. """ \
-        """Return True on success."""
+        """
+        Transfer a positive value of curits to the recipient, if balance is sufficient.
+        Return True on success.
+        """
         return self.model.transfer_curits(self, recipient, value)
 
     def transfer_nomins_to(self, recipient: "MarketPlayer", value: float) -> bool:
-        """Transfer a positive value of nomins to the recipient, if balance is sufficient. """ \
-        """Return True on success."""
+        """
+        Transfer a positive value of nomins to the recipient, if balance is sufficient.
+        Return True on success.
+        """
         return self.model.transfer_nomins(self, recipient, value)
 
     def escrow_curits(self, value: float) -> bool:
@@ -86,13 +92,17 @@ class MarketPlayer(Agent):
         return False
 
     def available_escrowed_curits(self) -> float:
-        """Return the quantity of escrowed curits which is not locked by issued nomins. """ \
-        """May be negative."""
+        """
+        Return the quantity of escrowed curits which is not locked by issued nomins.
+        May be negative.
+        """
         return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
 
     def unavailable_escrowed_curits(self) -> float:
-        """Return the quantity of locked escrowed curits, having had nomins issued against it. """ \
-        """May be greater than total escrowed curits."""
+        """
+        Return the quantity of locked escrowed curits, having had nomins issued against it.
+        May be greater than total escrowed curits.
+        """
         return self.model.nom_to_cur(self.issued_nomins)
 
     def max_issuance_rights(self) -> float:
@@ -100,8 +110,10 @@ class MarketPlayer(Agent):
         return self.model.cur_to_nom(self.escrowed_curits) * self.model.utilisation_ratio_max
 
     def issue_nomins(self, value: float) -> bool:
-        """Issue a positive value of nomins against currently escrowed curits, """ \
-        """up to the utilisation ratio maximum."""
+        """
+        Issue a positive value of nomins against currently escrowed curits,
+        up to the utilisation ratio maximum.
+        """
         remaining = self.max_issuance_rights() - self.issued_nomins
         if 0 <= value <= remaining:
             self.issued_nomins += value
@@ -123,43 +135,41 @@ class MarketPlayer(Agent):
         """Sell a quantity of nomins in to buy curits."""
         price = self.model.cur_nom_market.lowest_ask_price()
         order = self.model.cur_nom_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy nomins."""
         order = self.model.cur_nom_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy curits."""
         price = self.model.cur_fiat_market.lowest_ask_price()
         order = self.model.cur_fiat_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy fiat."""
         order = self.model.cur_fiat_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy nomins."""
         price = self.model.nom_fiat_market.lowest_ask_price()
         order = self.model.nom_fiat_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of nomins in to buy fiat."""
         order = self.model.nom_fiat_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """Notify this agent that its order was cancelled."""
+        pass
+
+    def notify_filled(self, order: "ob.LimitOrder") -> None:
+        """Notify this agent that its order was filled."""
         pass
 
     def step(self) -> None:
@@ -195,41 +205,90 @@ class Banker(MarketPlayer):
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
-
-    def find_cycle(self):
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+    """
+    def step(self) -> None:
         """Find an exploitable arbitrage cycle."""
-        # The only cycles that exist are NOM -> CUR -> FIAT -> NOM,
-        # and its reverse.
+        # The only cycles that exist are CUR -> FIAT -> NOM -> CUR,
+        # its rotations, and the reverse cycles.
         # The bot will act to place orders in all markets at once,
         # if there is an arbitrage opportunity, taking into account
         # the fee rates.
 
-        #ncp = self.model.nom_cur_market.price
-        #cfp = 1 / self.model.fiat_cur_market.price
-        #fnp = self.model.fiat_nom_market.price
+        if self._forward_multiple_() > 1:
+            # Trade in the forward direction
+            # TODO: work out which rotation of this cycle would be the least wasteful
+            # cur -> fiat -> nom -> cur
+            #cf_price = self.model.cur_fiat_market.highest_bid_price()
+            fn_price = 1.0 / self.model.nom_fiat_market.lowest_ask_price()
+            nc_price = 1.0 / self.model.cur_nom_market.lowest_ask_price()
 
-        #if ncp * cfp * fnp > 1:
-        #elif ncp * cfp
-        pass
+            cf_qty = sum(b.quantity for b in self.model.cur_fiat_market.highest_bids())
+            fn_qty = sum(a.quantity for a in self.model.nom_fiat_market.lowest_asks())
+            nc_qty = sum(a.quantity for a in self.model.cur_nom_market.lowest_asks())
 
-    def _forward_best_price_quantities_(self) -> Tuple[float, float, float]:
-        """The tuple of the quantities available at the best prices in """ \
-        """the forward direction around the arbitrage cycle."""
-        ncq = min(sum(b.quantity for b in self.model.cur_nom_market.highest_bids()), self.nomins)
-        cfq = min(sum(a.quantity for a in self.model.cur_fiat_market.lowest_asks()), self.curits)
-        fnq = min(sum(b.quantity for b in self.model.nom_fiat_market.highest_bids()), self.fiat)
-        return (ncq, cfq, fnq)
+            c_qty = min(self.curits, cf_qty)
+            self.sell_curits_for_fiat(c_qty)
 
-    def _forward_asset_levels_(self, quantities):
-        pass
+            f_qty = min(self.fiat, fn_qty * fn_price)
+            self.sell_fiat_for_curits(f_qty)
 
-    def _reverse_best_price_quantities_(self) -> Tuple[float, float, float]:
-        """The tuple of the quantities available at the best prices in """ \
-        """the reverse direction around the arbitrage cycle."""
-        cnq = min(sum(a.quantity for a in self.model.cur_nom_market.lowest_asks()), self.curits)
-        nfq = min(sum(a.quantity for a in self.model.nom_fiat_market.lowest_asks()), self.nomins)
-        fcq = min(sum(b.quantity for b in self.model.cur_fiat_market.highest_bids()), self.fiat)
-        return (cnq, nfq, fcq)
+            n_qty = min(self.nomins, nc_qty * nc_price)
+            self.sell_nomins_for_curits(n_qty)
+
+        elif self._reverse_multiple_() > 1:
+            # Trade in the reverse direction
+            # cur -> nom -> fiat -> cur
+            #cn_price = self.model.cur_nom_market.highest_bid_price()
+            #nf_price = self.model.nom_fiat_market.highest_bid_price()
+            fc_price = 1.0 / self.model.cur_fiat_market.lowest_ask_price()
+
+            cn_qty = sum(b.quantity for b in self.model.cur_nom_market.highest_bids())
+            nf_qty = sum(b.quantity for b in self.model.nom_fiat_market.highest_bids())
+            fc_qty = sum(a.quantity for a in self.model.cur_fiat_market.lowest_asks())
+
+            c_qty = min(self.curits, cn_qty)
+            self.sell_curits_for_nomins(c_qty)
+
+            n_qty = min(self.nomins, nf_qty)
+            self.sell_nomins_for_fiat(n_qty)
+
+            f_qty = min(self.fiat, fc_qty * fc_price)
+            self.sell_nomins_for_curits(n_qty)
+
+    def _cycle_fee_rate_(self) -> float:
+        """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
+        return (1 + self.model.nom_transfer_fee_rate) * \
+               (1 + self.model.cur_transfer_fee_rate) * \
+               (1 + self.model.fiat_transfer_fee_rate)
+
+    def _forward_multiple_no_fees_(self) -> float:
+        """
+        The value multiple after one forward arbitrage cycle, neglecting fees.
+        """
+        # cur -> fiat -> nom -> cur
+        return self.model.cur_fiat_market.highest_bid_price() / \
+               (self.model.nom_fiat_market.lowest_ask_price() * self.model.cur_nom_market.lowest_ask_price())
+
+    def _reverse_multiple_no_fees_(self) -> float:
+        """
+        The value multiple after one reverse arbitrage cycle, neglecting fees.
+        """
+        # cur -> nom -> fiat -> cur
+        return self.model.cur_nom_market.highest_bid_price() * self.model.nom_fiat_market.highest_bid_price() / \
+               self.model.cur_fiat_market.lowest_ask_price()
+
+    def _forward_multiple_(self) -> float:
+        """The return after one forward arbitrage cycle."""
+        # Note, this only works because the fees are purely multiplicative.
+        return self._forward_multiple_no_fees_() / self._cycle_fee_rate_()
+
+    def _reverse_multiple_(self) -> float:
+        """The return after one reverse arbitrage cycle."""
+        # As above. If the fees were not just levied as percentages this would need to be updated.
+        return self._reverse_multiple_no_fees_() / self._cycle_fee_rate_()
 
     def _equalise_tokens_(self) -> None:
         pass
