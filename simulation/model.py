@@ -37,6 +37,9 @@ class Havven(Model):
         self.schedule = RandomActivation(self)
         self.datacollector = DataCollector(
             model_reporters={
+                "Nomin Price": lambda h: h.nom_fiat_market.price,
+                "Curit Price": lambda h: h.cur_fiat_market.price,
+                "Curit/Nomin Price": lambda h: h.cur_nom_market.price,
                 "Havven Nomins": lambda h: h.nomins,
                 "Havven Curits": lambda h: h.curits,
                 "Havven Fiat": lambda h: h.fiat,

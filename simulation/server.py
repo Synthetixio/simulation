@@ -15,6 +15,15 @@ def make_server(n_agents: int = 200, cont_orders: bool = True) -> ModularServer:
     """Set up the simulation/visualisation server and return it."""
     charts: List[VisualizationElement] = [
         ChartModule([
+            {"Label": "Nomin Price", "Color": "blue"}]),
+
+        ChartModule([
+            {"Label": "Curit Price", "Color": "orange"}]),
+
+        ChartModule([
+            {"Label": "Curit/Nomin Price", "Color": "purple"}]),
+
+        ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
             {"Label": "Havven Curits", "Color": "red"},
             {"Label": "Havven Fiat", "Color": "green"}]),
