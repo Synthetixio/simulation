@@ -156,72 +156,61 @@ class MarketPlayer(Agent):
         """Sell a quantity of nomins in to buy curits."""
         price = self.model.cur_nom_market.lowest_ask_price()
         order = self.model.cur_nom_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy nomins."""
         order = self.model.cur_nom_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy curits."""
         price = self.model.cur_fiat_market.lowest_ask_price()
         order = self.model.cur_fiat_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy fiat."""
         order = self.model.cur_fiat_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy nomins."""
         price = self.model.nom_fiat_market.lowest_ask_price()
         order = self.model.nom_fiat_market.buy(quantity/price, self)
-        self.orders.add(order)
         return order
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of nomins in to buy fiat."""
         order = self.model.nom_fiat_market.sell(quantity, self)
-        self.orders.add(order)
         return order
 
     def place_curits_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
         """place a bid for quantity curits, at a given rate of fiat"""
         order: "ob.Bid" = self.model.cur_fiat_market.bid(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def place_curits_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
         """place an ask for fiat with quantity curits,
         at a given rate of fiat"""
         order: "ob.Ask" = self.model.cur_fiat_market.ask(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def place_nomins_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
         """place a bid for quantity nomins, at a given rate of fiat"""
         order: "ob.Bid" = self.model.nom_fiat_market.bid(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def place_nomins_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
         """place an ask for fiat with quantity nomins,
         at a given rate of fiat"""
         order: "ob.Ask" = self.model.nom_fiat_market.ask(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def place_curits_nomins_bid(self, quantity: float,
                                 rate: float) -> "ob.Bid":
         """place a bid for quantity curits, at a given rate of nomins"""
         order: "ob.Bid" = self.model.cur_nom_market.bid(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def place_curits_nomins_ask(self, quantity: float,
@@ -229,7 +218,6 @@ class MarketPlayer(Agent):
         """place an ask for curits with quantity nomins,
         at a given rate of curits"""
         order: "ob.Ask" = self.model.cur_nom_market.ask(rate, quantity, self)
-        self.orders.add(order)
         return order
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
