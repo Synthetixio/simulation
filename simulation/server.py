@@ -8,7 +8,7 @@ from mesa.visualization.ModularVisualization import ModularServer, Visualization
 
 import model
 
-from visualization.mesa_visulization_addons import BarGraphModule, OrderBookModule
+from visualization.mesa_visualization_addons import BarGraphModule, OrderBookModule
 
 
 def make_server(n_agents: int = 200, cont_orders: bool = True) -> ModularServer:
