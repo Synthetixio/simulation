@@ -37,6 +37,7 @@ class Havven(Model):
         self.schedule = RandomActivation(self)
         self.datacollector = DataCollector(
             model_reporters={
+                "": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "Havven Nomins": lambda h: h.nomins,
                 "Havven Curits": lambda h: h.curits,
                 "Havven Fiat": lambda h: h.fiat,
@@ -59,7 +60,8 @@ class Havven(Model):
                 "FiatCurOrderBook": lambda h: h.cur_fiat_market,
                 "FiatNomOrderBook": lambda h: h.nom_fiat_market
             }, agent_reporters={
-                "Wealth": lambda a: a.wealth
+                "Wealth": lambda agent: agent.wealth,
+                "Name": lambda agent: agent.name
             })
 
         self.time: int = 1

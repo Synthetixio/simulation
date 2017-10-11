@@ -22,8 +22,8 @@ class BarGraphModule(VisualizationElement):
     ]
 
     def __init__(
-            self, series: List[Dict[str, str]], height: int=200,
-            width: int=500, data_collector_name: str="datacollector") -> None:
+            self, series: List[Dict[str, str]], height: int = 200,
+            width: int = 500, data_collector_name: str = "datacollector") -> None:
         self.series = series
         self.height = height
         # currently width does nothing, as it stretches the whole page
@@ -33,28 +33,38 @@ class BarGraphModule(VisualizationElement):
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",0,{width},{height}));"""
 
-    def render(self, model: "Havven") -> List[float]:
+    def render(self, model: "Havven") -> List[Tuple[str, float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
-        vals: List[float] = []
+        vals: List[Tuple[str, float]] = []
 
         for s in self.series:
             name = s['Label']
             try:
                 # skip the MarketPlayer who is added onto the end as he
                 # overshadows the wealth of all the others
-                agents: List[Callable[float]] = sorted(
+                # Note, this should probably be changed later...
+                agent_name: List[Callable[float]] = sorted(
+                    data_collector.agent_vars["Name"][-1],
+                    key=lambda x: x[0]  # sort by ids
+                )[:-1]
+
+                agent_func: List[Callable[float]] = sorted(
                     data_collector.agent_vars[name][-1],
                     key=lambda x: x[0]  # sort by ids
                 )[:-1]
-                for item in agents:
-                    vals.append(item[1]())
+
+                for n in range(len(agent_func)):
+                    vals.append((
+                        agent_name[n][1],
+                        agent_func[n][1]()
+                    ))
             except Exception as e:
-                vals = [0]
+                vals = []
         return vals
 
 
@@ -70,8 +80,8 @@ class OrderBookModule(VisualizationElement):
     ]
 
     def __init__(
-            self, series: List[Dict[str, str]], height: int=300,
-            width: int=500, data_collector_name: str="datacollector") -> None:
+            self, series: List[Dict[str, str]], height: int = 300,
+            width: int = 500, data_collector_name: str = "datacollector") -> None:
 
         self.series = series
         self.height = height
@@ -91,35 +101,38 @@ class OrderBookModule(VisualizationElement):
             model, self.data_collector_name
         )
 
-        for s in self.series:
+        bids: List[Tuple[float, float]] = []
+        asks: List[Tuple[float, float]] = []
+
+        for s in self.series: # TODO: not use series, as it should only really be one graph
             name: str = s['Label']
 
             # get the buy and sell orders of the named market and add together
             # the quantities or orders with the same rates
-            bid_dict: Dict[float, float] = {}
-            ask_dict: Dict[float, float] = {}
+
             try:
                 orderbook: "OrderBook" = data_collector.model_vars[name][-1]
 
                 for item in orderbook.bids:
-                    if item.price not in bid_dict:
-                        bid_dict[item.price] = item.quantity
+                    if len(bids) > 0:
+                        if item.price == bids[-1][0]:
+                            bids[-1] = (item.price, item.quantity + bids[-1][1])
+                        else:
+                            bids.append((item.price, item.quantity))
                     else:
-                        bid_dict[item.price] += item.quantity
+                        bids.append((item.price, item.quantity))
 
                 for item in orderbook.asks:
-                    if item.price not in ask_dict:
-                        ask_dict[item.price] = item.quantity
+                    if len(asks) > 0:
+                        if item.price == asks[-1][0]:
+                            asks[-1] = (item.price, item.quantity + asks[-1][1])
+                        else:
+                            asks.append((item.price, item.quantity))
                     else:
-                        ask_dict[item.price] += item.quantity
+                        asks.append((item.price, item.quantity))
 
-            except:
-                pass
+            except Exception as e:
+                bids = []
+                asks = []
 
-            bids: List[Tuple[float, float]] = sorted(
-                bid_dict.items(), key=lambda x: x[0]
-            )
-            asks: List[Tuple[float, float]] = sorted(
-                ask_dict.items(), key=lambda x: x[0]
-            )
         return [bids, asks]
