@@ -13,6 +13,7 @@ from mesa.datacollection import DataCollector
 import orderbook as ob
 import modelstats as ms
 import agents as ag
+from config import HavvenSettings, FeeConfig
 
 
 # Function signatures for transfers.
@@ -66,6 +67,9 @@ class Havven(Model):
 
         self.time: int = 1
 
+        # Create the model settings objects
+
+        self.settings = HavvenSettings()
 
         # Add the market participants
         total_endowment = 0.0

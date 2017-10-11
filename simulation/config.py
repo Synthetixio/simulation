@@ -1,6 +1,6 @@
 
 
-class HavvenConfig:
+class HavvenSettings:
     """
     Class to hold Havven's model settings
     """
