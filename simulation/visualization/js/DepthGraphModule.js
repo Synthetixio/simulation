@@ -15,25 +15,9 @@ var DepthGraphModule = function (graph_id, width, height) {
     $("body").append(div);
     // Prep the chart properties and series:
 
-    // graph settings
-    let price_range = $("#price_range" + graph_id).value; // show +/- % of current price
-    let segments = 15; // amount of graph segments, should be odd to leave average in middle
-    let half_segments = parseInt((segments - 1) / 2);
-    let decimal_places = 3;
-    let round_val = Math.pow(10, decimal_places); // for Math.floor(num*val)/val, to get num d.p.
-
-    let databuy = [];
-    let datasell = [];
-    let labels = [];
-    for (let i = 0; i < segments; i++) {
-        databuy.push(0);
-        datasell.push(0);
-        labels.push(i);
-    }
-
     let data = {
-        series: [databuy, datasell],
-        labels: labels
+        series: [[], []],
+        labels: []
     };
 
     let options = {
