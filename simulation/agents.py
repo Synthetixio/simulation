@@ -336,7 +336,7 @@ class Randomizer(MarketPlayer):
     def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0,
                  nomins: float = 0.0,
-                 variance: float = 0.05, order_lifetime = 30) -> None:
+                 variance: float = 0.05, order_lifetime: int = 30) -> None:
         super().__init__(unique_id, havven, fiat, curits, nomins)
         self.variance = variance
         """This agent will place orders within (+/-)variance*price of the going rate."""

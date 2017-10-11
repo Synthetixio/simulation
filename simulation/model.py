@@ -31,6 +31,7 @@ class Havven(Model):
     """
 
     def __init__(self, N: int, max_fiat: float = 1000,
+                 utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
         # Mesa setup
         super().__init__()
@@ -97,7 +98,7 @@ class Havven(Model):
         self.fiat_transfer_fee_rate: float = 0.0
 
         # Utilisation Ratio maximum (between 0 and 1)
-        self.utilisation_ratio_max: float = 1.0
+        self.utilisation_ratio_max: float = utilisation_ratio_max
 
         # If true, match orders whenever an order is posted,
         #   otherwise do so at the end of each period

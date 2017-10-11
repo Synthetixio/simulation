@@ -11,7 +11,8 @@ import model
 from visualization.mesa_visualization_addons import BarGraphModule, OrderBookModule
 
 
-def make_server(n_agents: int = 200, cont_orders: bool = True) -> ModularServer:
+def make_server(n_agents: int = 200, ur: float = 0.2,
+                cont_orders: bool = True) -> ModularServer:
     """Set up the simulation/visualisation server and return it."""
     charts: List[VisualizationElement] = [
         ChartModule([
@@ -68,10 +69,15 @@ def make_server(n_agents: int = 200, cont_orders: bool = True) -> ModularServer:
         'slider', "Number of agents", n_agents, 2, 2000, 1
     )
 
+    ur_slider = UserSettableParameter(
+        'slider', "Utilisation Ratio", ur, 0.0, 1.0, 0.01
+    )
+
     match_checkbox = UserSettableParameter(
         'checkbox', "Continuous order matching", cont_orders
     )
 
     server = ModularServer(model.Havven, charts, "Havven Model",
-                           {"N": n_slider, "match_on_order": match_checkbox})
+                           {"N": n_slider, "utilisation_ratio_max": ur_slider,
+                            "match_on_order": match_checkbox})
     return server
