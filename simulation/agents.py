@@ -1,5 +1,5 @@
 """agents.py: Individual agents that will interact with the Havven market."""
-from typing import Set, Tuple
+from typing import Set, Tuple, Optional
 import random
 
 from mesa import Agent
@@ -232,9 +232,9 @@ class Banker(MarketPlayer):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.fiat_curit_order = None
-        self.nomin_curit_order = None
-        self.rate = random.random() * 0.05
+        self.fiat_curit_order: Optional["ob.Bid"] = None
+        self.nomin_curit_order: Optional["ob.Bid"] = None
+        self.rate: float = random.random() * 0.05
 
     def step(self) -> None:
         if self.fiat > 0:
