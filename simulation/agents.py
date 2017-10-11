@@ -221,7 +221,7 @@ class Banker(MarketPlayer):
         super().__init__(*args, **kwargs)
         self.fiat_curit_order: Optional["ob.Bid"] = None
         self.nomin_curit_order: Optional["ob.Bid"] = None
-        self.rate = random.random() * 0.05
+        self.rate: float = random.random() * 0.05
 
     def step(self) -> None:
         if self.fiat > 0:
