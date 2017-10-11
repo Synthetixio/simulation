@@ -82,7 +82,7 @@ var DepthGraphModule = function (graph_id, width, height) {
         if (bids.length > 0) {
             let bid_quant = 0; // cumulative quantity of buys
             let i = bids.length - 1;
-            for (let curr_ind = 0; curr_ind < half_segments; curr_ind++) {
+            for (let curr_ind = 0; curr_ind < half_segments+1; curr_ind++) {
                 let price = bids[i][0];
 
                 // while the price is less than the "segment" price cap

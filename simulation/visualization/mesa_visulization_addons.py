@@ -33,28 +33,38 @@ class BarGraphModule(VisualizationElement):
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",0,{width},{height}));"""
 
-    def render(self, model: "Havven") -> List[float]:
+    def render(self, model: "Havven") -> List[Tuple[str, float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
-        vals: List[float] = []
+        vals: List[Tuple[str, float]] = []
 
         for s in self.series:
             name = s['Label']
             try:
                 # skip the MarketPlayer who is added onto the end as he
                 # overshadows the wealth of all the others
-                agents: List[Callable[float]] = sorted(
+                # Note, this should probably be changed later...
+                agent_name: List[Callable[float]] = sorted(
+                    data_collector.agent_vars["Name"][-1],
+                    key=lambda x: x[0]  # sort by ids
+                )[:-1]
+
+                agent_func: List[Callable[float]] = sorted(
                     data_collector.agent_vars[name][-1],
                     key=lambda x: x[0]  # sort by ids
                 )[:-1]
-                for item in agents:
-                    vals.append(item[1]())
+
+                for n in range(len(agent_func)):
+                    vals.append((
+                        agent_name[n][1],
+                        agent_func[n][1]()
+                    ))
             except Exception as e:
-                vals = [0]
+                vals = []
         return vals
 
 

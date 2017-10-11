@@ -32,27 +32,17 @@ var BarGraphModule = function(graph_id, num_agents, width, height) {
       plugins: [Chartist.plugins.tooltip()]
     };
     // Create the chart object
-    let chart = new Chartist.Bar('#'+graph_id, data, options);
+    var chart = new Chartist.Bar('#'+graph_id, data, options);
 
     this.render = function(new_data) {
         // function to modify the chart data
-        let chart_len = chart.data.series[0].length;
+        this.reset();
 
-        // clear the chart
-        for (let i = 0; i < chart_len - new_data.length; i++) {
-          chart.data.series[0].pop();
-          chart.data.labels.pop();
+        for (let i = 0; i < new_data.length; i++) {
+          chart.data.series[0][i] = {meta: new_data[i][0], value: new_data[i][1]};
+          chart.data.labels[i] = i;
         }
 
-        // if new_data.len > chart_len
-        for (let i = 0; i < new_data.length - chart_len; i++) {
-          chart.data.series[0].push(new_data[i]);
-          chart.data.labels.push(chart.data.labels.length);
-        }
-
-        for (let i in new_data) {
-          chart.data.series[0][i] = new_data[i];
-        }
         chart.update();
     };
 
