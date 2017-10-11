@@ -7,7 +7,6 @@ from scipy.stats import skewnorm
 
 from mesa import Model
 from mesa.time import RandomActivation
-from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 import orderbook as ob
@@ -32,13 +31,18 @@ class Havven(Model):
     """
 
     def __init__(self, N: int, max_fiat: float = 1000,
+                 utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
         # Mesa setup
         super().__init__()
         self.schedule = RandomActivation(self)
         self.datacollector = DataCollector(
             model_reporters={
-                "": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
+                "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
+                "1": lambda x: 1,
+                "Nomin Price": lambda h: h.nom_fiat_market.price,
+                "Curit Price": lambda h: h.cur_fiat_market.price,
+                "Curit/Nomin Price": lambda h: h.cur_nom_market.price,
                 "Havven Nomins": lambda h: h.nomins,
                 "Havven Curits": lambda h: h.curits,
                 "Havven Fiat": lambda h: h.fiat,
@@ -48,7 +52,10 @@ class Havven(Model):
                 "Wealth SD": ms.wealth_sd,
                 "Max Wealth": ms.max_wealth,
                 "Min Wealth": ms.min_wealth,
-                "Profit %": ms.mean_profit_fraction,
+                "Avg Profit %": lambda h: round(100*ms.mean_profit_fraction(h), 3),
+                "Bank Profit %": lambda h: round(100*ms.mean_banker_profit_fraction(h), 3),
+                "Arb Profit %": lambda h: round(100*ms.mean_arb_profit_fraction(h), 3),
+                "Rand Profit %": lambda h: round(100*ms.mean_rand_profit_fraction(h), 3),
                 "Curit Demand": ms.curit_demand,
                 "Curit Supply": ms.curit_supply,
                 "Nomin Demand": ms.nomin_demand,
@@ -72,22 +79,40 @@ class Havven(Model):
         self.settings = HavvenSettings()
 
         # Add the market participants
-        total_endowment = 0.0
         self.num_agents: int = N
-        for i in range(self.num_agents):
+
+        fractions = {"banks": 0.25,
+                     "arbs": 0.25,
+                     "rands": 0.5}
+
+        num_banks = int(N * fractions["banks"])
+        num_rands = int(N * fractions["rands"])
+        num_arbs = int(N * fractions["arbs"])
+
+        i = 0
+
+        for _ in range(num_banks):
             endowment = int(skewnorm.rvs(100)*max_fiat)
-            a = ag.Banker(i, self, fiat=endowment)
-            self.schedule.add(a)
-            total_endowment += endowment
+            self.schedule.add(ag.Banker(i, self, fiat=endowment))
+            i += 1
+        for _ in range(num_rands):
+            self.schedule.add(ag.Randomizer(i, self, fiat=3*max_fiat))
+            i += 1
+        for _ in range(num_arbs):
+            arbitrageur = ag.Arbitrageur(i, self, 0)
+            self.endow_curits(arbitrageur, max_fiat)
+            self.schedule.add(arbitrageur)
+            i += 1
 
-        randomizer = ag.Randomizer(i+1, self, fiat=max_fiat)
-        self.schedule.add(randomizer)
-
-        reserve_bank = ag.MarketPlayer(self.num_agents+1, self, 0)
+        reserve_bank = ag.MarketPlayer(i, self, 0)
         self.endow_curits(reserve_bank, 6 * N * max_fiat)
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
         reserve_bank.sell_curits_for_nomins(N * max_fiat * 3)
+
+        for a in self.schedule.agents:
+            a.reset_initial_wealth()
+
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""

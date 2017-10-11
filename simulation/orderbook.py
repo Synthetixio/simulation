@@ -194,7 +194,10 @@ class OrderBook:
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: float) -> float:
-        """The bid price to buy a certain quantity."""
+        """
+        The bid price to buy a certain quantity. Note that this is an instantaneous
+        metric which may be invalidated if intervening trades are made.
+        """
         cumulative = 0
         price = self.price
         for ask in self.asks:
@@ -205,7 +208,10 @@ class OrderBook:
         return price
 
     def price_to_sell_quantity(self, quantity: float) -> float:
-        """The ask price to sell a certain quantity."""
+        """
+        The ask price to sell a certain quantity. Note that this is an instantaneous
+        metric which may be invalidated if intervening trades are made.
+        """
         cumulative = 0
         price = self.price
         for bid in self.bids:
