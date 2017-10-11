@@ -10,7 +10,7 @@ import model
 from visualization.mesa_visualization_addons import BarGraphModule, OrderBookModule
 
 
-def make_server(n_agents: int = 20, ur: float = 0.2,
+def make_server(n_agents: int = 50, ur: float = 0.2,
                 cont_orders: bool = True) -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.
@@ -21,13 +21,16 @@ def make_server(n_agents: int = 20, ur: float = 0.2,
     """
     charts: List[VisualizationElement] = [
         ChartModule([
-            {"Label": "Nomin Price", "Color": "blue"}]),
+            {"Label": "Nomin Price", "Color": "blue"},
+            {"Label": "1", "Color": "grey"}]),
 
         ChartModule([
-            {"Label": "Curit Price", "Color": "orange"}]),
+            {"Label": "Curit Price", "Color": "orange"},
+            {"Label": "1", "Color": "grey"}]),
 
         ChartModule([
-            {"Label": "Curit/Nomin Price", "Color": "purple"}]),
+            {"Label": "Curit/Nomin Price", "Color": "purple"},
+            {"Label": "1", "Color": "grey"}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -44,7 +47,7 @@ def make_server(n_agents: int = 20, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Profit %", "Color": "red"},
-            {"Label": "", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"}]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "blue"},
@@ -64,11 +67,11 @@ def make_server(n_agents: int = 20, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
-            {"Label": "", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"}]),
 
         ChartModule([
             {"Label": "Fees Distributed", "Color": "blue"},
-            {"Label": "", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"}]),
 
         BarGraphModule([{"Label": "Wealth"}]),
 

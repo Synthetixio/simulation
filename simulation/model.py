@@ -7,7 +7,6 @@ from scipy.stats import skewnorm
 
 from mesa import Model
 from mesa.time import RandomActivation
-from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 import orderbook as ob
@@ -38,7 +37,8 @@ class Havven(Model):
         self.schedule = RandomActivation(self)
         self.datacollector = DataCollector(
             model_reporters={
-                "": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
+                "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
+                "1": lambda x: 1,
                 "Nomin Price": lambda h: h.nom_fiat_market.price,
                 "Curit Price": lambda h: h.cur_fiat_market.price,
                 "Curit/Nomin Price": lambda h: h.cur_nom_market.price,
