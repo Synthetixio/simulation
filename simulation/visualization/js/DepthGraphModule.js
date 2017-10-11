@@ -41,7 +41,8 @@ var DepthGraphModule = function (graph_id, width, height) {
             // hide every 2nd x-axis label to avoid clutter
             labelInterpolationFnc: function (value, index) {
                 return index % 2 === 0 ? value : null;
-            }
+            },
+            type: Chartist.AutoScaleAxis
         },
         fullWidth: true,
         height: height + 'px',
@@ -80,24 +81,30 @@ var DepthGraphModule = function (graph_id, width, height) {
         let cumulative_quant = 0;
         for (let i in bids) {
             let price = bids[i][0];
-            if (price < avg_price*(1-price_range)) break;
+            if (price < avg_price * (1 - price_range)) break;
 
             cumulative_quant += bids[i][1];
+            // meta is the "label" that shows up on the tooltip
+            // for some reason the x axis is the default value, so show the quant
             chart.data.series[0].unshift(
-                {x:price, y:cumulative_quant, meta:'Quant: '+cumulative_quant}
+                {x: price, y: cumulative_quant, meta: 'Quant: ' + cumulative_quant}
             );
             chart.data.series[1].unshift(undefined);
             chart.data.labels.unshift(bids[i][0])
         }
 
         cumulative_quant = 0;
+
+        // push ask data to the chart
         for (let i in asks) {
             let price = asks[i][0];
-            if (price > avg_price*(1+price_range)) break;
+            if (price > avg_price * (1 + price_range)) break;
             cumulative_quant += asks[i][1];
             chart.data.series[0].push(undefined);
+            // meta is the "label" that shows up on the tooltip
+            // for some reason the x axis is the default value, so show the quant
             chart.data.series[1].push(
-                {x:price, y:cumulative_quant, meta:'Quant: '+cumulative_quant}
+                {x: price, y: cumulative_quant, meta: 'Quant: ' + cumulative_quant}
             );
             chart.data.labels.push(price)
         }
