@@ -1,12 +1,9 @@
-"""agents.py: Individual agents that will interact with the Havven market."""
-from typing import Set, Tuple, Optional
-import random
+from typing import Set
 
 from mesa import Agent
 
 import orderbook as ob
 import model
-
 
 class MarketPlayer(Agent):
     """
@@ -44,6 +41,12 @@ class MarketPlayer(Agent):
         return self.model.fiat_value(self.curits + self.escrowed_curits,
                                      self.nomins - self.issued_nomins,
                                      self.fiat)
+
+    def reset_initial_wealth(self) -> float:
+        """Reset this agent's initial wealth to the current wealth, returning the old value."""
+        old = self.initial_wealth
+        self.initial_wealth = self.wealth()
+        return old
 
     def profit(self) -> float:
         """
@@ -155,163 +158,61 @@ class MarketPlayer(Agent):
     def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of nomins in to buy curits."""
         price = self.model.cur_nom_market.lowest_ask_price()
-        order = self.model.cur_nom_market.buy(quantity/price, self)
-        return order
+        return self.model.cur_nom_market.buy(quantity/price, self)
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy nomins."""
-        order = self.model.cur_nom_market.sell(quantity, self)
-        return order
+        return self.model.cur_nom_market.sell(quantity, self)
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy curits."""
         price = self.model.cur_fiat_market.lowest_ask_price()
-        order = self.model.cur_fiat_market.buy(quantity/price, self)
-        return order
+        return self.model.cur_fiat_market.buy(quantity/price, self)
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy fiat."""
-        order = self.model.cur_fiat_market.sell(quantity, self)
-        return order
+        return self.model.cur_fiat_market.sell(quantity, self)
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy nomins."""
         price = self.model.nom_fiat_market.lowest_ask_price()
-        order = self.model.nom_fiat_market.buy(quantity/price, self)
-        return order
+        return self.model.nom_fiat_market.buy(quantity/price, self)
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of nomins in to buy fiat."""
-        order = self.model.nom_fiat_market.sell(quantity, self)
-        return order
+        return self.model.nom_fiat_market.sell(quantity, self)
 
-    def place_curits_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
-        """place a bid for quantity curits, at a given rate of fiat"""
-        order: "ob.Bid" = self.model.cur_fiat_market.bid(rate, quantity, self)
-        return order
+    def place_curits_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
+        """Place a bid for quantity curits, at a given price in fiat."""
+        return self.model.cur_fiat_market.bid(price, quantity, self)
 
-    def place_curits_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
-        """place an ask for fiat with quantity curits,
-        at a given rate of fiat"""
-        order: "ob.Ask" = self.model.cur_fiat_market.ask(rate, quantity, self)
-        return order
+    def place_curits_fiat_ask(self, quantity: float, price: float) -> "ob.Ask":
+        """Place an ask for fiat with quantity curits, at a given price in fiat."""
+        return self.model.cur_fiat_market.ask(price, quantity, self)
 
-    def place_nomins_fiat_bid(self, quantity: float, rate: float) -> "ob.Bid":
-        """place a bid for quantity nomins, at a given rate of fiat"""
-        order: "ob.Bid" = self.model.nom_fiat_market.bid(rate, quantity, self)
-        return order
+    def place_nomins_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
+        """Place a bid for quantity nomins, at a given price in fiat."""
+        return self.model.nom_fiat_market.bid(price, quantity, self)
 
-    def place_nomins_fiat_ask(self, quantity: float, rate: float) -> "ob.Ask":
-        """place an ask for fiat with quantity nomins,
-        at a given rate of fiat"""
-        order: "ob.Ask" = self.model.nom_fiat_market.ask(rate, quantity, self)
-        return order
+    def place_nomins_fiat_ask(self, quantity: float, price: float) -> "ob.Ask":
+        """Place an ask for fiat with quantity nomins, at a given price in fiat."""
+        return self.model.nom_fiat_market.ask(price, quantity, self)
 
-    def place_curits_nomins_bid(self, quantity: float,
-                                rate: float) -> "ob.Bid":
-        """place a bid for quantity curits, at a given rate of nomins"""
-        order: "ob.Bid" = self.model.cur_nom_market.bid(rate, quantity, self)
-        return order
+    def place_curits_nomins_bid(self, quantity: float, price: float) -> "ob.Bid":
+        """Place a bid for quantity curits, at a given price in nomins."""
+        return self.model.cur_nom_market.bid(price, quantity, self)
 
-    def place_curits_nomins_ask(self, quantity: float,
-                                rate: float) -> "ob.Ask":
-        """place an ask for curits with quantity nomins,
-        at a given rate of curits"""
-        order: "ob.Ask" = self.model.cur_nom_market.ask(rate, quantity, self)
-        return order
+    def place_curits_nomins_ask(self, quantity: float, price: float) -> "ob.Ask":
+        """place an ask for curits with quantity nomins, at a given price in curits."""
+        return self.model.cur_nom_market.ask(price, quantity, self)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """Notify this agent that its order was cancelled."""
         pass
 
+    def notify_filled(self, order: "ob.LimitOrder") -> None:
+        """Notify this agent that its order was filled."""
+        pass
+
     def step(self) -> None:
         pass
-
-class Banker(MarketPlayer):
-    """Wants to buy curits and issue nomins, in order to accrue fees."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fiat_curit_order: Optional["ob.Bid"] = None
-        self.nomin_curit_order: Optional["ob.Bid"] = None
-        self.rate: float = random.random() * 0.05
-
-    def step(self) -> None:
-        if self.fiat > 0:
-            if self.fiat_curit_order:
-                self.fiat_curit_order.cancel()
-            fiat = self.model.max_transferrable_fiat(self.fiat)
-            self.fiat_curit_order = self.sell_fiat_for_curits(fiat * self.rate)
-
-        if self.nomins > 0:
-            if self.nomin_curit_order:
-                self.nomin_curit_order.cancel()
-            nomins = self.model.max_transferrable_nomins(self.nomins)
-            self.nomin_curit_order = self.sell_nomins_for_curits(nomins)
-
-        if self.curits > 0:
-            self.escrow_curits(self.curits)
-
-        issuable = self.max_issuance_rights() - self.issued_nomins
-        if issuable > 0:
-            self.issue_nomins(issuable)
-
-
-class Arbitrageur(MarketPlayer):
-    """Wants to find arbitrage cycles and exploit them to equalise prices."""
-
-    def find_cycle(self):
-        """Find an exploitable arbitrage cycle."""
-        # The only cycles that exist are NOM -> CUR -> FIAT -> NOM,
-        # and its reverse.
-        # The bot will act to place orders in all markets at once,
-        # if there is an arbitrage opportunity, taking into account
-        # the fee rates.
-
-        #ncp = self.model.nom_cur_market.price
-        #cfp = 1 / self.model.fiat_cur_market.price
-        #fnp = self.model.fiat_nom_market.price
-
-        #if ncp * cfp * fnp > 1:
-        #elif ncp * cfp
-        pass
-
-    def _forward_best_price_quantities_(self) -> Tuple[float, float, float]:
-        """The tuple of the quantities available at the best prices in """ \
-        """the forward direction around the arbitrage cycle."""
-        ncq = min(sum(b.quantity for b in \
-            self.model.cur_nom_market.highest_bids()), self.nomins)
-        cfq = min(sum(a.quantity for a in \
-            self.model.cur_fiat_market.lowest_asks()), self.curits)
-        fnq = min(sum(b.quantity for b in \
-            self.model.nom_fiat_market.highest_bids()), self.fiat)
-        return (ncq, cfq, fnq)
-
-    def _forward_asset_levels_(self, quantities):
-        pass
-
-    def _reverse_best_price_quantities_(self) -> Tuple[float, float, float]:
-        """The tuple of the quantities available at the best prices in """ \
-        """the reverse direction around the arbitrage cycle."""
-        cnq = min(sum(a.quantity for a in \
-            self.model.cur_nom_market.lowest_asks()), self.curits)
-        nfq = min(sum(a.quantity for a in \
-            self.model.nom_fiat_market.lowest_asks()), self.nomins)
-        fcq = min(sum(b.quantity for b in \
-            self.model.cur_fiat_market.highest_bids()), self.fiat)
-        return (cnq, nfq, fcq)
-
-    def _equalise_tokens_(self) -> None:
-        pass
-
-class Randomizer(MarketPlayer):
-    """Places random bids and asks."""
-    def step(self) -> None:
-        if self.fiat > 0:
-            for i in range(10):
-                if random.random() > 0.5:
-                    self.place_curits_fiat_bid(self.fiat/10,
-                        round(random.random(), 3))
-                else:
-                    self.place_curits_fiat_ask(self.fiat/10,
-                        round(1+random.random(), 3))

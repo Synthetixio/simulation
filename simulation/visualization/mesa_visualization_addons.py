@@ -3,12 +3,16 @@ Addons to the mesa visualization system to allow for different graphs and the
 viewing of agent variables in a graph format
 """
 
-from mesa.visualization.ModularVisualization import VisualizationElement
 
 import numpy as np
 import random
-
 from typing import List, Tuple, Dict, Callable
+
+from mesa.datacollection import DataCollector
+from mesa.visualization.ModularVisualization import VisualizationElement
+
+import model
+import orderbook as ob
 
 
 class BarGraphModule(VisualizationElement):
@@ -33,7 +37,7 @@ class BarGraphModule(VisualizationElement):
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",0,{width},{height}));"""
 
-    def render(self, model: "Havven") -> List[Tuple[str, float]]:
+    def render(self, model: "model.Havven") -> List[Tuple[str, float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
@@ -93,7 +97,7 @@ class OrderBookModule(VisualizationElement):
             new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})
         );"""
 
-    def render(self, model: "Havven") -> List[List[Tuple[float, float]]]:
+    def render(self, model: "model.Havven") -> List[List[Tuple[float, float]]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
@@ -111,7 +115,7 @@ class OrderBookModule(VisualizationElement):
             # the quantities or orders with the same rates
 
             try:
-                orderbook: "OrderBook" = data_collector.model_vars[name][-1]
+                orderbook: "ob.OrderBook" = data_collector.model_vars[name][-1]
 
                 for item in orderbook.bids:
                     if len(bids) > 0:
