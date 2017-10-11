@@ -101,35 +101,37 @@ class OrderBookModule(VisualizationElement):
             model, self.data_collector_name
         )
 
+        bids: List[Tuple[float, float]] = []
+        asks: List[Tuple[float, float]] = []
+
         for s in self.series:
             name: str = s['Label']
 
             # get the buy and sell orders of the named market and add together
             # the quantities or orders with the same rates
-            bid_dict: Dict[float, float] = {}
-            ask_dict: Dict[float, float] = {}
+
             try:
                 orderbook: "OrderBook" = data_collector.model_vars[name][-1]
 
                 for item in orderbook.bids:
-                    if item.price not in bid_dict:
-                        bid_dict[item.price] = item.quantity
+                    if len(bids) > 0:
+                        if item.price == bids[-1][0]:
+                            bids[-1] = (item.price, item.quantity+bids[-1][1])
+                        else:
+                            bids.append((item.price, item.quantity))
                     else:
-                        bid_dict[item.price] += item.quantity
+                        bids.append((item.price, item.quantity))
 
                 for item in orderbook.asks:
-                    if item.price not in ask_dict:
-                        ask_dict[item.price] = item.quantity
+                    if len(asks) > 0:
+                        if item.price == asks[-1][0]:
+                            asks[-1] = (item.price, item.quantity+asks[-1][1])
+                        else:
+                            asks.append((item.price, item.quantity))
                     else:
-                        ask_dict[item.price] += item.quantity
+                        asks.append((item.price, item.quantity))
 
             except:
                 pass
 
-            bids: List[Tuple[float, float]] = sorted(
-                bid_dict.items(), key=lambda x: x[0]
-            )
-            asks: List[Tuple[float, float]] = sorted(
-                ask_dict.items(), key=lambda x: x[0]
-            )
         return [bids, asks]

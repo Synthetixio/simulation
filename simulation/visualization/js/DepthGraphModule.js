@@ -65,74 +65,41 @@ var DepthGraphModule = function (graph_id, width, height) {
         let asks = new_data[1];
 
         // data is sorted by rate, in the form [(rate, quantity) ... ]
-        let min_bid = 0, max_bid = 0, min_ask = 0, max_ask = 0;
+        let max_bid = 0, min_ask = 0;
         if (bids.length > 0) {
-            min_bid = bids[0][0];
-            max_bid = bids[bids.length - 1][0];
+            max_bid = bids[0][0];
         }
 
         if (asks.length > 0) {
             min_ask = asks[0][0];
-            max_ask = asks[asks.length - 1][0];
         }
 
         let avg_price = (max_bid + min_ask) / 2;
+        console.log(price_range, bids, asks);
 
-        // render bids
-        if (bids.length > 0) {
-            let bid_quant = 0; // cumulative quantity of buys
-            let i = bids.length - 1;
-            for (let curr_ind = 0; curr_ind < half_segments+1; curr_ind++) {
-                let price = bids[i][0];
+        let cumulative_quant = 0;
+        for (let i in bids) {
+            let price = bids[i][0];
+            if (price < avg_price*(1-price_range)) break;
 
-                // while the price is less than the "segment" price cap
-                while (price > (avg_price * (1 - (price_range * curr_ind / half_segments)))) {
-                    price = bids[i][0];
-                    bid_quant += bids[i][1];
-                    i--;
-                    if (i < 0) {
-                        break;
-                    }
-                }
-                chart.data.series[1][half_segments - curr_ind] = {value: bid_quant, meta: 'Price: '+price};
-                // show only some decimal places
-                chart.data.labels[half_segments - curr_ind] = Math.round(price * round_val) / round_val;
-            }
+            cumulative_quant += bids[i][1];
+            chart.data.series[0].unshift(
+                {x:price, y:cumulative_quant, meta:'Quant: '+cumulative_quant}
+            );
+            chart.data.series[1].unshift(undefined);
+            chart.data.labels.unshift(bids[i][0])
         }
 
-        // render asks
-
-        if (asks.length > 0) {
-            let ask_quant = 0;
-            let i = 0;
-            for (let curr_ind = half_segments + 1; curr_ind < segments; curr_ind++) {
-                let price = asks[i][0];
-                while (price < (avg_price * (1 + (price_range * (curr_ind - half_segments) / half_segments)))) {
-                    price = asks[i][0];
-                    ask_quant += asks[i][1];
-                    i++;
-                    if (i >= asks.length) {
-                        break;
-                    }
-                }
-                chart.data.series[0][curr_ind] = {value: ask_quant, meta: 'Price: '+price};
-                // show only some decimal places
-                chart.data.labels[curr_ind] = Math.round(price * round_val) / round_val;
-            }
-        }
-
-
-        // make any 0 values take the values of its neighbors
-        for (let i = half_segments; i >= 0; i--) {
-            if (chart.data.series[1][i] === 0) {
-                chart.data.series[1][i] = chart.data.series[1][i + 1];
-            }
-        }
-
-        for (let i = half_segments + 1; i < segments; i++) {
-            if (chart.data.series[0][i] === 0) {
-                chart.data.series[0][i] = chart.data.series[0][i - 1];
-            }
+        cumulative_quant = 0;
+        for (let i in asks) {
+            let price = asks[i][0];
+            if (price > avg_price*(1+price_range)) break;
+            cumulative_quant += asks[i][1];
+            chart.data.series[0].push(undefined);
+            chart.data.series[1].push(
+                {x:price, y:cumulative_quant, meta:'Quant: '+cumulative_quant}
+            );
+            chart.data.labels.push(price)
         }
 
         chart.update();
@@ -140,9 +107,9 @@ var DepthGraphModule = function (graph_id, width, height) {
 
     this.reset = function () {
         for (let i in chart.data.series[0]) {
-            chart.data.series[0][i] = 0;
-            chart.data.series[1][i] = 0;
-            chart.data.labels[i] = '';
+            chart.data.series[0] = [];
+            chart.data.series[1] = [];
+            chart.data.labels = [];
         }
     };
 };
