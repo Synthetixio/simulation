@@ -11,7 +11,13 @@ from visualization.mesa_visulization_addons import (
 
 
 def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
-    """Set up the simulation/visualisation server and return it."""
+    """
+    Set up the simulation/visualisation server and return it.
+
+    "Label": "" is a workaround to show the graph label where there is only one label
+      (the graphs with only one label wont show the label value, and also show multiple
+      values at the same time)
+    """
     charts: List[VisualizationElement] = [
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -27,7 +33,8 @@ def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
             {"Label": "Min Wealth", "Color": "orange"}]),
 
         ChartModule([
-            {"Label": "Profit %", "Color": "red"}]),
+            {"Label": "Profit %", "Color": "red"},
+            {"Label": "", "Color": "grey"}]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "blue"},
@@ -45,9 +52,13 @@ def make_server(n_agents: int = 20, cont_orders: bool = True) -> ModularServer:
             {"Label": "Fiat Demand", "Color": "green"},
             {"Label": "Fiat Supply", "Color": "cyan"}]),
 
-        ChartModule([{"Label": "Fee Pool", "Color": "blue"}]),
+        ChartModule([
+            {"Label": "Fee Pool", "Color": "blue"},
+            {"Label": "", "Color": "grey"}]),
 
-        ChartModule([{"Label": "Fees Distributed", "Color": "blue"}]),
+        ChartModule([
+            {"Label": "Fees Distributed", "Color": "blue"},
+            {"Label": "", "Color": "grey"}]),
 
         BarGraphModule([{"Label": "Wealth"}]),
 
