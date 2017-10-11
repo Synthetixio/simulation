@@ -51,7 +51,10 @@ class Havven(Model):
                 "Wealth SD": ms.wealth_sd,
                 "Max Wealth": ms.max_wealth,
                 "Min Wealth": ms.min_wealth,
-                "Profit %": ms.mean_profit_fraction,
+                "Avg Profit %": ms.mean_profit_fraction,
+                "Bank Profit %": ms.mean_banker_profit_fraction,
+                "Arb Profit %": ms.mean_arb_profit_fraction,
+                "Rand Profit %": ms.mean_rand_profit_fraction,
                 "Curit Demand": ms.curit_demand,
                 "Curit Supply": ms.curit_supply,
                 "Nomin Demand": ms.nomin_demand,
@@ -151,6 +154,10 @@ class Havven(Model):
         self.schedule.add(reserve_bank)
         reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
         reserve_bank.sell_curits_for_nomins(N * max_fiat * 3)
+
+        for a in self.schedule.agents:
+            a.reset_initial_wealth()
+
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""

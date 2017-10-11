@@ -21,16 +21,16 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     """
     charts: List[VisualizationElement] = [
         ChartModule([
-            {"Label": "Nomin Price", "Color": "blue"},
-            {"Label": "1", "Color": "grey"}]),
+            {"Label": "1", "Color": "grey"},
+            {"Label": "Nomin Price", "Color": "blue"}]),
 
         ChartModule([
-            {"Label": "Curit Price", "Color": "orange"},
-            {"Label": "1", "Color": "grey"}]),
+            {"Label": "1", "Color": "grey"},
+            {"Label": "Curit Price", "Color": "orange"}]),
 
         ChartModule([
-            {"Label": "Curit/Nomin Price", "Color": "purple"},
-            {"Label": "1", "Color": "grey"}]),
+            {"Label": "1", "Color": "grey"},
+            {"Label": "Curit/Nomin Price", "Color": "purple"}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -46,8 +46,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Min Wealth", "Color": "orange"}]),
 
         ChartModule([
-            {"Label": "Profit %", "Color": "red"},
-            {"Label": "0", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"},
+            {"Label": "Avg Profit %", "Color": "grey"},
+            {"Label": "Bank Profit %", "Color": "blue"},
+            {"Label": "Arb Profit %", "Color": "red"},
+            {"Label": "Rand Profit %", "Color": "green"}]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "blue"},
@@ -66,12 +69,12 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Fiat Supply", "Color": "cyan"}]),
 
         ChartModule([
-            {"Label": "Fee Pool", "Color": "blue"},
-            {"Label": "0", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"},
+            {"Label": "Fee Pool", "Color": "blue"}]),
 
         ChartModule([
-            {"Label": "Fees Distributed", "Color": "blue"},
-            {"Label": "0", "Color": "grey"}]),
+            {"Label": "0", "Color": "grey"},
+            {"Label": "Fees Distributed", "Color": "blue"}]),
 
         BarGraphModule([{"Label": "Wealth"}]),
 

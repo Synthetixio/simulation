@@ -45,6 +45,12 @@ class MarketPlayer(Agent):
                                      self.nomins - self.issued_nomins,
                                      self.fiat)
 
+    def reset_initial_wealth(self) -> float:
+        """Reset this agent's initial wealth to the current wealth, returning the old value."""
+        old = self.initial_wealth
+        self.initial_wealth = self.wealth()
+        return old
+
     def profit(self) -> float:
         """
         Return the total profit accrued over the initial wealth.
@@ -259,7 +265,6 @@ class Arbitrageur(MarketPlayer):
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # cur -> fiat -> nom -> cur
-            init_wealth = self.wealth()
             fn_price = 1.0 / self.model.nom_fiat_market.lowest_ask_price()
             nc_price = 1.0 / self.model.cur_nom_market.lowest_ask_price()
 
@@ -279,7 +284,6 @@ class Arbitrageur(MarketPlayer):
         elif self._reverse_multiple_() > 1.1:
             # Trade in the reverse direction
             # cur -> nom -> fiat -> cur
-            init_wealth = self.wealth()
             fc_price = 1.0 / self.model.cur_fiat_market.lowest_ask_price()
 
             cn_qty = sum(b.quantity for b in self.model.cur_nom_market.highest_bids())

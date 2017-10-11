@@ -3,11 +3,24 @@
 from statistics import mean, stdev
 
 import model
+import agents
 
 
 def mean_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by market participants."""
     return mean(a.profit_fraction() for a in havven.schedule.agents)
+
+def mean_banker_profit_fraction(havven: "model.Havven") -> float:
+    """Return the average fraction of profit being made by Bankers in the market."""
+    return mean(a.profit_fraction() for a in havven.schedule.agents if isinstance(a, agents.Banker))
+
+def mean_arb_profit_fraction(havven: "model.Havven") -> float:
+    """Return the average fraction of profit being made by Arbitrageurs in the market."""
+    return mean(a.profit_fraction() for a in havven.schedule.agents if isinstance(a, agents.Arbitrageur))
+
+def mean_rand_profit_fraction(havven: "model.Havven") -> float:
+    """Return the average fraction of profit being made by Randomizers in the market."""
+    return mean(a.profit_fraction() for a in havven.schedule.agents if isinstance(a, agents.Randomizer))
 
 def wealth_sd(havven: "model.Havven") -> float:
     """Return the standard deviation of wealth in the economy."""
