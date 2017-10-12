@@ -14,8 +14,8 @@ class OrderBookModule(VisualizationElement):
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
-        "visualization/js/chartist.min.js",
-        "visualization/js/DepthGraphModule.js"
+        "visualization_addons/js/chartist.min.js",
+        "visualization_addons/js/DepthGraphModule.js"
     ]
 
     def __init__(

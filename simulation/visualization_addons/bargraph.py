@@ -11,8 +11,8 @@ class BarGraphModule(VisualizationElement):
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
-        "visualization/js/chartist.min.js",
-        "visualization/js/BarGraphModule.js"
+        "visualization_addons/js/chartist.min.js",
+        "visualization_addons/js/BarGraphModule.js"
     ]
 
     def __init__(
