@@ -2,7 +2,7 @@ from typing import Set
 
 from mesa import Agent
 
-import model as md
+import model
 import orderbook as ob
 
 
@@ -15,7 +15,7 @@ class MarketPlayer(Agent):
       Its aim is to increase its own wealth.
     """
 
-    def __init__(self, unique_id: int, havven: "md.Havven",
+    def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0,
                  nomins: float = 0.0) -> None:
         super().__init__(unique_id, havven)
