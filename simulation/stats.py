@@ -1,4 +1,4 @@
-"""modelstats.py: Functions for extracting aggregate information from the Havven model."""
+"""stats.py: Functions for extracting aggregate information from the Havven model."""
 
 from statistics import mean, stdev
 

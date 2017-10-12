@@ -6,9 +6,8 @@ from mesa import Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-import modelstats as ms
+import stats
 import agents as ag
-from config import FeeConfig
 from manager import HavvenManager, TradeManager, FeeManager
 
 
@@ -44,22 +43,22 @@ class Havven(Model):
                 "Havven Nomins": lambda h: h.manager.nomins,
                 "Havven Curits": lambda h: h.manager.curits,
                 "Havven Fiat": lambda h: h.manager.fiat,
-                "Gini": ms.gini,
+                "Gini": stats.gini,
                 "Nomins": lambda h: h.manager.nomin_supply,
                 "Escrowed Curits": lambda h: h.manager.escrowed_curits,
-                "Wealth SD": ms.wealth_sd,
-                "Max Wealth": ms.max_wealth,
-                "Min Wealth": ms.min_wealth,
-                "Avg Profit %": lambda h: round(100*ms.mean_profit_fraction(h), 3),
-                "Bank Profit %": lambda h: round(100*ms.mean_banker_profit_fraction(h), 3),
-                "Arb Profit %": lambda h: round(100*ms.mean_arb_profit_fraction(h), 3),
-                "Rand Profit %": lambda h: round(100*ms.mean_rand_profit_fraction(h), 3),
-                "Curit Demand": ms.curit_demand,
-                "Curit Supply": ms.curit_supply,
-                "Nomin Demand": ms.nomin_demand,
-                "Nomin Supply": ms.nomin_supply,
-                "Fiat Demand": ms.fiat_demand,
-                "Fiat Supply": ms.fiat_supply,
+                "Wealth SD": stats.wealth_sd,
+                "Max Wealth": stats.max_wealth,
+                "Min Wealth": stats.min_wealth,
+                "Avg Profit %": lambda h: round(100*stats.mean_profit_fraction(h), 3),
+                "Bank Profit %": lambda h: round(100*stats.mean_banker_profit_fraction(h), 3),
+                "Arb Profit %": lambda h: round(100*stats.mean_arb_profit_fraction(h), 3),
+                "Rand Profit %": lambda h: round(100*stats.mean_rand_profit_fraction(h), 3),
+                "Curit Demand": stats.curit_demand,
+                "Curit Supply": stats.curit_supply,
+                "Nomin Demand": stats.nomin_demand,
+                "Nomin Supply": stats.nomin_supply,
+                "Fiat Demand": stats.fiat_demand,
+                "Fiat Supply": stats.fiat_supply,
                 "Fee Pool": lambda h: h.manager.nomins,
                 "Fees Distributed": lambda h: h.fee_manager.fees_distributed,
                 "NomFiatOrderBook": lambda h: h.trade_manager.nom_fiat_market,
@@ -136,7 +135,7 @@ class Havven(Model):
             self.trade_manager.nom_fiat_market.match()
 
         # Distribute fees periodically.
-        if (self.time % FeeConfig.fee_period) == 0:
+        if (self.time % self.fee_manager.fee_period) == 0:
             self.fee_manager.distribute_fees(self.schedule.agents)
 
         # Collect data
