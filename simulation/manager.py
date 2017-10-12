@@ -1,3 +1,7 @@
+"""
+Classes for holding onto values and functions for the model and agents
+"""
+
 from config import FeeConfig
 import agents as ag
 import orderbook as ob
@@ -11,7 +15,7 @@ TransferFunction = Callable[[ag.MarketPlayer, ag.MarketPlayer, float], bool]
 
 class HavvenManager:
     """
-    Class to hold Havven's model settings
+    Class to hold Havven's model variables
     """
 
     def __init__(self, num_agents: int, max_fiat: float = 1000,
@@ -99,6 +103,9 @@ class FeeManager:
 
 
 class TradeManager:
+    """
+    Class to handle all trades and order books
+    """
     def __init__(self, model_settings: "HavvenManager", fee_manager: "FeeManager"):
 
         self.model_settings = model_settings

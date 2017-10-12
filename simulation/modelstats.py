@@ -18,17 +18,18 @@ def mean_banker_profit_fraction(havven: "model.Havven") -> float:
 
 def mean_arb_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Arbitrageurs in the market."""
-    return mean(a.profit_fraction() for a in havven.schedule.agents if isinstance(a, agents.Arbitrageur))
+    return mean(a.profit_fraction() for a in havven.schedule.agents
+                if isinstance(a, agents.Arbitrageur))
 
 
 def mean_rand_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Randomizers in the market."""
-    return mean(a.profit_fraction() for a in havven.schedule.agents if isinstance(a, agents.Randomizer))
+    return mean(a.profit_fraction() for a in havven.schedule.agents
+                if isinstance(a, agents.Randomizer))
 
 
 def wealth_sd(havven: "model.Havven") -> float:
     """Return the standard deviation of wealth in the economy."""
-    # todo: cut out the reserve bank?
     return stdev(a.wealth() for a in havven.schedule.agents)
 
 
@@ -40,7 +41,6 @@ def gini(havven: "model.Havven") -> float:
 
 def max_wealth(havven: "model.Havven") -> float:
     """Return the wealth of the richest person in the economy."""
-    # todo: cut out reserve bank?
     w = [a.wealth() for a in havven.schedule.agents]
     return max(w)
 
