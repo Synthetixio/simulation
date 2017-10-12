@@ -2,7 +2,6 @@
 Classes for holding onto values and functions for the model and agents
 """
 
-from config import FeeConfig
 from typing import List, Optional, Callable
 
 import orderbook as ob
@@ -41,41 +40,55 @@ class FeeManager:
     """
 
     def __init__(self, model_manager: "HavvenManager") -> None:
-        self.fees_distributed: float = 0.0
+
         self.model_manager = model_manager
+
+        # Fees are distributed at regular intervals
+        self.fee_period: int = 50
+
+        # Multiplicative transfer fee rates
+        self.nom_fee_rate: float = 0.005
+        self.cur_fee_rate: float = 0.01
+        self.fiat_fee_rate: float = 0.0
+
+        # Multiplicative issuance fee rates
+        self.issuance_fee_rate: float = 0.0
+        self.redemption_fee_rate: float = 0.02
+
+        self.fees_distributed: float = 0.0
 
     def max_transferrable_fiat(self, principal: float) -> float:
         """
         A user can transfer less than their total balance when fees are
           taken into account.
         """
-        return principal / (1 + FeeConfig.fiat_transfer_fee_rate)
+        return principal / (1 + self.fiat_fee_rate)
 
     def max_transferrable_curits(self, principal: float) -> float:
         """
         A user can transfer less than their total balance when fees are
           taken into account.
         """
-        return principal / (1 + FeeConfig.cur_transfer_fee_rate)
+        return principal / (1 + self.cur_fee_rate)
 
     def max_transferrable_nomins(self, principal: float) -> float:
         """
         A user can transfer less than their total balance when fees are
           taken into account.
         """
-        return principal / (1 + FeeConfig.nom_transfer_fee_rate)
+        return principal / (1 + self.nom_fee_rate)
 
     def transfer_fiat_fee(self, value: float) -> float:
         """Return the fee charged for transferring a value of fiat."""
-        return value * FeeConfig.fiat_transfer_fee_rate
+        return value * self.fiat_fee_rate
 
     def transfer_curits_fee(self, value: float) -> float:
         """Return the fee charged for transferring a value of curits."""
-        return value * FeeConfig.cur_transfer_fee_rate
+        return value * self.cur_fee_rate
 
     def transfer_nomins_fee(self, value: float) -> float:
         """Return the fee charged for transferring a value of nomins."""
-        return value * FeeConfig.nom_transfer_fee_rate
+        return value * self.nom_fee_rate
 
     def distribute_fees(self, schedule_agents: List["ag.MarketPlayer"]) -> None:
         """Distribute currently held nomins to holders of curits."""

@@ -1,5 +1,6 @@
 from .marketplayer import MarketPlayer
 
+
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
 
@@ -51,9 +52,9 @@ class Arbitrageur(MarketPlayer):
 
     def _cycle_fee_rate_(self) -> float:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
-        return (1 + self.model.fee_manager.transfer_nomins_fee(1)) * \
-               (1 + self.model.fee_manager.transfer_curits_fee(1)) * \
-               (1 + self.model.fee_manager.transfer_fiat_fee(1))
+        return (1 + self.model.fee_manager.nom_fee_rate) * \
+               (1 + self.model.fee_manager.cur_fee_rate) * \
+               (1 + self.model.fee_manager.fiat_fee_rate)
 
     def _forward_multiple_no_fees_(self) -> float:
         """
