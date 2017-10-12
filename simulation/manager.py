@@ -47,9 +47,9 @@ class FeeManager:
     """
     Class to handle fee calculation
     """
-    def __init__(self, model_settings: "HavvenManager"):
+    def __init__(self, model_manager: "HavvenManager"):
         self.fees_distributed: float = 0.0
-        self.model_settings = model_settings
+        self.model_manager = model_manager
 
     def max_transferrable_fiat(self, principal: float) -> float:
         """
@@ -94,11 +94,11 @@ class FeeManager:
 
         # pre_fees = self.settings.nomins
         for agent in schedule_agents:
-            if self.model_settings.nomins == 0:
+            if self.model_manager.nomins == 0:
                 break
-            qty = min(agent.issued_nomins / self.model_settings.nomins, self.model_settings.nomins)
+            qty = min(agent.issued_nomins / self.model_manager.nomins, self.model_manager.nomins)
             agent.nomins += qty
-            self.model_settings.nomins -= qty
+            self.model_manager.nomins -= qty
             self.fees_distributed += qty
 
 
@@ -106,9 +106,9 @@ class TradeManager:
     """
     Class to handle all trades and order books
     """
-    def __init__(self, model_settings: "HavvenManager", fee_manager: "FeeManager"):
+    def __init__(self, model_manager: "HavvenManager", fee_manager: "FeeManager"):
 
-        self.model_settings = model_settings
+        self.model_manager = model_manager
         self.fee_manager = fee_manager
 
         # Order books
@@ -116,13 +116,13 @@ class TradeManager:
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.cur_nom_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "NOM", self.cur_nom_match, self.model_settings.match_on_order
+            "CUR", "NOM", self.cur_nom_match, self.model_manager.match_on_order
         )
         self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "FIAT", self.cur_fiat_match, self.model_settings.match_on_order
+            "CUR", "FIAT", self.cur_fiat_match, self.model_manager.match_on_order
         )
         self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
-            "NOM", "FIAT", self.nom_fiat_match, self.model_settings.match_on_order
+            "NOM", "FIAT", self.nom_fiat_match, self.model_manager.match_on_order
         )
 
     def __bid_ask_match__(
@@ -232,7 +232,7 @@ class TradeManager:
             fee = self.fee_manager.transfer_fiat_fee(value)
             sender.fiat -= value + fee
             recipient.fiat += value
-            self.model_settings.fiat += fee
+            self.model_manager.fiat += fee
             return True
         return False
 
@@ -246,7 +246,7 @@ class TradeManager:
             fee = self.fee_manager.transfer_curits_fee(value)
             sender.curits -= value + fee
             recipient.curits += value
-            self.model_settings.curits += fee
+            self.model_manager.curits += fee
             return True
         return False
 
@@ -260,10 +260,9 @@ class TradeManager:
             fee = self.fee_manager.transfer_nomins_fee(value)
             sender.nomins -= value + fee
             recipient.nomins += value
-            self.model_settings.nomins += fee
+            self.model_manager.nomins += fee
             return True
         return False
-
 
     @property
     def curit_fiat_price(self) -> float:
