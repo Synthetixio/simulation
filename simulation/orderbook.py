@@ -8,6 +8,7 @@ from sortedcontainers import SortedListWithKey
 
 import agents as ag
 
+
 class LimitOrder:
     """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
     def __init__(self, price: float, time: int, quantity: float,
@@ -38,6 +39,7 @@ class LimitOrder:
     def __str__(self) -> str:
         return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
                f"@ {self.time} by {self.issuer}"
+
 
 class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
@@ -129,9 +131,12 @@ class TradeRecord:
 # A type for matching functions in the order book.
 Matcher = Callable[[Bid, Ask], Optional[TradeRecord]]
 
+
 class OrderBook:
-    """An order book for Havven agents to interact with.""" \
-    """This one is generic, but there will have to be a market for each currency pair."""
+    """
+    An order book for Havven agents to interact with.
+    This one is generic, but there will have to be a market for each currency pair.
+    """
 
     def __init__(self, base: str, quote: str, matcher: Matcher, match_on_order: bool = True) -> None:
         # Define the currency pair held by this book.
