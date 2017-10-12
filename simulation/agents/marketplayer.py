@@ -71,7 +71,7 @@ class MarketPlayer(Agent):
         Transfer a positive value of fiat to the recipient,
         if balance is sufficient. Return True on success.
         """
-        return self.model.transfer_fiat(self, recipient, value)
+        return self.model.trade_manager.transfer_fiat(self, recipient, value)
 
     def transfer_curits_to(self, recipient: "MarketPlayer",
                            value: float) -> bool:
@@ -79,7 +79,7 @@ class MarketPlayer(Agent):
         Transfer a positive value of curits to the recipient,
         if balance is sufficient. Return True on success.
         """
-        return self.model.transfer_curits(self, recipient, value)
+        return self.model.trade_manager.transfer_curits(self, recipient, value)
 
     def transfer_nomins_to(self, recipient: "MarketPlayer",
                            value: float) -> bool:
@@ -87,7 +87,7 @@ class MarketPlayer(Agent):
         Transfer a positive value of nomins to the recipient,
         if balance is sufficient. Return True on success.
         """
-        return self.model.transfer_nomins(self, recipient, value)
+        return self.model.trade_manager.transfer_nomins(self, recipient, value)
 
     def escrow_curits(self, value: float) -> bool:
         """
@@ -97,7 +97,7 @@ class MarketPlayer(Agent):
         if self.curits >= value >= 0:
             self.curits -= value
             self.escrowed_curits += value
-            self.model.escrowed_curits += value
+            self.model.manager.escrowed_curits += value
             return True
         return False
 
@@ -109,7 +109,7 @@ class MarketPlayer(Agent):
         if 0 <= value <= self.available_escrowed_curits():
             self.curits += value
             self.escrowed_curits -= value
-            self.model.escrowed_curits -= value
+            self.model.manager.escrowed_curits -= value
             return True
         return False
 
@@ -118,7 +118,7 @@ class MarketPlayer(Agent):
         Return the quantity of escrowed curits which is not
         locked by issued nomins. May be negative.
         """
-        return self.escrowed_curits - self.model.nom_to_cur(self.issued_nomins)
+        return self.escrowed_curits - self.model.trade_manager.nom_to_cur(self.issued_nomins)
 
     def unavailable_escrowed_curits(self) -> float:
         """
@@ -126,12 +126,12 @@ class MarketPlayer(Agent):
           having had nomins issued against it.
         May be greater than total escrowed curits.
         """
-        return self.model.nom_to_cur(self.issued_nomins)
+        return self.model.trade_manager.nom_to_cur(self.issued_nomins)
 
     def max_issuance_rights(self) -> float:
         """The total quantity of nomins this agent has a right to issue."""
-        return self.model.cur_to_nom(self.escrowed_curits) * \
-            self.model.utilisation_ratio_max
+        return self.model.trade_manager.cur_to_nom(self.escrowed_curits) * \
+            self.model.manager.utilisation_ratio_max
 
     def issue_nomins(self, value: float) -> bool:
         """
@@ -142,7 +142,7 @@ class MarketPlayer(Agent):
         if 0 <= value <= remaining:
             self.issued_nomins += value
             self.nomins += value
-            self.model.nomin_supply += value
+            self.model.manager.nomin_supply += value
             return True
         return False
 
@@ -151,60 +151,60 @@ class MarketPlayer(Agent):
         if 0 <= value <= self.nomins and value <= self.issued_nomins:
             self.nomins -= value
             self.issued_nomins -= value
-            self.model.nomin_supply -= value
+            self.model.manager.nomin_supply -= value
             return True
         return False
 
     def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of nomins in to buy curits."""
-        price = self.model.cur_nom_market.lowest_ask_price()
-        return self.model.cur_nom_market.buy(quantity/price, self)
+        price = self.model.trade_manager.cur_nom_market.lowest_ask_price()
+        return self.model.trade_manager.cur_nom_market.buy(quantity/price, self)
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy nomins."""
-        return self.model.cur_nom_market.sell(quantity, self)
+        return self.model.trade_manager.cur_nom_market.sell(quantity, self)
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy curits."""
-        price = self.model.cur_fiat_market.lowest_ask_price()
-        return self.model.cur_fiat_market.buy(quantity/price, self)
+        price = self.model.trade_manager.cur_fiat_market.lowest_ask_price()
+        return self.model.trade_manager.cur_fiat_market.buy(quantity/price, self)
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of curits in to buy fiat."""
-        return self.model.cur_fiat_market.sell(quantity, self)
+        return self.model.trade_manager.cur_fiat_market.sell(quantity, self)
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
         """Sell a quantity of fiat in to buy nomins."""
-        price = self.model.nom_fiat_market.lowest_ask_price()
-        return self.model.nom_fiat_market.buy(quantity/price, self)
+        price = self.model.trade_manager.nom_fiat_market.lowest_ask_price()
+        return self.model.trade_manager.nom_fiat_market.buy(quantity/price, self)
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
         """Sell a quantity of nomins in to buy fiat."""
-        return self.model.nom_fiat_market.sell(quantity, self)
+        return self.model.trade_manager.nom_fiat_market.sell(quantity, self)
 
     def place_curits_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
         """Place a bid for quantity curits, at a given price in fiat."""
-        return self.model.cur_fiat_market.bid(price, quantity, self)
+        return self.model.trade_manager.cur_fiat_market.bid(price, quantity, self)
 
     def place_curits_fiat_ask(self, quantity: float, price: float) -> "ob.Ask":
         """Place an ask for fiat with quantity curits, at a given price in fiat."""
-        return self.model.cur_fiat_market.ask(price, quantity, self)
+        return self.model.trade_manager.cur_fiat_market.ask(price, quantity, self)
 
     def place_nomins_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
         """Place a bid for quantity nomins, at a given price in fiat."""
-        return self.model.nom_fiat_market.bid(price, quantity, self)
+        return self.model.trade_manager.nom_fiat_market.bid(price, quantity, self)
 
     def place_nomins_fiat_ask(self, quantity: float, price: float) -> "ob.Ask":
         """Place an ask for fiat with quantity nomins, at a given price in fiat."""
-        return self.model.nom_fiat_market.ask(price, quantity, self)
+        return self.model.trade_manager.nom_fiat_market.ask(price, quantity, self)
 
     def place_curits_nomins_bid(self, quantity: float, price: float) -> "ob.Bid":
         """Place a bid for quantity curits, at a given price in nomins."""
-        return self.model.cur_nom_market.bid(price, quantity, self)
+        return self.model.trade_manager.cur_nom_market.bid(price, quantity, self)
 
     def place_curits_nomins_ask(self, quantity: float, price: float) -> "ob.Ask":
         """place an ask for curits with quantity nomins, at a given price in curits."""
-        return self.model.cur_nom_market.ask(price, quantity, self)
+        return self.model.trade_manager.cur_nom_market.ask(price, quantity, self)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """Notify this agent that its order was cancelled."""

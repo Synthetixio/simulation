@@ -1,7 +1,15 @@
 from config import FeeConfig
+import agents as ag
+import orderbook as ob
+
+from typing import List, Optional, Callable
+
+# Function signatures for transfers.
+TransferTest = Callable[[ag.MarketPlayer, float], bool]
+TransferFunction = Callable[[ag.MarketPlayer, ag.MarketPlayer, float], bool]
 
 
-class HavvenSettings:
+class HavvenManager:
     """
     Class to hold Havven's model settings
     """
@@ -20,18 +28,6 @@ class HavvenSettings:
         #   otherwise do so at the end of each period
         self.match_on_order: bool = match_on_order
 
-
-class TradeManager:
-    def __init__(self, model_settings: "HavvenSettings"):
-
-        self.settings = model_settings
-
-        # Market variables
-
-        # Prices in fiat per token
-        self.curit_price: float = 1.0
-        self.nomin_price: float = 1.0
-
         # Money Supply
         self.curit_supply: float = 10.0**9
         self.nomin_supply: float = 0.0
@@ -42,18 +38,84 @@ class TradeManager:
         self.nomins: float = 0.0
         self.fiat: float = 0.0
 
+
+class FeeManager:
+    """
+    Class to handle fee calculation
+    """
+    def __init__(self, model_settings: "HavvenManager"):
+        self.fees_distributed: float = 0.0
+        self.model_settings = model_settings
+
+    def max_transferrable_fiat(self, principal: float) -> float:
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+        """
+        return principal / (1 + FeeConfig.fiat_transfer_fee_rate)
+
+    def max_transferrable_curits(self, principal: float) -> float:
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+        """
+        return principal / (1 + FeeConfig.cur_transfer_fee_rate)
+
+    def max_transferrable_nomins(self, principal: float) -> float:
+        """
+        A user can transfer less than their total balance when fees are
+          taken into account.
+        """
+        return principal / (1 + FeeConfig.nom_transfer_fee_rate)
+
+    def transfer_fiat_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of fiat."""
+        return value * FeeConfig.fiat_transfer_fee_rate
+
+    def transfer_curits_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of curits."""
+        return value * FeeConfig.cur_transfer_fee_rate
+
+    def transfer_nomins_fee(self, value: float) -> float:
+        """Return the fee charged for transferring a value of nomins."""
+        return value * FeeConfig.nom_transfer_fee_rate
+
+    def distribute_fees(self, schedule_agents: List["ag"]) -> None:
+        """Distribute currently held nomins to holders of curits."""
+        # Different fee modes:
+        #  * distributed by held curits
+        # TODO: * distribute by escrowed curits
+        # TODO: * distribute by issued nomins
+        # TODO: * distribute by motility
+
+        # pre_fees = self.settings.nomins
+        for agent in schedule_agents:
+            if self.model_settings.nomins == 0:
+                break
+            qty = min(agent.issued_nomins / self.model_settings.nomins, self.model_settings.nomins)
+            agent.nomins += qty
+            self.model_settings.nomins -= qty
+            self.fees_distributed += qty
+
+
+class TradeManager:
+    def __init__(self, model_settings: "HavvenManager", fee_manager: "FeeManager"):
+
+        self.model_settings = model_settings
+        self.fee_manager = fee_manager
+
         # Order books
         # If a book is X_Y_market, then X is the base currency,
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.cur_nom_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "NOM", self.cur_nom_match, self.settings.match_on_order
+            "CUR", "NOM", self.cur_nom_match, self.model_settings.match_on_order
         )
         self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "FIAT", self.cur_fiat_match, self.settings.match_on_order
+            "CUR", "FIAT", self.cur_fiat_match, self.model_settings.match_on_order
         )
         self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
-            "NOM", "FIAT", self.nom_fiat_match, self.settings.match_on_order
+            "NOM", "FIAT", self.nom_fiat_match, self.model_settings.match_on_order
         )
 
     def __bid_ask_match__(
@@ -141,17 +203,17 @@ class TradeManager:
     def transfer_fiat_success(self, sender: ag.MarketPlayer,
                               value: float) -> bool:
         """True iff the sender could successfully send a value of fiat."""
-        return 0 <= value + self.transfer_fiat_fee(value) <= sender.fiat
+        return 0 <= value + self.fee_manager.transfer_fiat_fee(value) <= sender.fiat
 
     def transfer_curits_success(self, sender: ag.MarketPlayer,
                                 value: float) -> bool:
         """True iff the sender could successfully send a value of curits."""
-        return 0 <= value + self.transfer_curits_fee(value) <= sender.curits
+        return 0 <= value + self.fee_manager.transfer_curits_fee(value) <= sender.curits
 
     def transfer_nomins_success(self, sender: ag.MarketPlayer,
                                 value: float) -> bool:
         """True iff the sender could successfully send a value of nomins."""
-        return 0 <= value + self.transfer_nomins_fee(value) <= sender.nomins
+        return 0 <= value + self.fee_manager.transfer_nomins_fee(value) <= sender.nomins
 
     def transfer_fiat(self, sender: ag.MarketPlayer,
                       recipient: ag.MarketPlayer, value: float) -> bool:
@@ -160,10 +222,10 @@ class TradeManager:
           recipient, if balance is sufficient. Return True on success.
         """
         if self.transfer_fiat_success(sender, value):
-            fee = self.transfer_fiat_fee(value)
+            fee = self.fee_manager.transfer_fiat_fee(value)
             sender.fiat -= value + fee
             recipient.fiat += value
-            self.fiat += fee
+            self.model_settings.fiat += fee
             return True
         return False
 
@@ -174,10 +236,10 @@ class TradeManager:
           if balance is sufficient. Return True on success.
         """
         if self.transfer_curits_success(sender, value):
-            fee = self.transfer_curits_fee(value)
+            fee = self.fee_manager.transfer_curits_fee(value)
             sender.curits -= value + fee
             recipient.curits += value
-            self.curits += fee
+            self.model_settings.curits += fee
             return True
         return False
 
@@ -188,70 +250,28 @@ class TradeManager:
           if balance is sufficient. Return True on success.
         """
         if self.transfer_nomins_success(sender, value):
-            fee = self.transfer_nomins_fee(value)
+            fee = self.fee_manager.transfer_nomins_fee(value)
             sender.nomins -= value + fee
             recipient.nomins += value
-            self.nomins += fee
+            self.model_settings.nomins += fee
             return True
         return False
 
 
-class FeeManager:
-    """
-    Class to handle fee calculation
-    """
-    def __init__(self, model_settings: "HavvenConfig", trade_manager: "TradeManager"):
-        self.fees_distributed: float = 0.0
-        self.model_settings = model_settings
-        self.trade_manager = trade_manager
-
     @property
     def curit_fiat_price(self) -> float:
         """Return the current curit price in fiat per token."""
-        return self.trade_manager.cur_fiat_market.price
+        return self.cur_fiat_market.price
 
     @property
     def nomin_fiat_price(self) -> float:
         """Return the current nomin price in fiat per token."""
-        return self.trade_manager.nom_fiat_market.price
+        return self.nom_fiat_market.price
 
     @property
     def curit_nomin_price(self) -> float:
         """Return the current curit price in nomins per token."""
-        return self.trade_manager.cur_nom_market.price
-
-    def max_transferrable_fiat(self, principal: float) -> float:
-        """
-        A user can transfer less than their total balance when fees are
-          taken into account.
-          """
-        return principal / (1 + FeeConfig.fiat_transfer_fee_rate)
-
-    def max_transferrable_curits(self, principal: float) -> float:
-        """
-        A user can transfer less than their total balance when fees are
-          taken into account.
-        """
-        return principal / (1 + FeeConfig.cur_transfer_fee_rate)
-
-    def max_transferrable_nomins(self, principal: float) -> float:
-        """
-        A user can transfer less than their total balance when fees are
-          taken into account.
-        """
-        return principal / (1 + FeeConfig.nom_transfer_fee_rate)
-
-    def transfer_fiat_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of fiat."""
-        return value * FeeConfig.fiat_transfer_fee_rate
-
-    def transfer_curits_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of curits."""
-        return value * FeeConfig.cur_transfer_fee_rate
-
-    def transfer_nomins_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of nomins."""
-        return value * FeeConfig.nom_transfer_fee_rate
+        return self.cur_nom_market.price
 
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
@@ -276,20 +296,3 @@ class FeeManager:
     def fiat_to_nom(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in nomins."""
         return value / self.nomin_fiat_price
-
-    def distribute_fees(self, schedule_agents) -> None:
-        """Distribute currently held nomins to holders of curits."""
-        # Different fee modes:
-        #  * distributed by held curits
-        # TODO: * distribute by escrowed curits
-        # TODO: * distribute by issued nomins
-        # TODO: * distribute by motility
-
-        # pre_fees = self.settings.nomins
-        for agent in schedule_agents:
-            if self.model_settings.nomins == 0:
-                break
-            qty = min(agent.issued_nomins / self.model_settings.nomins, self.model_settings.nomins)
-            agent.nomins += qty
-            self.model_settings.nomins -= qty
-            self.model_settings.fees_distributed += qty

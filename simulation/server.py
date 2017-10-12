@@ -94,6 +94,6 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     )
 
     server = ModularServer(model.Havven, charts, "Havven Model",
-                           {"N": n_slider, "utilisation_ratio_max": ur_slider,
+                           {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
                             "match_on_order": match_checkbox})
     return server

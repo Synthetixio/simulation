@@ -18,5 +18,5 @@ class FeeConfig:
 
     # Issuance fee in %
     issuance_fee_rate: float = 0.0
-    redemption_fee_rate: float = 0.0
+    redemption_fee_rate: float = 0.02
 
