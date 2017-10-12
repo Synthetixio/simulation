@@ -19,7 +19,8 @@ class HavvenManager:
     """
 
     def __init__(self, num_agents: int,
-                 utilisation_ratio_max: float = 1.0, match_on_order: bool = True):
+                 utilisation_ratio_max: float = 1.0,
+                 match_on_order: bool = True) -> None:
         # Add the market participants
         self.num_agents: int = num_agents
 
@@ -46,7 +47,7 @@ class FeeManager:
     Class to handle fee calculation
     """
 
-    def __init__(self, model_manager: "HavvenManager"):
+    def __init__(self, model_manager: "HavvenManager") -> None:
         self.fees_distributed: float = 0.0
         self.model_manager = model_manager
 
@@ -91,7 +92,6 @@ class FeeManager:
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
-        # pre_fees = self.settings.nomins
         for agent in schedule_agents:
             if self.model_manager.nomins == 0:
                 break
@@ -106,7 +106,7 @@ class TradeManager:
     Class to handle all trades and order books
     """
 
-    def __init__(self, model_manager: "HavvenManager", fee_manager: "FeeManager"):
+    def __init__(self, model_manager: "HavvenManager", fee_manager: "FeeManager") -> None:
 
         self.model_manager = model_manager
         self.fee_manager = fee_manager
