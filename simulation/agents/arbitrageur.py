@@ -1,4 +1,4 @@
-from . import MarketPlayer
+from .marketplayer import MarketPlayer
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""

@@ -2,7 +2,7 @@
 import random
 
 import model
-from . import MarketPlayer
+from .marketplayer import MarketPlayer
 
 class Randomizer(MarketPlayer):
     """Places random bids and asks near current market prices."""

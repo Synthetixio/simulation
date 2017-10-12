@@ -7,13 +7,15 @@ from itertools import takewhile
 from sortedcontainers import SortedListWithKey
 
 import agents as ag
+from manager import FeeManager
 
 
 class LimitOrder:
     """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
-    def __init__(self, price: float, time: int, quantity: float,
+    def __init__(self, price: float, time: int, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
+        self.fee = fee
         self.time = time
         self.quantity = quantity
         self.issuer = issuer
@@ -24,16 +26,18 @@ class LimitOrder:
         """Remove this order from the issuer and the order book if it's active."""
         pass
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         """Update this order's price, updating its timestamp, possibly reordering its order book."""
         pass
 
-    def update_quantity(self, quantity: float) -> None:
+    def update_quantity(self, quantity: float, fee: float) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
         if quantity > 0:
             self.quantity = quantity
+            self.fee = fee
         else:
             self.quantity = 0
+            self.fee = 0
             self.cancel()
 
     def __str__(self) -> str:
@@ -43,9 +47,9 @@ class LimitOrder:
 
 class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: float, quantity: float,
+    def __init__(self, price: float, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
-        super().__init__(price, book.time, quantity, issuer, book)
+        super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
             self.active = False  # bid will not be added to the orderbook
         else:
@@ -56,7 +60,7 @@ class Bid(LimitOrder):
     @classmethod
     def comparator(cls, bid: "Bid"):
         """Bids are sorted first by descending price and then by ascending time."""
-        return (-bid.price, bid.time)
+        return -bid.price, bid.time
 
     def cancel(self) -> None:
         if self.active:
@@ -66,10 +70,11 @@ class Bid(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         if self.active:
             self.book.bids.remove(self)
             self.price = price
+            self.fee = fee
             self.time = self.book.time
             self.book.bids.add(self)
             self.book.step()
@@ -80,9 +85,9 @@ class Bid(LimitOrder):
 
 class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: float, quantity: float,
+    def __init__(self, price: float, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
-        super().__init__(price, book.time, quantity, issuer, book)
+        super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
             self.active = False  # ask will not be added to the orderbook
         else:
@@ -93,7 +98,7 @@ class Ask(LimitOrder):
     @classmethod
     def comparator(cls, ask: "Ask"):
         """Asks are sorted first by ascending price and then by ascending time."""
-        return (ask.price, ask.time)
+        return ask.price, ask.time
 
     def cancel(self) -> None:
         if self.active:
@@ -103,10 +108,11 @@ class Ask(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         if self.active:
             self.book.asks.remove(self)
             self.price = price
+            self.fee = fee
             self.time = self.book.time
             self.book.asks.add(self)
             self.book.step()
@@ -138,7 +144,11 @@ class OrderBook:
     This one is generic, but there will have to be a market for each currency pair.
     """
 
-    def __init__(self, base: str, quote: str, matcher: Matcher, match_on_order: bool = True) -> None:
+    def __init__(self, base: str, quote: str,
+                 matcher: Matcher, bid_fee_fn: Callable[[float], float],
+                 ask_fee_fn: Callable[[float], float],
+                 match_on_order: bool = True) -> None:
+
         # Define the currency pair held by this book.
         self.base: str = base
         self.quote: str = quote
@@ -159,6 +169,10 @@ class OrderBook:
         # and which returns True iff the transfer succeeded.
         self.matcher: Matcher = matcher
 
+        # Fees will be calculated with the following functions.
+        self.bid_fee_fn: Callable[[float], float] = bid_fee_fn
+        self.ask_fee_fn: Callable[[float], float] = ask_fee_fn
+
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
@@ -176,14 +190,16 @@ class OrderBook:
 
     def bid(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Bid:
         """Submit a new sell order to the book."""
-        bid = Bid(price, quantity, agent, self)
+        fee = self.bid_fee_fn(price * quantity)
+        bid = Bid(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
         return bid
 
     def ask(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Ask:
         """Submit a new buy order to the book."""
-        ask = Ask(price, quantity, agent, self)
+        fee = self.ask_fee_fn(quantity)
+        ask = Ask(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
         return ask
@@ -262,7 +278,7 @@ class OrderBook:
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.
         while spread <= 0 and len(self.bids) and len(self.asks) and \
-              not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
+                not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
 
             # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]

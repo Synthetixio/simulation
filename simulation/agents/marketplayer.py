@@ -2,8 +2,9 @@ from typing import Set
 
 from mesa import Agent
 
-import orderbook as ob
 import model
+import orderbook as ob
+
 
 class MarketPlayer(Agent):
     """
