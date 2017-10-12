@@ -39,9 +39,9 @@ class Havven(Model):
             model_reporters={
                 "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "1": lambda x: 1,
-                "Nomin Price": lambda h: h.nom_fiat_market.price,
-                "Curit Price": lambda h: h.cur_fiat_market.price,
-                "Curit/Nomin Price": lambda h: h.cur_nom_market.price,
+                "Nomin Price": lambda h: h.nomin_fiat_price,
+                "Curit Price": lambda h: h.curit_fiat_price,
+                "Curit/Nomin Price": lambda h: h.curit_nomin_price,
                 "Havven Nomins": lambda h: h.nomins,
                 "Havven Curits": lambda h: h.curits,
                 "Havven Fiat": lambda h: h.fiat,
@@ -156,14 +156,19 @@ class Havven(Model):
 
 
     @property
-    def curit_price(self) -> float:
+    def curit_fiat_price(self) -> float:
         """Return the current curit price in fiat per token."""
         return self.cur_fiat_market.price
 
     @property
-    def nomin_price(self) -> float:
+    def nomin_fiat_price(self) -> float:
         """Return the current nomin price in fiat per token."""
         return self.nom_fiat_market.price
+
+    @property
+    def curit_nomin_price(self) -> float:
+        """Return the current curit price in nomins per token."""
+        return self.cur_nom_market.price
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
@@ -350,27 +355,27 @@ class Havven(Model):
 
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
-        return (value * self.curit_price) / self.nomin_price
+        return (value * self.curit_fiat_price) / self.nomin_fiat_price
 
     def cur_to_fiat(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in fiat."""
-        return value * self.curit_price
+        return value * self.curit_fiat_price
 
     def nom_to_cur(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in curits."""
-        return (value * self.nomin_price) / self.curit_price
+        return (value * self.nomin_fiat_price) / self.curit_fiat_price
 
     def nom_to_fiat(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in fiat."""
-        return value * self.nomin_price
+        return value * self.nomin_fiat_price
 
     def fiat_to_cur(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in curits."""
-        return value / self.curit_price
+        return value / self.curit_fiat_price
 
     def fiat_to_nom(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in nomins."""
-        return value / self.nomin_price
+        return value / self.nomin_fiat_price
 
     def distribute_fees(self) -> None:
         """Distribute currently held nomins to holders of curits."""
