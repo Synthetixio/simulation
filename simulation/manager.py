@@ -18,12 +18,10 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
-    def __init__(self, num_agents: int, max_fiat: float = 1000,
+    def __init__(self, num_agents: int,
                  utilisation_ratio_max: float = 1.0, match_on_order: bool = True):
         # Add the market participants
         self.num_agents: int = num_agents
-
-        self.max_fiat: float = max_fiat
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: float = utilisation_ratio_max
@@ -33,7 +31,7 @@ class HavvenManager:
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: float = 10.0**9
+        self.curit_supply: float = 10.0 ** 9
         self.nomin_supply: float = 0.0
         self.escrowed_curits: float = 0.0
 
@@ -47,6 +45,7 @@ class FeeManager:
     """
     Class to handle fee calculation
     """
+
     def __init__(self, model_manager: "HavvenManager"):
         self.fees_distributed: float = 0.0
         self.model_manager = model_manager
@@ -84,7 +83,7 @@ class FeeManager:
         """Return the fee charged for transferring a value of nomins."""
         return value * FeeConfig.nom_transfer_fee_rate
 
-    def distribute_fees(self, schedule_agents: List["ag"]) -> None:
+    def distribute_fees(self, schedule_agents: List[ag.MarketPlayer]) -> None:
         """Distribute currently held nomins to holders of curits."""
         # Different fee modes:
         #  * distributed by held curits
@@ -106,6 +105,7 @@ class TradeManager:
     """
     Class to handle all trades and order books
     """
+
     def __init__(self, model_manager: "HavvenManager", fee_manager: "FeeManager"):
 
         self.model_manager = model_manager
@@ -146,7 +146,7 @@ class TradeManager:
         #   they may do better.
         price = ask.price if ask.time < bid.time else bid.price
         quantity = min(ask.quantity, bid.quantity)
-        buy_val = quantity*price
+        buy_val = quantity * price
 
         # Only perform the actual transfer if it would be successful.
         # Cancel any orders that would not succeed.
@@ -281,7 +281,7 @@ class TradeManager:
 
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
-        return (value * self.curit_fiat_price) / self.nomin_fiat_price
+        return value * self.curit_nomin_price
 
     def cur_to_fiat(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in fiat."""
@@ -289,7 +289,7 @@ class TradeManager:
 
     def nom_to_cur(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in curits."""
-        return (value * self.nomin_fiat_price) / self.curit_fiat_price
+        return value / self.curit_nomin_price
 
     def nom_to_fiat(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in fiat."""

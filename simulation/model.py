@@ -68,7 +68,7 @@ class Havven(Model):
 
         # Create the model settings objects
 
-        self.manager = HavvenManager(num_agents, max_fiat, utilisation_ratio_max, match_on_order)
+        self.manager = HavvenManager(num_agents, utilisation_ratio_max, match_on_order)
 
         self.fee_manager = FeeManager(self.manager)
         self.trade_manager = TradeManager(self.manager, self.fee_manager)
@@ -86,7 +86,7 @@ class Havven(Model):
         i = 0
 
         for _ in range(num_banks):
-            endowment = int(skewnorm.rvs(100)*self.manager.max_fiat)
+            endowment = int(skewnorm.rvs(100)*max_fiat)
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
@@ -94,15 +94,15 @@ class Havven(Model):
             i += 1
         for _ in range(num_arbs):
             arbitrageur = ag.Arbitrageur(i, self, 0)
-            self.endow_curits(arbitrageur, self.manager.max_fiat)
+            self.endow_curits(arbitrageur, max_fiat)
             self.schedule.add(arbitrageur)
             i += 1
 
         reserve_bank = ag.MarketPlayer(i, self, 0)
-        self.endow_curits(reserve_bank, 6 * self.manager.num_agents * self.manager.max_fiat)
+        self.endow_curits(reserve_bank, 6 * self.manager.num_agents * max_fiat)
         self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(self.manager.num_agents * self.manager.max_fiat * 3)
-        reserve_bank.sell_curits_for_nomins(self.manager.num_agents * self.manager.max_fiat * 3)
+        reserve_bank.sell_curits_for_fiat(self.manager.num_agents * max_fiat * 3)
+        reserve_bank.sell_curits_for_nomins(self.manager.num_agents * max_fiat * 3)
 
         for a in self.schedule.agents:
             a.reset_initial_wealth()

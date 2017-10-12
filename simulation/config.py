@@ -11,12 +11,11 @@ class FeeConfig:
     # Fees
     fee_period: int = 50
 
-    # Transfer fees in %
+    # Multiplicative transfer fee rates
     nom_transfer_fee_rate: float = 0.005
     cur_transfer_fee_rate: float = 0.01
     fiat_transfer_fee_rate: float = 0.0
 
-    # Issuance fee in %
+    # Multiplicative issuance fee rates
     issuance_fee_rate: float = 0.0
     redemption_fee_rate: float = 0.02
-
