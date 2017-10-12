@@ -282,6 +282,9 @@ class TradeManager:
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
         return value * self.curit_nomin_price
+        # The following fixes an interesting feedback loop related to nomin issuance rights
+        # Hopefully unbreaking arbitrage will fix that, however.
+        # return (value * self.curit_fiat_price) / self.nomin_fiat_price
 
     def cur_to_fiat(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in fiat."""
@@ -290,6 +293,9 @@ class TradeManager:
     def nom_to_cur(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in curits."""
         return value / self.curit_nomin_price
+        # The following fixes an interesting feedback loop related to nomin issuance rights
+        # Hopefully unbreaking arbitrage will fix that, however.
+        # return (value * self.nomin_fiat_price) / self.curit_fiat_price
 
     def nom_to_fiat(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in fiat."""

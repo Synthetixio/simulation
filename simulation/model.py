@@ -33,8 +33,14 @@ class Havven(Model):
                 "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "1": lambda x: 1,
                 "Nomin Price": lambda h: h.trade_manager.nomin_fiat_price,
+                "Nomin Ask": lambda h: h.trade_manager.nom_fiat_market.lowest_ask_price(),
+                "Nomin Bid": lambda h: h.trade_manager.nom_fiat_market.highest_bid_price(),
                 "Curit Price": lambda h: h.trade_manager.curit_fiat_price,
+                "Curit Ask": lambda h: h.trade_manager.cur_fiat_market.lowest_ask_price(),
+                "Curit Bid": lambda h: h.trade_manager.cur_fiat_market.highest_bid_price(),
                 "Curit/Nomin Price": lambda h: h.trade_manager.curit_nomin_price,
+                "Curit/Nomin Ask": lambda h: h.trade_manager.cur_nom_market.lowest_ask_price(),
+                "Curit/Nomin Bid": lambda h: h.trade_manager.cur_nom_market.highest_bid_price(),
                 "Havven Nomins": lambda h: h.manager.nomins,
                 "Havven Curits": lambda h: h.manager.curits,
                 "Havven Fiat": lambda h: h.manager.fiat,
@@ -56,9 +62,9 @@ class Havven(Model):
                 "Fiat Supply": ms.fiat_supply,
                 "Fee Pool": lambda h: h.manager.nomins,
                 "Fees Distributed": lambda h: h.fee_manager.fees_distributed,
-                "NomCurOrderBook": lambda h: h.trade_manager.cur_nom_market,
-                "FiatCurOrderBook": lambda h: h.trade_manager.cur_fiat_market,
-                "FiatNomOrderBook": lambda h: h.trade_manager.nom_fiat_market
+                "NomFiatOrderBook": lambda h: h.trade_manager.nom_fiat_market,
+                "CurFiatOrderBook": lambda h: h.trade_manager.cur_fiat_market,
+                "CurNomOrderBook": lambda h: h.trade_manager.cur_nom_market
             }, agent_reporters={
                 "Wealth": lambda agent: agent.wealth,
                 "Name": lambda agent: agent.name

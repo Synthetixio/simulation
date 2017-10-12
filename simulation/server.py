@@ -22,15 +22,21 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     charts: List[VisualizationElement] = [
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Nomin Price", "Color": "blue"}]),
+            {"Label": "Nomin Price", "Color": "blue"},
+            {"Label": "Nomin Ask", "Color": "blue"},
+            {"Label": "Nomin Bid", "Color": "blue"}]),
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit Price", "Color": "orange"}]),
+            {"Label": "Curit Price", "Color": "orange"},
+            {"Label": "Curit Ask", "Color": "orange"},
+            {"Label": "Curit Bid", "Color": "orange"}]),
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit/Nomin Price", "Color": "purple"}]),
+            {"Label": "Curit/Nomin Price", "Color": "purple"},
+            {"Label": "Curit/Nomin Ask", "Color": "purple"},
+            {"Label": "Curit/Nomin Bid", "Color": "purple"}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -78,7 +84,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         BarGraphModule([{"Label": "Wealth"}]),
 
-        OrderBookModule([{"Label": "FiatCurOrderBook"}])
+        OrderBookModule([{"Label": "NomFiatOrderBook"}]),
+
+        OrderBookModule([{"Label": "CurFiatOrderBook"}]),
+
+        OrderBookModule([{"Label": "CurNomOrderBook"}])
     ]
 
     n_slider = UserSettableParameter(
