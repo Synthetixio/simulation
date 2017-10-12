@@ -14,11 +14,8 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
-    def __init__(self, num_agents: int,
-                 utilisation_ratio_max: float = 1.0,
+    def __init__(self, utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
-        # Add the market participants
-        self.num_agents: int = num_agents
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: float = utilisation_ratio_max
