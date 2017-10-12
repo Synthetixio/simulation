@@ -144,9 +144,10 @@ class OrderBook:
     This one is generic, but there will have to be a market for each currency pair.
     """
 
-    def __init__(self, fee_manager: FeeManager, base: str, quote: str,
-                 matcher: Matcher, match_on_order: bool = True) -> None:
-        self.fee_manager = fee_manager
+    def __init__(self, base: str, quote: str,
+                 matcher: Matcher, bid_fee_fn: Callable[[float], float],
+                 ask_fee_fn: Callable[[float], float],
+                 match_on_order: bool = True) -> None:
 
         # Define the currency pair held by this book.
         self.base: str = base
@@ -168,6 +169,10 @@ class OrderBook:
         # and which returns True iff the transfer succeeded.
         self.matcher: Matcher = matcher
 
+        # Fees will be calculated with the following functions.
+        self.bid_fee_fn: Callable[[float], float] = bid_fee_fn
+        self.ask_fee_fn: Callable[[float], float] = ask_fee_fn
+
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
@@ -185,7 +190,7 @@ class OrderBook:
 
     def bid(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Bid:
         """Submit a new sell order to the book."""
-        fee = self.fee_manager.get_bid_fee(self.base, self.quote, price, quantity)
+        fee = self.bid_fee_fn(price * quantity)
         bid = Bid(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
@@ -193,7 +198,7 @@ class OrderBook:
 
     def ask(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Ask:
         """Submit a new buy order to the book."""
-        fee = self.fee_manager.get_ask_fee(self.base, self.quote, price, quantity)
+        fee = self.ask_fee_fn(quantity)
         ask = Ask(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()

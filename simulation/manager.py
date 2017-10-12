@@ -96,30 +96,6 @@ class FeeManager:
             self.model_manager.nomins -= qty
             self.fees_distributed += qty
 
-    def get_bid_fee(self, base: str, quote: str, quantity: float, rate: float) -> float:
-        """
-        Return the fee to place a bid on base-quote market at a given quantity/rate
-        """
-        if quote == "FIAT":
-            return self.transfer_fiat_fee(quantity)
-        elif quote == "NOM":
-            return self.transfer_nomins_fee(quantity)
-        elif quote == "CUR":
-            return self.transfer_curits_fee(quantity)
-        raise Exception(f"Market quote {quote} isn't in [FIAT,NOM,CUR]")
-
-    def get_ask_fee(self, base: str, quote: str, quantity: float, rate: float) -> float:
-        """
-        Return the fee to place an ask on base-quote market at a given quantity/rate
-        """
-        if base == "FIAT":
-            return self.transfer_fiat_fee(quantity)
-        elif base == "NOM":
-            return self.transfer_nomins_fee(quantity)
-        elif base == "CUR":
-            return self.transfer_curits_fee(quantity)
-        raise Exception(f"Market base {base} isn't in [FIAT,NOM,CUR]")
-
 
 class TradeManager:
     """
@@ -136,13 +112,22 @@ class TradeManager:
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.cur_nom_market: ob.OrderBook = ob.OrderBook(
-            self.fee_manager, "CUR", "NOM", self.cur_nom_match, self.model_manager.match_on_order
+            "CUR", "NOM", self.cur_nom_match,
+            self.fee_manager.transfer_nomins_fee,
+            self.fee_manager.transfer_curits_fee,
+            self.model_manager.match_on_order
         )
         self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
-            self.fee_manager, "CUR", "FIAT", self.cur_fiat_match, self.model_manager.match_on_order
+            "CUR", "FIAT", self.cur_fiat_match,
+            self.fee_manager.transfer_fiat_fee,
+            self.fee_manager.transfer_curits_fee,
+            self.model_manager.match_on_order
         )
         self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
-            self.fee_manager, "NOM", "FIAT", self.nom_fiat_match, self.model_manager.match_on_order
+            "NOM", "FIAT", self.nom_fiat_match,
+            self.fee_manager.transfer_fiat_fee,
+            self.fee_manager.transfer_nomins_fee,
+            self.model_manager.match_on_order
         )
 
     def __bid_ask_match__(
