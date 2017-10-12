@@ -41,9 +41,9 @@ class Havven(Model):
             model_reporters={
                 "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "1": lambda x: 1,
-                "Nomin Price": lambda h: h.nom_fiat_market.price,
-                "Curit Price": lambda h: h.cur_fiat_market.price,
-                "Curit/Nomin Price": lambda h: h.cur_nom_market.price,
+                "Nomin Price": lambda h: h.nomin_fiat_price,
+                "Curit Price": lambda h: h.curit_fiat_price,
+                "Curit/Nomin Price": lambda h: h.curit_nomin_price,
                 "Havven Nomins": lambda h: h.nomins,
                 "Havven Curits": lambda h: h.curits,
                 "Havven Fiat": lambda h: h.fiat,

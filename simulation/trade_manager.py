@@ -200,10 +200,25 @@ class FeeManager:
     """
     Class to handle fee calculation
     """
-    def __init__(self, model_settings: "HavvenConfig"):
+    def __init__(self, model_settings: "HavvenConfig", trade_manager: "TradeManager"):
         self.fees_distributed: float = 0.0
         self.model_settings = model_settings
         self.trade_manager = trade_manager
+
+    @property
+    def curit_fiat_price(self) -> float:
+        """Return the current curit price in fiat per token."""
+        return self.trade_manager.cur_fiat_market.price
+
+    @property
+    def nomin_fiat_price(self) -> float:
+        """Return the current nomin price in fiat per token."""
+        return self.trade_manager.nom_fiat_market.price
+
+    @property
+    def curit_nomin_price(self) -> float:
+        """Return the current curit price in nomins per token."""
+        return self.trade_manager.cur_nom_market.price
 
     def max_transferrable_fiat(self, principal: float) -> float:
         """
@@ -240,29 +255,29 @@ class FeeManager:
 
     def cur_to_nom(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in nomins."""
-        return (value * self.curit_price) / self.nomin_price
+        return (value * self.curit_fiat_price) / self.nomin_fiat_price
 
     def cur_to_fiat(self, value: float) -> float:
         """Convert a quantity of curits to its equivalent value in fiat."""
-        return value * self.curit_price
+        return value * self.curit_fiat_price
 
     def nom_to_cur(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in curits."""
-        return (value * self.nomin_price) / self.curit_price
+        return (value * self.nomin_fiat_price) / self.curit_fiat_price
 
     def nom_to_fiat(self, value: float) -> float:
         """Convert a quantity of nomins to its equivalent value in fiat."""
-        return value * self.nomin_price
+        return value * self.nomin_fiat_price
 
     def fiat_to_cur(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in curits."""
-        return value / self.curit_price
+        return value / self.curit_fiat_price
 
     def fiat_to_nom(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in nomins."""
-        return value / self.nomin_price
+        return value / self.nomin_fiat_price
 
-    def distribute_fees(self) -> None:
+    def distribute_fees(self, schedule_agents) -> None:
         """Distribute currently held nomins to holders of curits."""
         # Different fee modes:
         #  * distributed by held curits
@@ -271,10 +286,10 @@ class FeeManager:
         # TODO: * distribute by motility
 
         # pre_fees = self.settings.nomins
-        for agent in self.schedule.agents:
-            if self.settings.nomins == 0:
+        for agent in schedule_agents:
+            if self.model_settings.nomins == 0:
                 break
-            qty = min(agent.issued_nomins / self.settings.nomins, self.settings.nomins)
+            qty = min(agent.issued_nomins / self.model_settings.nomins, self.model_settings.nomins)
             agent.nomins += qty
-            self.settings.nomins -= qty
-            self.settings.fees_distributed += qty
+            self.model_settings.nomins -= qty
+            self.model_settings.fees_distributed += qty
