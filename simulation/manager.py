@@ -175,7 +175,7 @@ class TradeManager:
             bid_fee = quantity/bid.quantity * bid.fee
         else:
             bid_fee = bid.fee
-            ask_fee = quantity/ask.quantity * bid.fee
+            ask_fee = quantity/ask.quantity * ask.fee
         buy_val = quantity * price
 
         # Only perform the actual transfer if it would be successful.
