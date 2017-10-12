@@ -74,7 +74,7 @@ class Havven(Model):
 
         # Create the model settings objects
 
-        self.manager = HavvenManager(num_agents, utilisation_ratio_max, match_on_order)
+        self.manager = HavvenManager(utilisation_ratio_max, match_on_order)
 
         self.fee_manager = FeeManager(self.manager)
         self.trade_manager = TradeManager(self.manager, self.fee_manager)
@@ -85,9 +85,9 @@ class Havven(Model):
                      "arbs": 0.25,
                      "rands": 0.5}
 
-        num_banks = int(self.manager.num_agents * fractions["banks"])
-        num_rands = int(self.manager.num_agents * fractions["rands"])
-        num_arbs = int(self.manager.num_agents * fractions["arbs"])
+        num_banks = int(num_agents * fractions["banks"])
+        num_rands = int(num_agents * fractions["rands"])
+        num_arbs = int(num_agents * fractions["arbs"])
 
         i = 0
 
@@ -105,10 +105,10 @@ class Havven(Model):
             i += 1
 
         reserve_bank = ag.MarketPlayer(i, self, 0)
-        self.endow_curits(reserve_bank, 6 * self.manager.num_agents * max_fiat)
+        self.endow_curits(reserve_bank, 6 * num_agents * max_fiat)
         self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(self.manager.num_agents * max_fiat * 3)
-        reserve_bank.sell_curits_for_nomins(self.manager.num_agents * max_fiat * 3)
+        reserve_bank.sell_curits_for_fiat(num_agents * max_fiat * 3)
+        reserve_bank.sell_curits_for_nomins(num_agents * max_fiat * 3)
 
         for a in self.schedule.agents:
             a.reset_initial_wealth()

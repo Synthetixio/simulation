@@ -2,7 +2,7 @@ from typing import Optional
 import random
 
 import orderbook as ob
-from . import MarketPlayer
+from .marketplayer import MarketPlayer
 
 class Banker(MarketPlayer):
     """Wants to buy curits and issue nomins, in order to accrue fees."""
