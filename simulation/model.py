@@ -75,10 +75,6 @@ class Havven(Model):
 
         # Market variables
 
-        # Prices in fiat per token
-        self.curit_price: float = 1.0
-        self.nomin_price: float = 1.0
-
         # Money Supply
         self.curit_supply: float = 10.0**9
         self.nomin_supply: float = 0.0
@@ -158,6 +154,16 @@ class Havven(Model):
         for a in self.schedule.agents:
             a.reset_initial_wealth()
 
+
+    @property
+    def curit_price(self) -> float:
+        """Return the current curit price in fiat per token."""
+        return self.cur_fiat_market.price
+
+    @property
+    def nomin_price(self) -> float:
+        """Return the current nomin price in fiat per token."""
+        return self.nom_fiat_market.price
 
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
