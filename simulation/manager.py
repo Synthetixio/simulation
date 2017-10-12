@@ -3,12 +3,10 @@ Classes for holding onto values and functions for the model and agents
 """
 
 from config import FeeConfig
-from typing import List, Optional, Callable, TYPE_CHECKING
+from typing import List, Optional, Callable
 
 import orderbook as ob
-
-if TYPE_CHECKING:
-    import agents as ag
+import agents as ag
 
 
 class HavvenManager:
