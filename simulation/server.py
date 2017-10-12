@@ -7,7 +7,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization.mesa_visualization_addons import BarGraphModule, OrderBookModule
+from visualization_addons import BarGraphModule, OrderBookModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
