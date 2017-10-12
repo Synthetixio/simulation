@@ -1,20 +1,59 @@
 from config import FeeConfig
 
 
+class HavvenSettings:
+    """
+    Class to hold Havven's model settings
+    """
+
+    def __init__(self, num_agents: int, max_fiat: float = 1000,
+                 utilisation_ratio_max: float = 1.0, match_on_order: bool = True):
+        # Add the market participants
+        self.num_agents: int = num_agents
+
+        self.max_fiat: float = max_fiat
+
+        # Utilisation Ratio maximum (between 0 and 1)
+        self.utilisation_ratio_max: float = utilisation_ratio_max
+
+        # If true, match orders whenever an order is posted,
+        #   otherwise do so at the end of each period
+        self.match_on_order: bool = match_on_order
+
+
 class TradeManager:
-    def __init__(self):
+    def __init__(self, model_settings: "HavvenSettings"):
+
+        self.settings = model_settings
+
+        # Market variables
+
+        # Prices in fiat per token
+        self.curit_price: float = 1.0
+        self.nomin_price: float = 1.0
+
+        # Money Supply
+        self.curit_supply: float = 10.0**9
+        self.nomin_supply: float = 0.0
+        self.escrowed_curits: float = 0.0
+
+        # Havven's own capital supplies
+        self.curits: float = self.curit_supply
+        self.nomins: float = 0.0
+        self.fiat: float = 0.0
+
         # Order books
         # If a book is X_Y_market, then X is the base currency,
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.cur_nom_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "NOM", self.cur_nom_match, self.match_on_order
+            "CUR", "NOM", self.cur_nom_match, self.settings.match_on_order
         )
         self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "FIAT", self.cur_fiat_match, self.match_on_order
+            "CUR", "FIAT", self.cur_fiat_match, self.settings.match_on_order
         )
         self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
-            "NOM", "FIAT", self.nom_fiat_match, self.match_on_order
+            "NOM", "FIAT", self.nom_fiat_match, self.settings.match_on_order
         )
 
     def __bid_ask_match__(
@@ -156,6 +195,7 @@ class TradeManager:
             return True
         return False
 
+
 class FeeManager:
     """
     Class to handle fee calculation
@@ -163,6 +203,7 @@ class FeeManager:
     def __init__(self, model_settings: "HavvenConfig"):
         self.fees_distributed: float = 0.0
         self.model_settings = model_settings
+        self.trade_manager = trade_manager
 
     def max_transferrable_fiat(self, principal: float) -> float:
         """
@@ -220,3 +261,20 @@ class FeeManager:
     def fiat_to_nom(self, value: float) -> float:
         """Convert a quantity of fiat to its equivalent value in nomins."""
         return value / self.nomin_price
+
+    def distribute_fees(self) -> None:
+        """Distribute currently held nomins to holders of curits."""
+        # Different fee modes:
+        #  * distributed by held curits
+        # TODO: * distribute by escrowed curits
+        # TODO: * distribute by issued nomins
+        # TODO: * distribute by motility
+
+        # pre_fees = self.settings.nomins
+        for agent in self.schedule.agents:
+            if self.settings.nomins == 0:
+                break
+            qty = min(agent.issued_nomins / self.settings.nomins, self.settings.nomins)
+            agent.nomins += qty
+            self.settings.nomins -= qty
+            self.settings.fees_distributed += qty

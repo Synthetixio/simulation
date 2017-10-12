@@ -13,6 +13,7 @@ import orderbook as ob
 import modelstats as ms
 import agents as ag
 from config import HavvenSettings, FeeConfig
+from trade_manager import TradeManager, FeeManager
 
 
 # Function signatures for transfers.
@@ -30,7 +31,7 @@ class Havven(Model):
       velocity of money and so on.
     """
 
-    def __init__(self, N: int, max_fiat: float = 1000,
+    def __init__(self, num_agents: int, max_fiat: float = 1000,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
         # Mesa setup
@@ -76,23 +77,25 @@ class Havven(Model):
 
         # Create the model settings objects
 
-        self.settings = HavvenSettings()
+        self.settings = HavvenSettings(num_agents, max_fiat, utilisation_ratio_max, match_on_order)
 
-        # Add the market participants
-        self.num_agents: int = N
+        self.trade_manager = TradeManager()
+        self.fee_manager = FeeManager()
+
+        # Create the market players
 
         fractions = {"banks": 0.25,
                      "arbs": 0.25,
                      "rands": 0.5}
 
-        num_banks = int(N * fractions["banks"])
-        num_rands = int(N * fractions["rands"])
-        num_arbs = int(N * fractions["arbs"])
+        num_banks = int(self.settings.num_agents * fractions["banks"])
+        num_rands = int(self.settings.num_agents * fractions["rands"])
+        num_arbs = int(self.settings.num_agents * fractions["arbs"])
 
         i = 0
 
         for _ in range(num_banks):
-            endowment = int(skewnorm.rvs(100)*max_fiat)
+            endowment = int(skewnorm.rvs(100)*self.settings.max_fiat)
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
@@ -100,47 +103,29 @@ class Havven(Model):
             i += 1
         for _ in range(num_arbs):
             arbitrageur = ag.Arbitrageur(i, self, 0)
-            self.endow_curits(arbitrageur, max_fiat)
+            self.endow_curits(arbitrageur, self.settings.max_fiat)
             self.schedule.add(arbitrageur)
             i += 1
 
         reserve_bank = ag.MarketPlayer(i, self, 0)
-        self.endow_curits(reserve_bank, 6 * N * max_fiat)
+        self.endow_curits(reserve_bank, 6 * self.settings.num_agents * max_fiat)
         self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(N * max_fiat * 3)
-        reserve_bank.sell_curits_for_nomins(N * max_fiat * 3)
+        reserve_bank.sell_curits_for_fiat(self.settings.num_agents * max_fiat * 3)
+        reserve_bank.sell_curits_for_nomins(self.settings.num_agents * max_fiat * 3)
 
         for a in self.schedule.agents:
             a.reset_initial_wealth()
 
-
     def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
         """Return the equivalent fiat value of the given currency basket."""
-        return self.cur_to_fiat(curits) + self.nom_to_fiat(nomins) + fiat
+        return self.fee_manager.cur_to_fiat(curits) + self.fee_manager.nom_to_fiat(nomins) + fiat
 
     def endow_curits(self, agent: ag.MarketPlayer, curits: float) -> None:
         """Grant an agent an endowment of curits."""
         if curits > 0:
-            value = min(self.curits, curits)
+            value = min(self.settings.curits, curits)
             agent.curits += value
-            self.curits -= value
-
-    def distribute_fees(self) -> None:
-        """Distribute currently held nomins to holders of curits."""
-        # Different fee modes:
-        #  * distributed by held curits
-        # TODO: * distribute by escrowed curits
-        # TODO: * distribute by issued nomins
-        # TODO: * distribute by motility
-
-        pre_fees = self.nomins
-        for agent in self.schedule.agents:
-            if self.nomins == 0:
-                break
-            qty = min(agent.issued_nomins / self.nomins, self.nomins)
-            agent.nomins += qty
-            self.nomins -= qty
-            self.fees_distributed += qty
+            self.settings.curits -= value
 
     def step(self) -> None:
         """Advance the model by one step."""
@@ -148,14 +133,14 @@ class Havven(Model):
         self.schedule.step()
 
         # Resolve outstanding trades
-        if not self.match_on_order:
-            self.cur_nom_market.match()
-            self.cur_fiat_market.match()
-            self.nom_fiat_market.match()
+        if not self.settings.match_on_order:
+            self.trade_manager.cur_nom_market.match()
+            self.trade_manager.cur_fiat_market.match()
+            self.trade_manager.nom_fiat_market.match()
 
         # Distribute fees periodically.
-        if (self.time % self.fee_period) == 0:
-            self.distribute_fees()
+        if (self.time % FeeConfig.fee_period) == 0:
+            self.fee_manager.distribute_fees()
 
         # Collect data
         self.datacollector.collect(self)
