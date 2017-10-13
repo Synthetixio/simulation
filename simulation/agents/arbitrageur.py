@@ -12,7 +12,13 @@ class Arbitrageur(MarketPlayer):
         # if there is an arbitrage opportunity, taking into account
         # the fee rates.
 
-        if self._forward_multiple_() > 1.1:
+        if (self._forward_multiple_() <= 1 and self._reverse_multiple_() <= 1):
+            return
+
+
+        print(self._forward_multiple_(), self._reverse_multiple_(), end=" -> ")
+
+        if self._forward_multiple_() > 1:
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # cur -> fiat -> nom -> cur
@@ -22,7 +28,21 @@ class Arbitrageur(MarketPlayer):
             cf_qty = sum(b.quantity for b in self.model.trade_manager.cur_fiat_market.highest_bids())
             fn_qty = sum(a.quantity for a in self.model.trade_manager.nom_fiat_market.lowest_asks())
             nc_qty = sum(a.quantity for a in self.model.trade_manager.cur_nom_market.lowest_asks())
+            
+            #cur_val = self.model.fiat_value(curits=self.curits)
+            #nom_val = self.model.fiat_value(nomins=self.nomins)
 
+            #if cur_val < nom_val and cur_val < self.fiat:
+            """
+            c_qty = min(self.curits, cf_qty)
+            self.sell_curits_for_fiat(c_qty)
+
+            f_qty = min(self.fiat, fn_qty * fn_price)
+            self.sell_fiat_for_curits(f_qty)
+
+            n_qty = min(self.nomins, nc_qty * nc_price)
+            self.sell_nomins_for_curits(n_qty)
+            """
             c_qty = min(self.curits, cf_qty)
             self.sell_curits_for_fiat(c_qty)
 
@@ -32,7 +52,24 @@ class Arbitrageur(MarketPlayer):
             n_qty = min(self.nomins, nc_qty * nc_price)
             self.sell_nomins_for_curits(n_qty)
 
-        elif self._reverse_multiple_() > 1.1:
+            """
+            elif nom_val < cur_val and nom_val < self.fiat:
+                n_qty = min(self.nomins, nc_qty)
+                self.sell_nomins_for_curits(n_qty)
+
+                c_qty = min(self.curits, n_qty * nc_price)
+                self.sell_curits_for_fiat(c_qty)
+
+                f_qty = min(self.fiat, fn_qty * fn_price)
+                self.sell_fiat_for_curits(f_qty)
+
+                n_qty = min(self.nomins, nc_qty * nc_price)
+                self.sell_nomins_for_curits(n_qty)
+
+            else:
+            """
+
+        elif self._reverse_multiple_() > 1:
             # Trade in the reverse direction
             # cur -> nom -> fiat -> cur
             fc_price = 1.0 / self.model.trade_manager.cur_fiat_market.lowest_ask_price()
@@ -50,6 +87,8 @@ class Arbitrageur(MarketPlayer):
             f_qty = min(self.fiat, fc_qty * fc_price)
             self.sell_nomins_for_curits(n_qty)
 
+        print(self._forward_multiple_(), self._reverse_multiple_())
+
     def _cycle_fee_rate_(self) -> float:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
         return (1 + self.model.fee_manager.nom_fee_rate) * \
@@ -62,16 +101,16 @@ class Arbitrageur(MarketPlayer):
         """
         # cur -> fiat -> nom -> cur
         return self.model.trade_manager.cur_fiat_market.highest_bid_price() / \
-            self.model.trade_manager.nom_fiat_market.lowest_ask_price() * \
-            self.model.trade_manager.cur_nom_market.lowest_ask_price()
+            (self.model.trade_manager.nom_fiat_market.lowest_ask_price() * \
+            self.model.trade_manager.cur_nom_market.lowest_ask_price())
 
     def _reverse_multiple_no_fees_(self) -> float:
         """
         The value multiple after one reverse arbitrage cycle, neglecting fees.
         """
         # cur -> nom -> fiat -> cur
-        return self.model.trade_manager.cur_nom_market.highest_bid_price() * \
-            self.model.trade_manager.nom_fiat_market.highest_bid_price() / \
+        return (self.model.trade_manager.cur_nom_market.highest_bid_price() * \
+            self.model.trade_manager.nom_fiat_market.highest_bid_price()) / \
             self.model.trade_manager.cur_fiat_market.lowest_ask_price()
 
     def _forward_multiple_(self) -> float:
