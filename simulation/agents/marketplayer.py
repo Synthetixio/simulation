@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Callable
 
 from mesa import Agent
 
@@ -39,9 +39,9 @@ class MarketPlayer(Agent):
 
     def wealth(self) -> float:
         """Return the total wealth of this agent at current fiat prices."""
-        return self.model.fiat_value(self.curits + self.escrowed_curits,
-                                     self.nomins - self.issued_nomins,
-                                     self.fiat)
+        return self.model.fiat_value(curits = (self.curits + self.escrowed_curits),
+                                     nomins = (self.nomins - self.issued_nomins),
+                                     fiat = self.fiat)
 
     def reset_initial_wealth(self) -> float:
         """Reset this agent's initial wealth to the current wealth, returning the old value."""
@@ -156,32 +156,85 @@ class MarketPlayer(Agent):
             return True
         return False
 
+    def _sell_quoted_(self, book: "ob.OrderBook", quantity: float) -> "ob.Bid":
+        """Sell a quantity of the quoted currency into the given market."""
+        price = book.lowest_ask_price()
+        return book.buy(quantity/price, self)
+
+    def _sell_base_(self, book: "ob.OrderBook", quantity: float) -> "ob.Ask":
+        """Sell a quantity of the base currency into the given market."""
+        return book.sell(quantity, self)
+
     def sell_nomins_for_curits(self, quantity: float) -> "ob.Bid":
-        """Sell a quantity of nomins in to buy curits."""
-        price = self.model.trade_manager.cur_nom_market.lowest_ask_price()
-        return self.model.trade_manager.cur_nom_market.buy(quantity/price, self)
+        """Sell a quantity of nomins to buy curits."""
+        return self._sell_quoted_(self.model.trade_manager.cur_nom_market, quantity)
 
     def sell_curits_for_nomins(self, quantity: float) -> "ob.Ask":
-        """Sell a quantity of curits in to buy nomins."""
-        return self.model.trade_manager.cur_nom_market.sell(quantity, self)
+        """Sell a quantity of curits to buy nomins."""
+        return self._sell_base_(self.model.trade_manager.cur_nom_market, quantity)
 
     def sell_fiat_for_curits(self, quantity: float) -> "ob.Bid":
-        """Sell a quantity of fiat in to buy curits."""
-        price = self.model.trade_manager.cur_fiat_market.lowest_ask_price()
-        return self.model.trade_manager.cur_fiat_market.buy(quantity/price, self)
+        """Sell a quantity of fiat to buy curits."""
+        return self._sell_quoted_(self.model.trade_manager.cur_fiat_market, quantity)
 
     def sell_curits_for_fiat(self, quantity: float) -> "ob.Ask":
-        """Sell a quantity of curits in to buy fiat."""
-        return self.model.trade_manager.cur_fiat_market.sell(quantity, self)
+        """Sell a quantity of curits to buy fiat."""
+        return self._sell_base_(self.model.trade_manager.cur_fiat_market, quantity)
 
     def sell_fiat_for_nomins(self, quantity: float) -> "ob.Bid":
-        """Sell a quantity of fiat in to buy nomins."""
-        price = self.model.trade_manager.nom_fiat_market.lowest_ask_price()
-        return self.model.trade_manager.nom_fiat_market.buy(quantity/price, self)
+        """Sell a quantity of fiat to buy nomins."""
+        return self._sell_quoted_(self.model.trade_manager.nom_fiat_market, quantity)
 
     def sell_nomins_for_fiat(self, quantity: float) -> "ob.Ask":
-        """Sell a quantity of nomins in to buy fiat."""
-        return self.model.trade_manager.nom_fiat_market.sell(quantity, self)
+        """Sell a quantity of nomins to buy fiat."""
+        return self._sell_base_(self.model.trade_manager.nom_fiat_market, quantity)
+
+    def _sell_quoted_with_fee_(self, received_qty_fn: Callable[[float], float],
+                               book: "ob.OrderBook", quantity: float) -> "ob.Bid":
+        """
+        Sell a quantity of the quoted currency into the given market, including the
+          fee, as calculated by the provided function.
+        """
+        price = book.lowest_ask_price()
+        return book.buy(received_qty_fn(quantity/price), self)
+
+    def _sell_base_with_fee_(self, received_qty_fn: Callable[[float], float],
+                             book: "ob.OrderBook", quantity: float) -> "ob.Ask":
+        """
+        Sell a quantity of the base currency into the given market, including the
+          fee, as calculated by the provided function.
+        """
+        return book.sell(received_qty_fn(quantity), self)
+
+    def sell_nomins_for_curits_with_fee(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of nomins (including fee) to buy curits."""
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_nomins_received,
+                                           self.model.trade_manager.cur_nom_market, quantity)
+
+    def sell_curits_for_nomins_with_fee(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of curits (including fee) to buy nomins."""
+        return self._sell_base_with_fee_(self.model.fee_manager.transfer_curits_received,
+                                         self.model.trade_manager.cur_nom_market, quantity)
+
+    def sell_fiat_for_curits_with_fee(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of fiat (including fee) to buy curits."""
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_fiat_received,
+                                           self.model.trade_manager.cur_fiat_market, quantity)
+
+    def sell_curits_for_fiat_with_fee(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of curits (including fee) to buy fiat."""
+        return self._sell_base_with_fee_(self.model.fee_manager.transfer_curits_received,
+                                         self.model.trade_manager.cur_fiat_market, quantity)
+
+    def sell_fiat_for_nomins_with_fee(self, quantity: float) -> "ob.Bid":
+        """Sell a quantity of fiat (including fee) to buy nomins."""
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_fiat_received,
+                                           self.model.trade_manager.nom_fiat_market, quantity)
+
+    def sell_nomins_for_fiat_with_fee(self, quantity: float) -> "ob.Ask":
+        """Sell a quantity of nomins (including fee) to buy fiat."""
+        return self._sell_base_with_fee_(self.model.fee_manager.transfer_nomins_received,
+                                         self.model.trade_manager.nom_fiat_market, quantity)
 
     def place_curits_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
         """Place a bid for quantity curits, at a given price in fiat."""
