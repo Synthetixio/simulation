@@ -57,26 +57,32 @@ class FeeManager:
 
         self.fees_distributed: float = 0.0
 
-    def max_transferrable_fiat(self, principal: float) -> float:
+    def transfer_fiat_received(self, quantity: float) -> float:
         """
-        A user can transfer less than their total balance when fees are
-          taken into account.
+        Returns the fiat received by the recipient if a given quantity
+          is transferred.
+        A user can only transfer less than their total balance when fees
+          are taken into account.
         """
-        return principal / (1 + self.fiat_fee_rate)
+        return quantity / (1 + self.fiat_fee_rate)
 
-    def max_transferrable_curits(self, principal: float) -> float:
+    def transfer_curits_received(self, quantity: float) -> float:
         """
-        A user can transfer less than their total balance when fees are
-          taken into account.
+        Returns the curits received by the recipient if a given quantity
+          is transferred.
+        A user can only transfer less than their total balance when fees
+          are taken into account.
         """
-        return principal / (1 + self.cur_fee_rate)
+        return quantity / (1 + self.cur_fee_rate)
 
-    def max_transferrable_nomins(self, principal: float) -> float:
+    def transfer_nomins_received(self, quantity: float) -> float:
         """
-        A user can transfer less than their total balance when fees are
-          taken into account.
+        Returns the nomins received by the recipient if a given quantity
+          is transferred.
+        A user can only transfer less than their total balance when fees
+          are taken into account.
         """
-        return principal / (1 + self.nom_fee_rate)
+        return quantity / (1 + self.nom_fee_rate)
 
     def transfer_fiat_fee(self, value: float) -> float:
         """Return the fee charged for transferring a value of fiat."""
