@@ -84,17 +84,17 @@ class FeeManager:
         """
         return quantity / (1 + self.nom_fee_rate)
 
-    def transfer_fiat_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of fiat."""
-        return value * self.fiat_fee_rate
+    def transfer_fiat_fee(self, quantity: float) -> float:
+        """Return the fee charged for transferring a quantity of fiat."""
+        return quantity * self.fiat_fee_rate
 
-    def transfer_curits_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of curits."""
-        return value * self.cur_fee_rate
+    def transfer_curits_fee(self, quantity: float) -> float:
+        """Return the fee charged for transferring a quantity of curits."""
+        return quantity * self.cur_fee_rate
 
-    def transfer_nomins_fee(self, value: float) -> float:
-        """Return the fee charged for transferring a value of nomins."""
-        return value * self.nom_fee_rate
+    def transfer_nomins_fee(self, quantity: float) -> float:
+        """Return the fee charged for transferring a quantity of nomins."""
+        return quantity * self.nom_fee_rate
 
     def distribute_fees(self, schedule_agents: List["ag.MarketPlayer"]) -> None:
         """Distribute currently held nomins to holders of curits."""
@@ -239,55 +239,55 @@ class TradeManager:
                                       self.transfer_nomins)
 
     def transfer_fiat_success(self, sender: "ag.MarketPlayer",
-                              value: float, fee: float) -> bool:
-        """True iff the sender could successfully send a value of fiat."""
-        return 0 <= value + fee <= sender.fiat
+                              quantity: float, fee: float) -> bool:
+        """True iff the sender could successfully send a quantity of fiat."""
+        return 0 <= quantity + fee <= sender.fiat
 
     def transfer_curits_success(self, sender: "ag.MarketPlayer",
-                                value: float, fee: float) -> bool:
-        """True iff the sender could successfully send a value of curits."""
-        return 0 <= value + fee <= sender.curits
+                                quantity: float, fee: float) -> bool:
+        """True iff the sender could successfully send a quantity of curits."""
+        return 0 <= quantity + fee <= sender.curits
 
     def transfer_nomins_success(self, sender: "ag.MarketPlayer",
-                                value: float, fee: float) -> bool:
-        """True iff the sender could successfully send a value of nomins."""
-        return 0 <= value + fee <= sender.nomins
+                                quantity: float, fee: float) -> bool:
+        """True iff the sender could successfully send a quantity of nomins."""
+        return 0 <= quantity + fee <= sender.nomins
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
-                      recipient: "ag.MarketPlayer", value: float, fee: float) -> bool:
+                      recipient: "ag.MarketPlayer", quantity: float, fee: float) -> bool:
         """
-        Transfer a positive value of fiat currency from the sender to the
+        Transfer a positive quantity of fiat currency from the sender to the
           recipient, if balance is sufficient. Return True on success.
         """
-        if self.transfer_fiat_success(sender, value, fee):
-            sender.fiat -= value + fee
-            recipient.fiat += value
+        if self.transfer_fiat_success(sender, quantity, fee):
+            sender.fiat -= quantity + fee
+            recipient.fiat += quantity
             self.model_manager.fiat += fee
             return True
         return False
 
     def transfer_curits(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', value: float, fee: float) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: float, fee: float) -> bool:
         """
-        Transfer a positive value of curits from the sender to the recipient,
+        Transfer a positive quantity of curits from the sender to the recipient,
           if balance is sufficient. Return True on success.
         """
-        if self.transfer_curits_success(sender, value, fee):
-            sender.curits -= value + fee
-            recipient.curits += value
+        if self.transfer_curits_success(sender, quantity, fee):
+            sender.curits -= quantity + fee
+            recipient.curits += quantity
             self.model_manager.curits += fee
             return True
         return False
 
     def transfer_nomins(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', value: float, fee: float) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: float, fee: float) -> bool:
         """
-        Transfer a positive value of nomins from the sender to the recipient,
+        Transfer a positive quantity of nomins from the sender to the recipient,
           if balance is sufficient. Return True on success.
         """
-        if self.transfer_nomins_success(sender, value, fee):
-            sender.nomins -= value + fee
-            recipient.nomins += value
+        if self.transfer_nomins_success(sender, quantity, fee):
+            sender.nomins -= quantity + fee
+            recipient.nomins += quantity
             self.model_manager.nomins += fee
             return True
         return False
@@ -307,32 +307,32 @@ class TradeManager:
         """Return the current curit price in nomins per token."""
         return self.cur_nom_market.price
 
-    def cur_to_nom(self, value: float) -> float:
-        """Convert a quantity of curits to its equivalent value in nomins."""
-        return value * self.curit_nomin_price
+    def cur_to_nom(self, quantity: float) -> float:
+        """Convert a quantity of curits to its equivalent quantity in nomins."""
+        return quantity * self.curit_nomin_price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
-        # return (value * self.curit_fiat_price) / self.nomin_fiat_price
+        # return (quantity * self.curit_fiat_price) / self.nomin_fiat_price
 
-    def cur_to_fiat(self, value: float) -> float:
-        """Convert a quantity of curits to its equivalent value in fiat."""
-        return value * self.curit_fiat_price
+    def cur_to_fiat(self, quantity: float) -> float:
+        """Convert a quantity of curits to its equivalent quantity in fiat."""
+        return quantity * self.curit_fiat_price
 
-    def nom_to_cur(self, value: float) -> float:
-        """Convert a quantity of nomins to its equivalent value in curits."""
-        return value / self.curit_nomin_price
+    def nom_to_cur(self, quantity: float) -> float:
+        """Convert a quantity of nomins to its equivalent quantity in curits."""
+        return quantity / self.curit_nomin_price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
-        # return (value * self.nomin_fiat_price) / self.curit_fiat_price
+        # return (quantity * self.nomin_fiat_price) / self.curit_fiat_price
 
-    def nom_to_fiat(self, value: float) -> float:
-        """Convert a quantity of nomins to its equivalent value in fiat."""
-        return value * self.nomin_fiat_price
+    def nom_to_fiat(self, quantity: float) -> float:
+        """Convert a quantity of nomins to its equivalent quantity in fiat."""
+        return quantity * self.nomin_fiat_price
 
-    def fiat_to_cur(self, value: float) -> float:
-        """Convert a quantity of fiat to its equivalent value in curits."""
-        return value / self.curit_fiat_price
+    def fiat_to_cur(self, quantity: float) -> float:
+        """Convert a quantity of fiat to its equivalent quantity in curits."""
+        return quantity / self.curit_fiat_price
 
-    def fiat_to_nom(self, value: float) -> float:
-        """Convert a quantity of fiat to its equivalent value in nomins."""
-        return value / self.nomin_fiat_price
+    def fiat_to_nom(self, quantity: float) -> float:
+        """Convert a quantity of fiat to its equivalent quantity in nomins."""
+        return quantity / self.nomin_fiat_price
