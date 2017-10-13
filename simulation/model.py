@@ -109,12 +109,13 @@ class Havven(Model):
         reserve_bank.sell_curits_for_fiat(num_agents * max_fiat * 3)
         reserve_bank.sell_curits_for_nomins(num_agents * max_fiat * 3)
 
-        for a in self.schedule.agents:
-            a.reset_initial_wealth()
+        for agent in self.schedule.agents:
+            agent.reset_initial_wealth()
 
-    def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
+    def fiat_value(self, curits: float = 0.0, nomins: float = 0.0, fiat: float = 0.0) -> float:
         """Return the equivalent fiat value of the given currency basket."""
-        return self.trade_manager.cur_to_fiat(curits) + self.trade_manager.nom_to_fiat(nomins) + fiat
+        return self.trade_manager.cur_to_fiat(curits) + \
+               self.trade_manager.nom_to_fiat(nomins) + fiat
 
     def endow_curits(self, agent: ag.MarketPlayer, curits: float) -> None:
         """Grant an agent an endowment of curits."""
