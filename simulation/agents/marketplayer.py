@@ -43,8 +43,9 @@ class MarketPlayer(Agent):
                                      self.nomins - self.issued_nomins,
                                      self.fiat)
 
-    def wealth_breakdown(self) -> Tuple[float, float, float, float]:
-        return self.curits, self.escrowed_curits, self.nomins, self.fiat
+    def wealth_breakdown(self) -> Tuple[float, float, float, float, float]:
+        """Return the parts of the agent that dictate its wealth"""
+        return self.curits, self.escrowed_curits, self.nomins, self.fiat, self.issued_nomins
 
     def reset_initial_wealth(self) -> float:
         """Reset this agent's initial wealth to the current wealth, returning the old value."""

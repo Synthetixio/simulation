@@ -90,8 +90,8 @@ class WealthBreakdownModule(BarGraphModule):
         )
 
         # short list for names of types, list of actor names, and lists for the wealth breakdowns
-        vals: wealth_breakdown_type = (["curits", "escrowed_curits", "nomins", "fiat"],
-                                       [], [], [], [], [])
+        vals: wealth_breakdown_type = (["Curits", "Escrowed Curits", "Nomins", "Fiat", "Issued Nomins"],
+                                       [], [], [], [], [], [])
 
         try:
             agents = sorted(
