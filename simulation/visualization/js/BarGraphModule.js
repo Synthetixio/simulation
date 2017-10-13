@@ -42,9 +42,6 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
             for (let i = 2; i < new_data.length; i++) {
                 chart.data.series.push([]);
             }
-            // for (let i in bar_labels) {
-            //     chart.data.series[0].push({meta: bar_labels[i], value: undefined});
-            // }
 
             // meta is the "label" that shows up when hovering
             for (let i = 2; i < new_data.length; i++) {
