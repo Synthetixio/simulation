@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Tuple
 
 from mesa import Agent
 
@@ -42,6 +42,9 @@ class MarketPlayer(Agent):
         return self.model.fiat_value(self.curits + self.escrowed_curits,
                                      self.nomins - self.issued_nomins,
                                      self.fiat)
+
+    def wealth_breakdown(self) -> Tuple[float, float, float, float]:
+        return self.curits, self.escrowed_curits, self.nomins, self.fiat
 
     def reset_initial_wealth(self) -> float:
         """Reset this agent's initial wealth to the current wealth, returning the old value."""

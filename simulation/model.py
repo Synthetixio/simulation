@@ -60,8 +60,7 @@ class Havven(Model):
                 "FiatCurOrderBook": lambda h: h.trade_manager.cur_fiat_market,
                 "FiatNomOrderBook": lambda h: h.trade_manager.nom_fiat_market
             }, agent_reporters={
-                "Wealth": lambda agent: agent.wealth,
-                "Name": lambda agent: agent.name
+                "Agents": lambda agent: agent,
             })
 
         self.time: int = 1

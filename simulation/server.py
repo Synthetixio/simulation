@@ -7,7 +7,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization.mesa_visualization_addons import BarGraphModule, OrderBookModule
+from visualization.mesa_visualization_addons import TotalWealthModule, WealthBreakdownModule, OrderBookModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
@@ -26,11 +26,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit Price", "Color": "orange"}]),
+            {"Label": "Curit Price", "Color": "red"}]),
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit/Nomin Price", "Color": "purple"}]),
+            {"Label": "Curit/Nomin Price", "Color": "Fuchsia"}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -54,7 +54,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Nomins", "Color": "blue"},
-            {"Label": "Escrowed Curits", "Color": "red"}]),
+            {"Label": "Escrowed Curits", "Color": "limegreen"}]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
@@ -76,7 +76,9 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        BarGraphModule([{"Label": "Wealth"}]),
+        WealthBreakdownModule([{"Label": "WealthBreakdown"}]),
+
+        TotalWealthModule([{"Label": "Wealth"}]),
 
         OrderBookModule([{"Label": "FiatCurOrderBook"}])
     ]

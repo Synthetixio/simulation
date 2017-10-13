@@ -10,20 +10,15 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
     let div = $(div_tag)[0];
     $("body").append(div);
     // Prep the chart properties and series:
-    let dataseries = [];
-    // add 0 for each bin, and a bin label
-    bins = [];
-    for (let i = 0; i < num_agents; i++) {
-        dataseries.push(num_agents - i);
-        bins.push(i);
-    }
+
     let data = {
-        labels: bins,
-        series: [dataseries]
+        labels: [],
+        series: [[]]
     };
 
 
     let options = {
+        stackBars: true,
         fullWidth: true,
         height: height + 'px',
         chartPadding: {
@@ -35,20 +30,44 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
     var chart = new Chartist.Bar('#' + graph_id, data, options);
 
     this.render = function (new_data) {
+        // data should be in the form:
+        // [data_labels, bar_labels, dataset1, ...]
+
         this.reset();
 
-        // meta is the "label" that shows up when hovering
-        for (let i = 0; i < new_data.length; i++) {
-            chart.data.series[0][i] = {meta: new_data[i][0], value: new_data[i][1]};
-            chart.data.labels[i] = i;
+        if (new_data.length >= 2) {
+            let data_labels = new_data[0];
+            let bar_labels = new_data[1];
+
+            for (let i = 2; i < new_data.length; i++) {
+                chart.data.series.push([]);
+            }
+            // for (let i in bar_labels) {
+            //     chart.data.series[0].push({meta: bar_labels[i], value: undefined});
+            // }
+
+            // meta is the "label" that shows up when hovering
+            for (let i = 2; i < new_data.length; i++) {
+                for (let j = 0; j < new_data[i].length; j++) {
+                    if (data_labels.length > 0) {
+                        chart.data.series[i - 2][j] = {meta: data_labels[i - 2], value: new_data[i][j]};
+                    } else {
+                        chart.data.series[i - 2][j] = {meta: bar_labels[j], value: new_data[i][j]};
+                    }
+                }
+            }
+
+            for (let i in bar_labels) {
+                chart.data.labels[i] = i;
+            }
+
         }
 
         chart.update();
     };
 
     this.reset = function () {
-        for (let i in chart.data.series[0]) {
-            chart.data.series[0][i] = 0;
-        }
+        chart.data.series = [];
+        chart.data.labels = [];
     };
 };
