@@ -8,7 +8,7 @@ from mesa.datacollection import DataCollector
 
 import stats
 import agents as ag
-from manager import HavvenManager, TradeManager, FeeManager, Mint
+from managers import HavvenManager, TradeManager, FeeManager, Mint
 from orderbook import OrderBook
 
 

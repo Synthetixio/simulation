@@ -7,7 +7,7 @@ from itertools import takewhile
 from sortedcontainers import SortedListWithKey
 
 import agents as ag
-from manager import FeeManager
+from managers import FeeManager
 
 
 class LimitOrder:
