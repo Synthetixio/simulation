@@ -60,13 +60,13 @@ var DepthGraphModule = function (graph_id, width, height) {
         }
 
         let avg_price = (max_bid + min_ask) / 2;
-        console.log(price_range, bids, asks);
 
         let cumulative_quant = 0;
+        let added_bid = false;
         for (let i in bids) {
             let price = bids[i][0];
             if (price < avg_price * (1 - price_range)) break;
-
+            added_bid = true;
             cumulative_quant += bids[i][1];
             // meta is the "label" that shows up on the tooltip
             // for some reason the x axis is the default value, so show the quant
@@ -76,13 +76,28 @@ var DepthGraphModule = function (graph_id, width, height) {
             chart.data.series[1].unshift(undefined);
             chart.data.labels.unshift(bids[i][0])
         }
+        if (added_bid) {
+            chart.data.series[0].unshift(
+                {x:avg_price * (1 - price_range), y:chart.data.series[0][0].y,
+                 meta: 'Quant: ' + chart.data.series[0][0].y}
+            );
+            chart.data.series[1].unshift(undefined);
+        } else {
+            chart.data.series[0].unshift(
+                {x:avg_price * (1 - price_range), y:0,
+                 meta: 'Quant: ' + 0}
+            );
+            chart.data.series[1].unshift(undefined);
+        }
 
         cumulative_quant = 0;
 
         // push ask data to the chart
+        let added_ask = false;
         for (let i in asks) {
             let price = asks[i][0];
             if (price > avg_price * (1 + price_range)) break;
+            added_ask = true;
             cumulative_quant += asks[i][1];
             chart.data.series[0].push(undefined);
             // meta is the "label" that shows up on the tooltip
@@ -91,6 +106,19 @@ var DepthGraphModule = function (graph_id, width, height) {
                 {x: price, y: cumulative_quant, meta: 'Quant: ' + cumulative_quant}
             );
             chart.data.labels.push(price)
+        }
+        if (added_ask) {
+            chart.data.series[1].push(
+                {x:avg_price * (1 + price_range), y:chart.data.series[1][chart.data.series[1].length-1].y,
+                 meta: 'Quant: ' + chart.data.series[1][chart.data.series[1].length-1].y}
+            );
+            chart.data.series[0].push(undefined);
+        } else {
+            chart.data.series[1].push(
+                {x:avg_price * (1 + price_range), y:0,
+                 meta: 'Quant: ' + 0}
+            );
+            chart.data.series[0].push(undefined);
         }
 
         chart.update();

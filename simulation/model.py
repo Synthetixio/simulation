@@ -60,8 +60,7 @@ class Havven(Model):
                 "FiatCurOrderBook": lambda h: h.trade_manager.cur_fiat_market,
                 "FiatNomOrderBook": lambda h: h.trade_manager.nom_fiat_market
             }, agent_reporters={
-                "Wealth": lambda agent: agent.wealth,
-                "Name": lambda agent: agent.name
+                "Agents": lambda agent: agent,
             })
 
         self.time: int = 1
@@ -107,7 +106,7 @@ class Havven(Model):
         for a in self.schedule.agents:
             a.reset_initial_wealth()
 
-    def fiat_value(self, curits: float, nomins: float, fiat: float) -> float:
+    def fiat_value(self, curits: float = 0.0, nomins: float = 0.0, fiat: float = 0.0) -> float:
         """Return the equivalent fiat value of the given currency basket."""
         return self.trade_manager.cur_to_fiat(curits) + self.trade_manager.nom_to_fiat(nomins) + fiat
 
