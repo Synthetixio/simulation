@@ -47,7 +47,7 @@ class Havven(Model):
                 "Gini": stats.gini,
                 "Nomins": lambda h: h.manager.nomin_supply,
                 "Escrowed Curits": lambda h: h.manager.escrowed_curits,
-                "Wealth SD": stats.wealth_sd,
+                #"Wealth SD": stats.wealth_sd,
                 "Max Wealth": stats.max_wealth,
                 "Min Wealth": stats.min_wealth,
                 "Avg Profit %": lambda h: round(100*stats.mean_profit_fraction(h), 3),
