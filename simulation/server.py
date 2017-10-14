@@ -7,7 +7,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization_addons import OrderBookModule, WealthModule, WealthBreakdownModule
+from visualization import OrderBookModule, WealthModule, WealthBreakdownModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,

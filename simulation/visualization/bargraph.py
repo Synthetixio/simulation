@@ -14,8 +14,8 @@ class BarGraphModule(VisualizationElement):
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
-        "visualization_addons/js/chartist.min.js",
-        "visualization_addons/js/BarGraphModule.js"
+        "visualization/js/chartist.min.js",
+        "visualization/js/BarGraphModule.js"
     ]
 
     def __init__(self, series: List[Dict[str, str]], height: int = 200,
