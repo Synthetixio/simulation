@@ -202,42 +202,42 @@ class MarketPlayer(Agent):
         """
         Sell a quantity of nomins (including fee) to buy curits.
         """
-        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_nomins_received,
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_nomins_received,
                                            self.model.market_manager.curit_nomin_market, quantity)
 
     def sell_curits_for_nomins_with_fee(self, quantity: float) -> "ob.Ask":
         """
         Sell a quantity of curits (including fee) to buy nomins.
         """
-        return self._sell_base_with_fee_(self.model.fee_manager.transfer_curits_received,
+        return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
                                          self.model.market_manager.curit_nomin_market, quantity)
 
     def sell_fiat_for_curits_with_fee(self, quantity: float) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy curits.
         """
-        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_fiat_received,
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_fiat_received,
                                            self.model.market_manager.curit_fiat_market, quantity)
 
     def sell_curits_for_fiat_with_fee(self, quantity: float) -> "ob.Ask":
         """
         Sell a quantity of curits (including fee) to buy fiat.
         """
-        return self._sell_base_with_fee_(self.model.fee_manager.transfer_curits_received,
+        return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
                                          self.model.market_manager.curit_fiat_market, quantity)
 
     def sell_fiat_for_nomins_with_fee(self, quantity: float) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy nomins.
         """
-        return self._sell_quoted_with_fee_(self.model.fee_manager.transfer_fiat_received,
+        return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_fiat_received,
                                            self.model.market_manager.nomin_fiat_market, quantity)
 
     def sell_nomins_for_fiat_with_fee(self, quantity: float) -> "ob.Ask":
         """
         Sell a quantity of nomins (including fee) to buy fiat.
         """
-        return self._sell_base_with_fee_(self.model.fee_manager.transfer_nomins_received,
+        return self._sell_base_with_fee_(self.model.fee_manager.transferred_nomins_received,
                                          self.model.market_manager.nomin_fiat_market, quantity)
 
     def place_curits_fiat_bid(self, quantity: float, price: float) -> "ob.Bid":
@@ -282,14 +282,14 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transfer_fiat_received(quantity)
+        qty = self.model.fee_manager.transferred_fiat_received(quantity)
         return self.model.market_manager.curit_fiat_market.bid(price, qty, self)
 
     def place_curits_fiat_ask_with_fee(self, quantity: float, price: float) -> "ob.Ask":
         """
         Place an ask for fiat with a quantity of curits, including the fee, at a price in fiat.
         """
-        qty = self.model.fee_manager.transfer_curits_received(quantity)
+        qty = self.model.fee_manager.transferred_curits_received(quantity)
         return self.model.market_manager.curit_fiat_market.ask(price, qty, self)
 
     def place_nomins_fiat_bid_with_fee(self, quantity: float, price: float) -> "ob.Bid":
@@ -298,14 +298,14 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transfer_fiat_received(quantity)
+        qty = self.model.fee_manager.transferred_fiat_received(quantity)
         return self.model.market_manager.nomin_fiat_market.bid(price, qty, self)
 
     def place_nomins_fiat_ask_with_fee(self, quantity: float, price: float) -> "ob.Ask":
         """
         Place an ask for fiat with a quantity of nomins, including the fee, at a price in fiat.
         """
-        qty = self.model.fee_manager.transfer_nomins_received(quantity)
+        qty = self.model.fee_manager.transferred_nomins_received(quantity)
         return self.model.market_manager.nomin_fiat_market.ask(price, qty, self)
 
     def place_curits_nomins_bid_with_fee(self, quantity: float, price: float) -> "ob.Bid":
@@ -314,14 +314,14 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transfer_nomins_received(quantity)
+        qty = self.model.fee_manager.transferred_nomins_received(quantity)
         return self.model.market_manager.curit_nomin_market.bid(price, qty, self)
 
     def place_curits_nomins_ask_with_fee(self, quantity: float, price: float) -> "ob.Ask":
         """
         Place an ask for nomins with a quantity of curits, including the fee, at a price in nomins.
         """
-        qty = self.model.fee_manager.transfer_curits_received(quantity)
+        qty = self.model.fee_manager.transferred_curits_received(quantity)
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:

@@ -26,7 +26,7 @@ class FeeManager:
 
         self.fees_distributed: float = 0.0
 
-    def transfer_fiat_received(self, quantity: float) -> float:
+    def transferred_fiat_received(self, quantity: float) -> float:
         """
         Returns the fiat received by the recipient if a given quantity
           is transferred.
@@ -35,7 +35,7 @@ class FeeManager:
         """
         return quantity / (1 + self.fiat_fee_rate)
 
-    def transfer_curits_received(self, quantity: float) -> float:
+    def transferred_curits_received(self, quantity: float) -> float:
         """
         Returns the curits received by the recipient if a given quantity
           is transferred.
@@ -44,7 +44,7 @@ class FeeManager:
         """
         return quantity / (1 + self.cur_fee_rate)
 
-    def transfer_nomins_received(self, quantity: float) -> float:
+    def transferred_nomins_received(self, quantity: float) -> float:
         """
         Returns the nomins received by the recipient if a given quantity
           is transferred.
@@ -53,15 +53,15 @@ class FeeManager:
         """
         return quantity / (1 + self.nom_fee_rate)
 
-    def transfer_fiat_fee(self, quantity: float) -> float:
+    def transferred_fiat_fee(self, quantity: float) -> float:
         """Return the fee charged for transferring a quantity of fiat."""
         return quantity * self.fiat_fee_rate
 
-    def transfer_curits_fee(self, quantity: float) -> float:
+    def transferred_curits_fee(self, quantity: float) -> float:
         """Return the fee charged for transferring a quantity of curits."""
         return quantity * self.cur_fee_rate
 
-    def transfer_nomins_fee(self, quantity: float) -> float:
+    def transferred_nomins_fee(self, quantity: float) -> float:
         """Return the fee charged for transferring a quantity of nomins."""
         return quantity * self.nom_fee_rate
 

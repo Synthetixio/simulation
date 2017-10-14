@@ -22,20 +22,20 @@ class MarketManager:
         # That is, buyers hold Y and sellers hold X.
         self.curit_nomin_market = ob.OrderBook(
             "CUR", "NOM", self.curit_nomin_match,
-            self.fee_manager.transfer_nomins_fee,
-            self.fee_manager.transfer_curits_fee,
+            self.fee_manager.transferred_nomins_fee,
+            self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.curit_fiat_market = ob.OrderBook(
             "CUR", "FIAT", self.curit_fiat_match,
-            self.fee_manager.transfer_fiat_fee,
-            self.fee_manager.transfer_curits_fee,
+            self.fee_manager.transferred_fiat_fee,
+            self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
             "NOM", "FIAT", self.nomin_fiat_match,
-            self.fee_manager.transfer_fiat_fee,
-            self.fee_manager.transfer_nomins_fee,
+            self.fee_manager.transferred_fiat_fee,
+            self.fee_manager.transferred_nomins_fee,
             self.model_manager.match_on_order
         )
 
