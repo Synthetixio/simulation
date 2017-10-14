@@ -22,12 +22,12 @@ class Arbitrageur(MarketPlayer):
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # cur -> fiat -> nom -> cur
-            fn_price = 1.0 / self.model.trade_manager.nomin_fiat_market.lowest_ask_price()
-            nc_price = 1.0 / self.model.trade_manager.curit_nomin_market.lowest_ask_price()
+            fn_price = 1.0 / self.model.market_manager.nomin_fiat_market.lowest_ask_price()
+            nc_price = 1.0 / self.model.market_manager.curit_nomin_market.lowest_ask_price()
 
-            cf_qty = sum(b.quantity for b in self.model.trade_manager.curit_fiat_market.highest_bids())
-            fn_qty = sum(a.quantity for a in self.model.trade_manager.nomin_fiat_market.lowest_asks())
-            nc_qty = sum(a.quantity for a in self.model.trade_manager.curit_nomin_market.lowest_asks())
+            cf_qty = sum(b.quantity for b in self.model.market_manager.curit_fiat_market.highest_bids())
+            fn_qty = sum(a.quantity for a in self.model.market_manager.nomin_fiat_market.lowest_asks())
+            nc_qty = sum(a.quantity for a in self.model.market_manager.curit_nomin_market.lowest_asks())
             
             #cur_val = self.model.fiat_value(curits=self.curits)
             #nom_val = self.model.fiat_value(nomins=self.nomins)
@@ -72,11 +72,11 @@ class Arbitrageur(MarketPlayer):
         elif self._reverse_multiple_() > 1:
             # Trade in the reverse direction
             # cur -> nom -> fiat -> cur
-            fc_price = 1.0 / self.model.trade_manager.curit_fiat_market.lowest_ask_price()
+            fc_price = 1.0 / self.model.market_manager.curit_fiat_market.lowest_ask_price()
 
-            cn_qty = sum(b.quantity for b in self.model.trade_manager.curit_nomin_market.highest_bids())
-            nf_qty = sum(b.quantity for b in self.model.trade_manager.nomin_fiat_market.highest_bids())
-            fc_qty = sum(a.quantity for a in self.model.trade_manager.curit_fiat_market.lowest_asks())
+            cn_qty = sum(b.quantity for b in self.model.market_manager.curit_nomin_market.highest_bids())
+            nf_qty = sum(b.quantity for b in self.model.market_manager.nomin_fiat_market.highest_bids())
+            fc_qty = sum(a.quantity for a in self.model.market_manager.curit_fiat_market.lowest_asks())
 
             c_qty = min(self.curits, cn_qty)
             self.sell_curits_for_nomins(c_qty)
@@ -100,18 +100,18 @@ class Arbitrageur(MarketPlayer):
         The value multiple after one forward arbitrage cycle, neglecting fees.
         """
         # cur -> fiat -> nom -> cur
-        return self.model.trade_manager.curit_fiat_market.highest_bid_price() / \
-            (self.model.trade_manager.nomin_fiat_market.lowest_ask_price() * \
-            self.model.trade_manager.curit_nomin_market.lowest_ask_price())
+        return self.model.market_manager.curit_fiat_market.highest_bid_price() / \
+            (self.model.market_manager.nomin_fiat_market.lowest_ask_price() * \
+            self.model.market_manager.curit_nomin_market.lowest_ask_price())
 
     def _reverse_multiple_no_fees_(self) -> float:
         """
         The value multiple after one reverse arbitrage cycle, neglecting fees.
         """
         # cur -> nom -> fiat -> cur
-        return (self.model.trade_manager.curit_nomin_market.highest_bid_price() * \
-            self.model.trade_manager.nomin_fiat_market.highest_bid_price()) / \
-            self.model.trade_manager.curit_fiat_market.lowest_ask_price()
+        return (self.model.market_manager.curit_nomin_market.highest_bid_price() * \
+            self.model.market_manager.nomin_fiat_market.highest_bid_price()) / \
+            self.model.market_manager.curit_fiat_market.lowest_ask_price()
 
     def _forward_multiple_(self) -> float:
         """The return after one forward arbitrage cycle."""

@@ -2,7 +2,7 @@ import agents
 import model
 
 from .havvenmanager import HavvenManager
-from .trademanager import TradeManager
+from .marketmanager import MarketManager
 
 class Mint:
     """
@@ -10,9 +10,9 @@ class Mint:
     """
 
     def __init__(self, havven_manager: HavvenManager,
-                 trade_manager: TradeManager) -> None:
+                 market_manager: MarketManager) -> None:
         self.havven_manager = havven_manager
-        self.trade_manager = trade_manager
+        self.market_manager = market_manager
 
     def escrow_curits(self, agent: "agents.MarketPlayer",
                       value: float) -> bool:
@@ -45,7 +45,7 @@ class Mint:
         Return the quantity of escrowed curits which is not
         locked by issued nomins. May be negative.
         """
-        return agent.escrowed_curits - self.trade_manager.nomins_to_curits(agent.issued_nomins)
+        return agent.escrowed_curits - self.market_manager.nomins_to_curits(agent.issued_nomins)
 
     def unavailable_escrowed_curits(self, agent: "agents.MarketPlayer") -> float:
         """
@@ -53,11 +53,11 @@ class Mint:
           having had nomins issued against it.
         May be greater than total escrowed curits.
         """
-        return self.trade_manager.nomins_to_curits(agent.issued_nomins)
+        return self.market_manager.nomins_to_curits(agent.issued_nomins)
 
     def max_issuance_rights(self, agent: "agents.MarketPlayer") -> float:
         """The total quantity of nomins this agent has a right to issue."""
-        return self.trade_manager.curits_to_nomins(agent.escrowed_curits) * \
+        return self.market_manager.curits_to_nomins(agent.escrowed_curits) * \
             self.havven_manager.utilisation_ratio_max
 
     def issue_nomins(self, agent: "agents.MarketPlayer",

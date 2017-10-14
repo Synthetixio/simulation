@@ -53,41 +53,41 @@ def min_wealth(havven: "model.Havven") -> float:
 
 def fiat_demand(havven: "model.Havven") -> float:
     """Return the total quantity of fiat presently being bought in the marketplace."""
-    curits = sum([ask.quantity * ask.price for ask in havven.trade_manager.curit_fiat_market.asks])
-    nomins = sum([ask.quantity * ask.price for ask in havven.trade_manager.nomin_fiat_market.asks])
+    curits = sum([ask.quantity * ask.price for ask in havven.market_manager.curit_fiat_market.asks])
+    nomins = sum([ask.quantity * ask.price for ask in havven.market_manager.nomin_fiat_market.asks])
     return curits + nomins
 
 
 def fiat_supply(havven: "model.Havven") -> float:
     """Return the total quantity of fiat presently being sold in the marketplace."""
-    curits = sum([bid.quantity * bid.price for bid in havven.trade_manager.curit_fiat_market.bids])
-    nomins = sum([bid.quantity * bid.price for bid in havven.trade_manager.nomin_fiat_market.bids])
+    curits = sum([bid.quantity * bid.price for bid in havven.market_manager.curit_fiat_market.bids])
+    nomins = sum([bid.quantity * bid.price for bid in havven.market_manager.nomin_fiat_market.bids])
     return curits + nomins
 
 
 def curit_demand(havven: "model.Havven") -> float:
     """Return the total quantity of curits presently being bought in the marketplace."""
-    nomins = sum([bid.quantity for bid in havven.trade_manager.curit_nomin_market.bids])
-    fiat = sum([bid.quantity for bid in havven.trade_manager.curit_fiat_market.bids])
+    nomins = sum([bid.quantity for bid in havven.market_manager.curit_nomin_market.bids])
+    fiat = sum([bid.quantity for bid in havven.market_manager.curit_fiat_market.bids])
     return nomins + fiat
 
 
 def curit_supply(havven: "model.Havven") -> float:
     """Return the total quantity of curits presently being sold in the marketplace."""
-    nomins = sum([ask.quantity for ask in havven.trade_manager.curit_fiat_market.asks])
-    fiat = sum([ask.quantity for ask in havven.trade_manager.curit_nomin_market.asks])
+    nomins = sum([ask.quantity for ask in havven.market_manager.curit_fiat_market.asks])
+    fiat = sum([ask.quantity for ask in havven.market_manager.curit_nomin_market.asks])
     return nomins + fiat
 
 
 def nomin_demand(havven: "model.Havven") -> float:
     """Return the total quantity of nomins presently being bought in the marketplace."""
-    curits = sum([ask.quantity * ask.price for ask in havven.trade_manager.curit_nomin_market.asks])
-    fiat = sum([bid.quantity for bid in havven.trade_manager.nomin_fiat_market.bids])
+    curits = sum([ask.quantity * ask.price for ask in havven.market_manager.curit_nomin_market.asks])
+    fiat = sum([bid.quantity for bid in havven.market_manager.nomin_fiat_market.bids])
     return curits + fiat
 
 
 def nomin_supply(havven: "model.Havven") -> float:
     """Return the total quantity of nomins presently being sold in the marketplace."""
-    curits = sum([bid.quantity * bid.price for bid in havven.trade_manager.curit_nomin_market.bids])
-    fiat = sum([ask.quantity for ask in havven.trade_manager.nomin_fiat_market.asks])
+    curits = sum([bid.quantity * bid.price for bid in havven.market_manager.curit_nomin_market.bids])
+    fiat = sum([ask.quantity for ask in havven.market_manager.nomin_fiat_market.asks])
     return curits + fiat

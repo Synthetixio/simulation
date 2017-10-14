@@ -33,37 +33,37 @@ class Randomizer(MarketPlayer):
         action()
 
     def _curit_fiat_bid_(self) -> None:
-        price = self.model.trade_manager.curit_fiat_market.price
+        price = self.model.market_manager.curit_fiat_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_curits_fiat_bid(self.fiat/10, price + movement)
 
     def _curit_fiat_ask_(self) -> None:
-        price = self.model.trade_manager.curit_fiat_market.price
+        price = self.model.market_manager.curit_fiat_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_curits_fiat_ask(self.fiat/10, price + movement)
 
     def _nomin_fiat_bid_(self) -> None:
-        price = self.model.trade_manager.nomin_fiat_market.price
+        price = self.model.market_manager.nomin_fiat_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_nomins_fiat_bid(self.fiat/10, price + movement)
 
     def _nomin_fiat_ask_(self) -> None:
-        price = self.model.trade_manager.nomin_fiat_market.price
+        price = self.model.market_manager.nomin_fiat_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_nomins_fiat_ask(self.fiat/10, price + movement)
 
     def _curit_nomin_bid_(self) -> None:
-        price = self.model.trade_manager.curit_nomin_market.price
+        price = self.model.market_manager.curit_nomin_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_curits_nomins_bid(self.fiat/10, price + movement)
 
     def _curit_nomin_ask_(self) -> None:
-        price = self.model.trade_manager.curit_nomin_market.price
+        price = self.model.market_manager.curit_nomin_market.price
         movement = round((2*random.random() - 1) *
                          price * self.variance, 3)
         self.place_curits_nomins_ask(self.fiat/10, price + movement)

@@ -6,9 +6,9 @@ import agents as ag
 from .havvenmanager import HavvenManager
 from .feemanager import FeeManager
 
-class TradeManager:
+class MarketManager:
     """
-    Class to handle all trades and order books
+    Handles all order books, trades, transfers, and conversions.
     """
 
     def __init__(self, model_manager: HavvenManager, fee_manager: FeeManager) -> None:
