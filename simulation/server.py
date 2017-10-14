@@ -95,7 +95,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     ]
 
     n_slider = UserSettableParameter(
-        'slider', "Number of agents", n_agents, 2, 2000, 1
+        'slider', "Number of agents", n_agents, 20, 2000, 1
     )
 
     ur_slider = UserSettableParameter(
