@@ -2,123 +2,20 @@
 Classes for holding onto values and functions for the model and agents
 """
 
-from typing import List, Optional, Callable
+from typing import Optional, Callable
 
 import orderbook as ob
 import agents as ag
 
-
-class HavvenManager:
-    """
-    Class to hold Havven's model variables
-    """
-
-    def __init__(self, utilisation_ratio_max: float = 1.0,
-                 match_on_order: bool = True) -> None:
-
-        # Utilisation Ratio maximum (between 0 and 1)
-        self.utilisation_ratio_max: float = utilisation_ratio_max
-
-        # If true, match orders whenever an order is posted,
-        #   otherwise do so at the end of each period
-        self.match_on_order: bool = match_on_order
-
-        # Money Supply
-        self.curit_supply: float = 10.0 ** 9
-        self.nomin_supply: float = 0.0
-        self.escrowed_curits: float = 0.0
-
-        # Havven's own capital supplies
-        self.curits: float = self.curit_supply
-        self.nomins: float = 0.0
-        self.fiat: float = 0.0
-
-
-class FeeManager:
-    """
-    Class to handle fee calculation
-    """
-
-    def __init__(self, model_manager: "HavvenManager") -> None:
-
-        self.model_manager = model_manager
-
-        # Fees are distributed at regular intervals
-        self.fee_period: int = 50
-
-        # Multiplicative transfer fee rates
-        self.nom_fee_rate: float = 0.005
-        self.cur_fee_rate: float = 0.01
-        self.fiat_fee_rate: float = 0.0
-
-        # Multiplicative issuance fee rates
-        self.issuance_fee_rate: float = 0.0
-        self.redemption_fee_rate: float = 0.02
-
-        self.fees_distributed: float = 0.0
-
-    def transfer_fiat_received(self, quantity: float) -> float:
-        """
-        Returns the fiat received by the recipient if a given quantity
-          is transferred.
-        A user can only transfer less than their total balance when fees
-          are taken into account.
-        """
-        return quantity / (1 + self.fiat_fee_rate)
-
-    def transfer_curits_received(self, quantity: float) -> float:
-        """
-        Returns the curits received by the recipient if a given quantity
-          is transferred.
-        A user can only transfer less than their total balance when fees
-          are taken into account.
-        """
-        return quantity / (1 + self.cur_fee_rate)
-
-    def transfer_nomins_received(self, quantity: float) -> float:
-        """
-        Returns the nomins received by the recipient if a given quantity
-          is transferred.
-        A user can only transfer less than their total balance when fees
-          are taken into account.
-        """
-        return quantity / (1 + self.nom_fee_rate)
-
-    def transfer_fiat_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of fiat."""
-        return quantity * self.fiat_fee_rate
-
-    def transfer_curits_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of curits."""
-        return quantity * self.cur_fee_rate
-
-    def transfer_nomins_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of nomins."""
-        return quantity * self.nom_fee_rate
-
-    def distribute_fees(self, schedule_agents: List["ag.MarketPlayer"]) -> None:
-        """Distribute currently held nomins to holders of curits."""
-        # Different fee modes:
-        #  * distributed by held curits
-        # TODO: * distribute by escrowed curits
-        # TODO: * distribute by issued nomins
-        # TODO: * distribute by motility
-
-        for agent in schedule_agents:
-            if self.model_manager.nomins == 0:
-                break
-            qty = min(agent.issued_nomins / self.model_manager.nomins, self.model_manager.nomins)
-            agent.nomins += qty
-            self.model_manager.nomins -= qty
-            self.fees_distributed += qty
-
+from .havvenmanager import HavvenManager
+from .feemanager import FeeManager
 
 class TradeManager:
     """
     Class to handle all trades and order books
     """
 
-    def __init__(self, model_manager: "HavvenManager", fee_manager: "FeeManager") -> None:
+    def __init__(self, model_manager: HavvenManager, fee_manager: FeeManager) -> None:
 
         self.model_manager = model_manager
         self.fee_manager = fee_manager
@@ -127,19 +24,19 @@ class TradeManager:
         # If a book is X_Y_market, then X is the base currency,
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
-        self.curit_nomin_market: ob.OrderBook = ob.OrderBook(
+        self.curit_nomin_market = ob.OrderBook(
             "CUR", "NOM", self.curit_nomin_match,
             self.fee_manager.transfer_nomins_fee,
             self.fee_manager.transfer_curits_fee,
             self.model_manager.match_on_order
         )
-        self.curit_fiat_market: ob.OrderBook = ob.OrderBook(
+        self.curit_fiat_market = ob.OrderBook(
             "CUR", "FIAT", self.curit_fiat_match,
             self.fee_manager.transfer_fiat_fee,
             self.fee_manager.transfer_curits_fee,
             self.model_manager.match_on_order
         )
-        self.nomin_fiat_market: ob.OrderBook = ob.OrderBook(
+        self.nomin_fiat_market = ob.OrderBook(
             "NOM", "FIAT", self.nomin_fiat_match,
             self.fee_manager.transfer_fiat_fee,
             self.fee_manager.transfer_nomins_fee,
