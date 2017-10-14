@@ -1,7 +1,3 @@
-"""
-Classes for holding onto values and functions for the model and agents
-"""
-
 from typing import Optional, Callable
 
 import orderbook as ob
