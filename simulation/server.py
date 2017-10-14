@@ -7,7 +7,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization_addons import BarGraphModule, OrderBookModule
+from visualization_addons import OrderBookModule, WealthModule, WealthBreakdownModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
@@ -28,15 +28,15 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit Price", "Color": "orange"},
-            {"Label": "Curit Ask", "Color": "orange"},
-            {"Label": "Curit Bid", "Color": "orange"}]),
+            {"Label": "Curit Price", "Color": "red"},
+            {"Label": "Curit Ask", "Color": "red"},
+            {"Label": "Curit Bid", "Color": "red"}]),
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit/Nomin Price", "Color": "purple"},
-            {"Label": "Curit/Nomin Ask", "Color": "purple"},
-            {"Label": "Curit/Nomin Bid", "Color": "purple"}]),
+            {"Label": "Curit/Nomin Price", "Color": "fuchsia"},
+            {"Label": "Curit/Nomin Ask", "Color": "fuchsia"},
+            {"Label": "Curit/Nomin Bid", "Color": "fuchsia"}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "blue"},
@@ -60,7 +60,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Nomins", "Color": "blue"},
-            {"Label": "Escrowed Curits", "Color": "red"}]),
+            {"Label": "Escrowed Curits", "Color": "limegreen"}]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
@@ -82,7 +82,9 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        BarGraphModule([{"Label": "Wealth"}]),
+        WealthBreakdownModule([{"Label": "WealthBreakdown"}], absolute=True),
+
+        WealthModule([{"Label": "Wealth"}]),
 
         OrderBookModule([{"Label": "NomFiatOrderBook"}]),
 

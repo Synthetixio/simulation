@@ -3,14 +3,14 @@ from typing import List, Tuple, Dict
 from mesa.datacollection import DataCollector
 from mesa.visualization.ModularVisualization import VisualizationElement
 
-import model
+from model import Havven
 import orderbook as ob
 
 
 class OrderBookModule(VisualizationElement):
     """
-    Display a depth graph for orderbooks to show the quantity
-    of buy/sell orders for the given market
+    Display a depth graph for order books to show the quantity
+      of buy/sell orders for the given market
     """
     package_includes: List[str] = []
     local_includes: List[str] = [
@@ -32,7 +32,7 @@ class OrderBookModule(VisualizationElement):
             new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})
         );"""
 
-    def render(self, model: "model.Havven") -> List[List[Tuple[float, float]]]:
+    def render(self, model: Havven) -> List[List[Tuple[float, float]]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
@@ -43,16 +43,16 @@ class OrderBookModule(VisualizationElement):
         bids: List[Tuple[float, float]] = []
         asks: List[Tuple[float, float]] = []
 
-        for s in self.series: # TODO: not use series, as it should only really be one graph
+        for s in self.series:  # TODO: not use series, as it should only really be one graph
             name: str = s['Label']
 
             # get the buy and sell orders of the named market and add together
             # the quantities or orders with the same rates
 
             try:
-                orderbook: "ob.OrderBook" = data_collector.model_vars[name][-1]
+                order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
 
-                for item in orderbook.bids:
+                for item in order_book.bids:
                     if len(bids) > 0:
                         if item.price == bids[-1][0]:
                             bids[-1] = (item.price, item.quantity + bids[-1][1])
@@ -61,7 +61,7 @@ class OrderBookModule(VisualizationElement):
                     else:
                         bids.append((item.price, item.quantity))
 
-                for item in orderbook.asks:
+                for item in order_book.asks:
                     if len(asks) > 0:
                         if item.price == asks[-1][0]:
                             asks[-1] = (item.price, item.quantity + asks[-1][1])
@@ -70,7 +70,7 @@ class OrderBookModule(VisualizationElement):
                     else:
                         asks.append((item.price, item.quantity))
 
-            except Exception as e:
+            except Exception:
                 bids = []
                 asks = []
 
