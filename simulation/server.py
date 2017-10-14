@@ -86,11 +86,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         WealthModule([{"Label": "Wealth"}]),
 
-        OrderBookModule([{"Label": "NomFiatOrderBook"}]),
+        OrderBookModule([{"Label": "NominFiatOrderBook"}]),
 
-        OrderBookModule([{"Label": "CurFiatOrderBook"}]),
+        OrderBookModule([{"Label": "CuritFiatOrderBook"}]),
 
-        OrderBookModule([{"Label": "CurNomOrderBook"}])
+        OrderBookModule([{"Label": "CuritNominOrderBook"}])
     ]
 
     n_slider = UserSettableParameter(

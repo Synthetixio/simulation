@@ -9,6 +9,7 @@ from mesa.datacollection import DataCollector
 import stats
 import agents as ag
 from manager import HavvenManager, TradeManager, FeeManager
+from orderbook import OrderBook
 
 
 class Havven(Model):
@@ -31,15 +32,15 @@ class Havven(Model):
             model_reporters={
                 "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "1": lambda x: 1,
-                "Nomin Price": lambda h: h.trade_manager.nomin_fiat_price,
-                "Nomin Ask": lambda h: h.trade_manager.nom_fiat_market.lowest_ask_price(),
-                "Nomin Bid": lambda h: h.trade_manager.nom_fiat_market.highest_bid_price(),
-                "Curit Price": lambda h: h.trade_manager.curit_fiat_price,
-                "Curit Ask": lambda h: h.trade_manager.cur_fiat_market.lowest_ask_price(),
-                "Curit Bid": lambda h: h.trade_manager.cur_fiat_market.highest_bid_price(),
-                "Curit/Nomin Price": lambda h: h.trade_manager.curit_nomin_price,
-                "Curit/Nomin Ask": lambda h: h.trade_manager.cur_nom_market.lowest_ask_price(),
-                "Curit/Nomin Bid": lambda h: h.trade_manager.cur_nom_market.highest_bid_price(),
+                "Nomin Price": lambda h: h.trade_manager.nomin_fiat_market.price,
+                "Nomin Ask": lambda h: h.trade_manager.nomin_fiat_market.lowest_ask_price(),
+                "Nomin Bid": lambda h: h.trade_manager.nomin_fiat_market.highest_bid_price(),
+                "Curit Price": lambda h: h.trade_manager.curit_fiat_market.price,
+                "Curit Ask": lambda h: h.trade_manager.curit_fiat_market.lowest_ask_price(),
+                "Curit Bid": lambda h: h.trade_manager.curit_fiat_market.highest_bid_price(),
+                "Curit/Nomin Price": lambda h: h.trade_manager.curit_nomin_market.price,
+                "Curit/Nomin Ask": lambda h: h.trade_manager.curit_nomin_market.lowest_ask_price(),
+                "Curit/Nomin Bid": lambda h: h.trade_manager.curit_nomin_market.highest_bid_price(),
                 "Havven Nomins": lambda h: h.manager.nomins,
                 "Havven Curits": lambda h: h.manager.curits,
                 "Havven Fiat": lambda h: h.manager.fiat,
@@ -61,9 +62,9 @@ class Havven(Model):
                 "Fiat Supply": stats.fiat_supply,
                 "Fee Pool": lambda h: h.manager.nomins,
                 "Fees Distributed": lambda h: h.fee_manager.fees_distributed,
-                "NomFiatOrderBook": lambda h: h.trade_manager.nom_fiat_market,
-                "CurFiatOrderBook": lambda h: h.trade_manager.cur_fiat_market,
-                "CurNomOrderBook": lambda h: h.trade_manager.cur_nom_market
+                "NominFiatOrderBook": lambda h: h.trade_manager.nomin_fiat_market,
+                "CuritFiatOrderBook": lambda h: h.trade_manager.curit_fiat_market,
+                "CuritNominOrderBook": lambda h: h.trade_manager.curit_nomin_market
             }, agent_reporters={
                 "Agents": lambda agent: agent,
             })
@@ -113,8 +114,8 @@ class Havven(Model):
 
     def fiat_value(self, curits: float = 0.0, nomins: float = 0.0, fiat: float = 0.0) -> float:
         """Return the equivalent fiat value of the given currency basket."""
-        return self.trade_manager.cur_to_fiat(curits) + \
-               self.trade_manager.nom_to_fiat(nomins) + fiat
+        return self.trade_manager.curits_to_fiat(curits) + \
+               self.trade_manager.nomins_to_fiat(nomins) + fiat
 
     def endow_curits(self, agent: ag.MarketPlayer, curits: float) -> None:
         """Grant an agent an endowment of curits."""
@@ -130,9 +131,9 @@ class Havven(Model):
 
         # Resolve outstanding trades
         if not self.manager.match_on_order:
-            self.trade_manager.cur_nom_market.match()
-            self.trade_manager.cur_fiat_market.match()
-            self.trade_manager.nom_fiat_market.match()
+            self.trade_manager.curit_nomin_market.match()
+            self.trade_manager.curit_fiat_market.match()
+            self.trade_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.
         if (self.time % self.fee_manager.fee_period) == 0:

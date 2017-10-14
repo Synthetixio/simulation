@@ -127,20 +127,20 @@ class TradeManager:
         # If a book is X_Y_market, then X is the base currency,
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
-        self.cur_nom_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "NOM", self.cur_nom_match,
+        self.curit_nomin_market: ob.OrderBook = ob.OrderBook(
+            "CUR", "NOM", self.curit_nomin_match,
             self.fee_manager.transfer_nomins_fee,
             self.fee_manager.transfer_curits_fee,
             self.model_manager.match_on_order
         )
-        self.cur_fiat_market: ob.OrderBook = ob.OrderBook(
-            "CUR", "FIAT", self.cur_fiat_match,
+        self.curit_fiat_market: ob.OrderBook = ob.OrderBook(
+            "CUR", "FIAT", self.curit_fiat_match,
             self.fee_manager.transfer_fiat_fee,
             self.fee_manager.transfer_curits_fee,
             self.model_manager.match_on_order
         )
-        self.nom_fiat_market: ob.OrderBook = ob.OrderBook(
-            "NOM", "FIAT", self.nom_fiat_match,
+        self.nomin_fiat_market: ob.OrderBook = ob.OrderBook(
+            "NOM", "FIAT", self.nomin_fiat_match,
             self.fee_manager.transfer_fiat_fee,
             self.fee_manager.transfer_nomins_fee,
             self.model_manager.match_on_order
@@ -202,8 +202,8 @@ class TradeManager:
 
         return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
 
-    def cur_nom_match(self, bid: "ob.Bid",
-                      ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
+    def curit_nomin_match(self, bid: "ob.Bid",
+                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
         Buyer offers nomins in exchange for curits from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -214,8 +214,8 @@ class TradeManager:
                                       self.transfer_nomins,
                                       self.transfer_curits)
 
-    def cur_fiat_match(self, bid: "ob.Bid",
-                       ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
+    def curit_fiat_match(self, bid: "ob.Bid",
+                         ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
         Buyer offers fiat in exchange for curits from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -226,8 +226,8 @@ class TradeManager:
                                       self.transfer_fiat,
                                       self.transfer_curits)
 
-    def nom_fiat_match(self, bid: "ob.Bid",
-                       ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
+    def nomin_fiat_match(self, bid: "ob.Bid",
+                         ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
         Buyer offers fiat in exchange for nomins from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -292,47 +292,32 @@ class TradeManager:
             return True
         return False
 
-    @property
-    def curit_fiat_price(self) -> float:
-        """Return the current curit price in fiat per token."""
-        return self.cur_fiat_market.price
-
-    @property
-    def nomin_fiat_price(self) -> float:
-        """Return the current nomin price in fiat per token."""
-        return self.nom_fiat_market.price
-
-    @property
-    def curit_nomin_price(self) -> float:
-        """Return the current curit price in nomins per token."""
-        return self.cur_nom_market.price
-
-    def cur_to_nom(self, quantity: float) -> float:
+    def curits_to_nomins(self, quantity: float) -> float:
         """Convert a quantity of curits to its equivalent quantity in nomins."""
-        return quantity * self.curit_nomin_price
+        return quantity * self.curit_nomin_market.price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
-        # return (quantity * self.curit_fiat_price) / self.nomin_fiat_price
+        # return (quantity * self.curit_fiat_market.price) / self.nomin_fiat_market.price
 
-    def cur_to_fiat(self, quantity: float) -> float:
+    def curits_to_fiat(self, quantity: float) -> float:
         """Convert a quantity of curits to its equivalent quantity in fiat."""
-        return quantity * self.curit_fiat_price
+        return quantity * self.curit_fiat_market.price
 
-    def nom_to_cur(self, quantity: float) -> float:
+    def nomins_to_curits(self, quantity: float) -> float:
         """Convert a quantity of nomins to its equivalent quantity in curits."""
-        return quantity / self.curit_nomin_price
+        return quantity / self.curit_nomin_market.price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
-        # return (quantity * self.nomin_fiat_price) / self.curit_fiat_price
+        # return (quantity * self.nomin_fiat_market.price) / self.curit_fiat_market.price
 
-    def nom_to_fiat(self, quantity: float) -> float:
+    def nomins_to_fiat(self, quantity: float) -> float:
         """Convert a quantity of nomins to its equivalent quantity in fiat."""
-        return quantity * self.nomin_fiat_price
+        return quantity * self.nomin_fiat_market.price
 
-    def fiat_to_cur(self, quantity: float) -> float:
+    def fiat_to_curits(self, quantity: float) -> float:
         """Convert a quantity of fiat to its equivalent quantity in curits."""
-        return quantity / self.curit_fiat_price
+        return quantity / self.curit_fiat_market.price
 
-    def fiat_to_nom(self, quantity: float) -> float:
+    def fiat_to_nomins(self, quantity: float) -> float:
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
-        return quantity / self.nomin_fiat_price
+        return quantity / self.nomin_fiat_market.price
