@@ -99,11 +99,13 @@ class Havven(Model):
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            self.schedule.add(ag.Arbitrageur(i, self, fiat=max_fiat))
+            arb = ag.Arbitrageur(i, self, fiat=max_fiat/2)
+            self.endow_curits(arb, max_fiat/2)
+            self.schedule.add(arb)
             i += 1
 
-        central_bank = ag.CentralBank(i, self, fiat = (0.5 * num_agents * max_fiat), nomin_target=1.0)
-        self.endow_curits(central_bank, (num_agents * max_fiat))
+        central_bank = ag.CentralBank(i, self, fiat = (3 * num_agents * max_fiat), curit_target=1.0)
+        self.endow_curits(central_bank, (3 * num_agents * max_fiat))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
