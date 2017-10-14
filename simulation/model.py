@@ -8,7 +8,7 @@ from mesa.datacollection import DataCollector
 
 import stats
 import agents as ag
-from manager import HavvenManager, TradeManager, FeeManager
+from manager import HavvenManager, TradeManager, FeeManager, Mint
 from orderbook import OrderBook
 
 
@@ -74,9 +74,9 @@ class Havven(Model):
         # Create the model settings objects
 
         self.manager = HavvenManager(utilisation_ratio_max, match_on_order)
-
         self.fee_manager = FeeManager(self.manager)
         self.trade_manager = TradeManager(self.manager, self.fee_manager)
+        self.mint = Mint(self.manager, self.trade_manager)
 
         # Create the market players
 

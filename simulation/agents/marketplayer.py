@@ -109,31 +109,21 @@ class MarketPlayer(Agent):
         Escrow a positive value of curits in order to be able to issue
         nomins against them.
         """
-        if self.curits >= value >= 0:
-            self.curits -= value
-            self.escrowed_curits += value
-            self.model.manager.escrowed_curits += value
-            return True
-        return False
+        return self.model.mint.escrow_curits(self, value)
 
     def unescrow_curits(self, value: float) -> bool:
         """
         Unescrow a quantity of curits, if there are not too many
         issued nomins locking it.
         """
-        if 0 <= value <= self.available_escrowed_curits():
-            self.curits += value
-            self.escrowed_curits -= value
-            self.model.manager.escrowed_curits -= value
-            return True
-        return False
+        return self.model.mint.unescrow_curits(self, value)
 
     def available_escrowed_curits(self) -> float:
         """
         Return the quantity of escrowed curits which is not
         locked by issued nomins. May be negative.
         """
-        return self.escrowed_curits - self.model.trade_manager.nomins_to_curits(self.issued_nomins)
+        return self.model.mint.available_escrowed_curits(self)
 
     def unavailable_escrowed_curits(self) -> float:
         """
@@ -141,34 +131,22 @@ class MarketPlayer(Agent):
           having had nomins issued against it.
         May be greater than total escrowed curits.
         """
-        return self.model.trade_manager.nomins_to_curits(self.issued_nomins)
+        return self.model.mint.unavailable_escrowed_curits(self)
 
     def max_issuance_rights(self) -> float:
         """The total quantity of nomins this agent has a right to issue."""
-        return self.model.trade_manager.curits_to_nomins(self.escrowed_curits) * \
-            self.model.manager.utilisation_ratio_max
+        return self.model.mint.max_issuance_rights(self)
 
     def issue_nomins(self, value: float) -> bool:
         """
         Issue a positive value of nomins against currently escrowed curits,
           up to the utilisation ratio maximum.
         """
-        remaining = self.max_issuance_rights() - self.issued_nomins
-        if 0 <= value <= remaining:
-            self.issued_nomins += value
-            self.nomins += value
-            self.model.manager.nomin_supply += value
-            return True
-        return False
+        return self.model.mint.issue_nomins(self, value)
 
     def burn_nomins(self, value: float) -> bool:
         """Burn a positive value of issued nomins, which frees up curits."""
-        if 0 <= value <= self.nomins and value <= self.issued_nomins:
-            self.nomins -= value
-            self.issued_nomins -= value
-            self.model.manager.nomin_supply -= value
-            return True
-        return False
+        return self.model.mint.burn_nomins(self, value)
 
     def _sell_quoted_(self, book: "ob.OrderBook", quantity: float) -> "ob.Bid":
         """Sell a quantity of the quoted currency into the given market."""
