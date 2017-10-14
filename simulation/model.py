@@ -104,8 +104,8 @@ class Havven(Model):
             self.schedule.add(arb)
             i += 1
 
-        central_bank = ag.CentralBank(i, self, fiat = (3 * num_agents * max_fiat), curit_target=1.0)
-        self.endow_curits(central_bank, (3 * num_agents * max_fiat))
+        central_bank = ag.CentralBank(i, self, fiat = (num_agents * max_fiat), curit_target=1.0)
+        self.endow_curits(central_bank, (num_agents * max_fiat))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:

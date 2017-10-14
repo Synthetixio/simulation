@@ -37,20 +37,25 @@ class MarketPlayer(Agent):
         """Return the name of this object; its type and its unique id."""
         return f"{self.__class__.__name__} {self.unique_id}"
 
-    def wealth(self) -> float:
-        """Return the total wealth of this agent at current fiat prices."""
-        return self.model.fiat_value(curits = (self.curits + self.escrowed_curits),
-                                     nomins = (self.nomins - self.issued_nomins),
-                                     fiat = self.fiat)
-
-
-    def _fraction_(self, qty: float, divisor: float = 3, minimum: float = 1):
+    def _fraction_(self, qty: float, divisor: float = 3, minimum: float = 1) -> float:
         """
         Return a fraction of the given quantity, with a minimum.
         Used for depleting reserves gradually.
         """
         return max(qty / divisor, min(minimum, qty))
+    
+    def cancel_orders(self) -> None:
+        """
+        Cancel all of this agent's orders.
+        """
+        for order in list(self.orders):
+            order.cancel()
 
+    def wealth(self) -> float:
+        """Return the total wealth of this agent at current fiat prices."""
+        return self.model.fiat_value(curits = (self.curits + self.escrowed_curits),
+                                     nomins = (self.nomins - self.issued_nomins),
+                                     fiat = self.fiat)
 
     def wealth_breakdown(self, absolute: bool = False) -> Tuple[float, float, float, float, float]:
         """

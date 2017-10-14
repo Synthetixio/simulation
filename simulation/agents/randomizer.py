@@ -10,7 +10,7 @@ class Randomizer(MarketPlayer):
     def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: float = 0.0, curits: float = 0.0,
                  nomins: float = 0.0,
-                 variance: float = 0.05, order_lifetime: int = 30,
+                 variance: float = 0.02, order_lifetime: int = 30,
                  max_orders: int = 10) -> None:
         super().__init__(unique_id, havven, fiat, curits, nomins)
         self.variance = variance
