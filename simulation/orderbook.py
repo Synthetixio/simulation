@@ -204,14 +204,14 @@ class OrderBook:
             self.match()
         return ask
 
-    def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0) -> Bid:
+    def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0.0) -> Bid:
         """Buy a quantity of the sale token at the best available price."""
-        price = self.price_to_buy_quantity(quantity)
+        price = self.price_to_buy_quantity(quantity) + premium
         return self.bid(price, quantity, agent)
 
-    def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0) -> Ask:
+    def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0.0) -> Ask:
         """Sell a quantity of the sale token at the best available price."""
-        price = self.price_to_sell_quantity(quantity)
+        price = self.price_to_sell_quantity(quantity) - discount
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: float) -> float:
