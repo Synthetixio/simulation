@@ -181,15 +181,21 @@ class OrderBook:
 
     @property
     def name(self) -> str:
-        """Return this market's name."""
+        """
+        Return this market's name.
+        """
         return f"{self.base}/{self.quote}"
 
     def step(self) -> None:
-        """Advance the time on this order book by one step."""
+        """
+        Advance the time on this order book by one step.
+        """
         self.time += 1
 
     def bid(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Bid:
-        """Submit a new sell order to the book."""
+        """
+        Submit a new sell order to the book.
+        """
         fee = self.bid_fee_fn(price * quantity)
         bid = Bid(price, quantity, fee, agent, self)
         if self.match_on_order:
@@ -197,7 +203,9 @@ class OrderBook:
         return bid
 
     def ask(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Ask:
-        """Submit a new buy order to the book."""
+        """
+        Submit a new buy order to the book.
+        """
         fee = self.ask_fee_fn(quantity)
         ask = Ask(price, quantity, fee, agent, self)
         if self.match_on_order:
@@ -205,13 +213,19 @@ class OrderBook:
         return ask
 
     def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0.0) -> Bid:
-        """Buy a quantity of the sale token at the best available price."""
-        price = self.price_to_buy_quantity(quantity) + premium
+        """
+        Buy a quantity of the sale token at the best available price.
+        Optionally buy at a premium a certain fraction above the market price.
+        """
+        price = self.price_to_buy_quantity(quantity) * (1.0 + premium)
         return self.bid(price, quantity, agent)
 
     def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0.0) -> Ask:
-        """Sell a quantity of the sale token at the best available price."""
-        price = self.price_to_sell_quantity(quantity) - discount
+        """
+        Sell a quantity of the sale token at the best available price.
+        Optionally sell at a discount a certain fraction below the market price.
+        """
+        price = self.price_to_sell_quantity(quantity) * (1.0 - discount)
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: float) -> float:
