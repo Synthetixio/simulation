@@ -73,9 +73,9 @@ class TotalWealthModule(BarGraphModule):
 
 
 
-wealth_breakdown_type = Tuple[List[str], List[str],
-                              List[float], List[float],
-                              List[float], List[float]]
+WealthBreakdown = Tuple[List[str], List[str],
+                        List[float], List[float],
+                        List[float], List[float]]
 
 
 class WealthBreakdownModule(BarGraphModule):
@@ -84,14 +84,20 @@ class WealthBreakdownModule(BarGraphModule):
       escrowed_curits, unescrowed_curits, nomins, fiat
     """
 
-    def render(self, model: "Havven") -> wealth_breakdown_type:
+    def __init__(self, series: List[Dict[str, str]], height: int = 200,
+                 width: int = 500, data_collector_name: str = "datacollector",
+                 absolute: bool = False) -> None:
+        super().__init__(series, height, width, data_collector_name)
+        self.absolute = absolute
+
+    def render(self, model: "Havven") -> WealthBreakdown:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
 
         # short list for names of types, list of actor names, and lists for the wealth breakdowns
-        vals: wealth_breakdown_type = (["Curits", "Escrowed Curits", "Nomins", "Fiat", "Issued Nomins"],
-                                       [], [], [], [], [], [])
+        vals: WealthBreakdown = (["Curits", "Escrowed Curits", "Nomins", "Fiat", "Issued Nomins"],
+                                 [], [], [], [], [], [])
 
         try:
             agents = sorted(
@@ -101,7 +107,7 @@ class WealthBreakdownModule(BarGraphModule):
 
             for item in agents:
                 vals[1].append(item[1].name)
-                breakdown = item[1].wealth_breakdown()
+                breakdown = item[1].wealth_breakdown(self.absolute)
                 for i in range(len(breakdown)):
                     vals[i + 2].append(breakdown[i])
 

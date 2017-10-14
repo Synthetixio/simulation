@@ -76,7 +76,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        WealthBreakdownModule([{"Label": "WealthBreakdown"}]),
+        WealthBreakdownModule([{"Label": "WealthBreakdown"}], absolute=True),
 
         TotalWealthModule([{"Label": "Wealth"}]),
 
