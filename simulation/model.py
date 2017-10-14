@@ -95,19 +95,17 @@ class Havven(Model):
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
-            self.schedule.add(ag.Randomizer(i, self, fiat=3*max_fiat))
+            rand = ag.Randomizer(i, self, fiat=max_fiat)
+            self.endow_curits(rand, 3*max_fiat)
+            self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arbitrageur = ag.Arbitrageur(i, self, 0)
-            self.endow_curits(arbitrageur, max_fiat)
-            self.schedule.add(arbitrageur)
+            self.schedule.add(ag.Arbitrageur(i, self, fiat=max_fiat))
             i += 1
 
-        reserve_bank = ag.MarketPlayer(i, self, 0)
-        self.endow_curits(reserve_bank, 6 * num_agents * max_fiat)
-        self.schedule.add(reserve_bank)
-        reserve_bank.sell_curits_for_fiat(num_agents * max_fiat * 3)
-        reserve_bank.sell_curits_for_nomins(num_agents * max_fiat * 3)
+        central_bank = ag.CentralBank(i, self, fiat = (0.5 * num_agents * max_fiat), nomin_target=1.0)
+        self.endow_curits(central_bank, (num_agents * max_fiat))
+        self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()

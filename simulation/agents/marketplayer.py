@@ -134,8 +134,17 @@ class MarketPlayer(Agent):
         return self.model.mint.unavailable_escrowed_curits(self)
 
     def max_issuance_rights(self) -> float:
-        """The total quantity of nomins this agent has a right to issue."""
+        """
+        The total quantity of nomins this agent has a right to issue.
+        """
         return self.model.mint.max_issuance_rights(self)
+
+    def remaining_issuance_rights(self) -> float:
+        """
+        Return the remaining quantity of tokens this agent can issued on the back of their
+          escrowed curits. May be negative.
+        """
+        return self.model.mint.remaining_issuance_rights(self)
 
     def issue_nomins(self, value: float) -> bool:
         """
@@ -145,53 +154,71 @@ class MarketPlayer(Agent):
         return self.model.mint.issue_nomins(self, value)
 
     def burn_nomins(self, value: float) -> bool:
-        """Burn a positive value of issued nomins, which frees up curits."""
+        """
+        Burn a positive value of issued nomins, which frees up curits.
+        """
         return self.model.mint.burn_nomins(self, value)
 
     def _sell_quoted_(self, book: "ob.OrderBook", quantity: float,
                       premium: float = 0.0) -> "ob.Bid":
-        """Sell a quantity of the quoted currency into the given market."""
+        """
+        Sell a quantity of the quoted currency into the given market.
+        """
         price = book.lowest_ask_price()
         return book.buy(quantity/price, self, premium)
 
     def _sell_base_(self, book: "ob.OrderBook", quantity: float,
                     discount: float = 0.0) -> "ob.Ask":
-        """Sell a quantity of the base currency into the given market."""
+        """
+        Sell a quantity of the base currency into the given market.
+        """
         return book.sell(quantity, self, discount)
 
     def sell_nomins_for_curits(self, quantity: float,
                                premium: float = 0.0) -> "ob.Bid":
-        """Sell a quantity of nomins to buy curits."""
+        """
+        Sell a quantity of nomins to buy curits.
+        """
         return self._sell_quoted_(self.model.market_manager.curit_nomin_market,
                                   quantity, premium)
 
     def sell_curits_for_nomins(self, quantity: float,
                                discount: float = 0.0) -> "ob.Ask":
-        """Sell a quantity of curits to buy nomins."""
+        """
+        Sell a quantity of curits to buy nomins.
+        """
         return self._sell_base_(self.model.market_manager.curit_nomin_market,
                                 quantity, discount)
 
     def sell_fiat_for_curits(self, quantity: float,
                              premium: float = 0.0) -> "ob.Bid":
-        """Sell a quantity of fiat to buy curits."""
+        """
+        Sell a quantity of fiat to buy curits.
+        """
         return self._sell_quoted_(self.model.market_manager.curit_fiat_market,
                                   quantity, premium)
 
     def sell_curits_for_fiat(self, quantity: float,
                              discount: float = 0.0) -> "ob.Ask":
-        """Sell a quantity of curits to buy fiat."""
+        """
+        Sell a quantity of curits to buy fiat.
+        """
         return self._sell_base_(self.model.market_manager.curit_fiat_market,
                                 quantity, discount)
 
     def sell_fiat_for_nomins(self, quantity: float,
                              premium: float = 0.0) -> "ob.Bid":
-        """Sell a quantity of fiat to buy nomins."""
+        """
+        Sell a quantity of fiat to buy nomins.
+        """
         return self._sell_quoted_(self.model.market_manager.nomin_fiat_market,
                                   quantity, premium)
 
     def sell_nomins_for_fiat(self, quantity: float,
                              discount: float = 0.0) -> "ob.Ask":
-        """Sell a quantity of nomins to buy fiat."""
+        """
+        Sell a quantity of nomins to buy fiat.
+        """
         return self._sell_base_(self.model.market_manager.nomin_fiat_market,
                                 quantity, discount)
 
@@ -353,11 +380,15 @@ class MarketPlayer(Agent):
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
-        """Notify this agent that its order was cancelled."""
+        """
+        Notify this agent that its order was cancelled.
+        """
         pass
 
     def notify_filled(self, order: "ob.LimitOrder") -> None:
-        """Notify this agent that its order was filled."""
+        """
+        Notify this agent that its order was filled.
+        """
         pass
 
     def step(self) -> None:
