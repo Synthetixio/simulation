@@ -43,6 +43,15 @@ class MarketPlayer(Agent):
                                      nomins = (self.nomins - self.issued_nomins),
                                      fiat = self.fiat)
 
+
+    def _fraction_(self, qty: float, divisor: float = 3, minimum: float = 1):
+        """
+        Return a fraction of the given quantity, with a minimum.
+        Used for depleting reserves gradually.
+        """
+        return max(qty / divisor, min(minimum, qty))
+
+
     def wealth_breakdown(self, absolute: bool = False) -> Tuple[float, float, float, float, float]:
         """
         Return the parts of the agent that dictate its wealth, at equivalent fiat value.

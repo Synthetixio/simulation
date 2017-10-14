@@ -16,7 +16,7 @@ class Arbitrageur(MarketPlayer):
             return
 
 
-        print(self._forward_multiple_(), self._reverse_multiple_(), end=" -> ")
+        #print(self._forward_multiple_(), self._reverse_multiple_(), end=" -> ")
 
         if self._forward_multiple_() > 1:
             # Trade in the forward direction
@@ -87,7 +87,7 @@ class Arbitrageur(MarketPlayer):
             f_qty = min(self.fiat, fc_qty * fc_price)
             self.sell_nomins_for_curits(n_qty)
 
-        print(self._forward_multiple_(), self._reverse_multiple_())
+        #print(self._forward_multiple_(), self._reverse_multiple_())
 
     def _cycle_fee_rate_(self) -> float:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""

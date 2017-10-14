@@ -9,7 +9,6 @@ from mesa.datacollection import DataCollector
 import stats
 import agents as ag
 from managers import HavvenManager, MarketManager, FeeManager, Mint
-from orderbook import OrderBook
 
 
 class Havven(Model):
@@ -80,9 +79,9 @@ class Havven(Model):
 
         # Create the market players
 
-        fractions = {"banks": 0.25,
+        fractions = {"banks": 0.2,
                      "arbs": 0.25,
-                     "rands": 0.5}
+                     "rands": 0.55}
 
         num_banks = int(num_agents * fractions["banks"])
         num_rands = int(num_agents * fractions["rands"])

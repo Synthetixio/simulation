@@ -17,12 +17,12 @@ class FeeManager:
 
         # Multiplicative transfer fee rates
         self.nom_fee_rate: float = 0.005
-        self.cur_fee_rate: float = 0.01
-        self.fiat_fee_rate: float = 0.0
+        self.cur_fee_rate: float = 0.005
+        self.fiat_fee_rate: float = 0.005
 
         # Multiplicative issuance fee rates
         self.issuance_fee_rate: float = 0.0
-        self.redemption_fee_rate: float = 0.02
+        self.redemption_fee_rate: float = 0.0
 
         self.fees_distributed: float = 0.0
 
