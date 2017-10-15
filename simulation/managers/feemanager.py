@@ -54,29 +54,39 @@ class FeeManager:
         return quantity / (1 + self.nom_fee_rate)
 
     def transferred_fiat_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of fiat."""
+        """
+        Return the fee charged for transferring a quantity of fiat.
+        """
         return quantity * self.fiat_fee_rate
 
     def transferred_curits_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of curits."""
+        """
+        Return the fee charged for transferring a quantity of curits.
+        """
         return quantity * self.cur_fee_rate
 
     def transferred_nomins_fee(self, quantity: float) -> float:
-        """Return the fee charged for transferring a quantity of nomins."""
+        """
+        Return the fee charged for transferring a quantity of nomins.
+        """
         return quantity * self.nom_fee_rate
 
     def distribute_fees(self, schedule_agents: List["agents.MarketPlayer"]) -> None:
-        """Distribute currently held nomins to holders of curits."""
+        """
+        Distribute currently held nomins to holders of curits.
+        """
         # Different fee modes:
         #  * distributed by held curits
         # TODO: * distribute by escrowed curits
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
+        pre_nomins = self.model_manager.nomins
         for agent in schedule_agents:
-            if self.model_manager.nomins == 0:
+            if self.model_manager.nomins <= 0.0:
                 break
-            qty = min(agent.issued_nomins / self.model_manager.nomins, self.model_manager.nomins)
+            qty = min(pre_nomins * agent.issued_nomins / self.model_manager.nomin_supply,
+                      self.model_manager.nomins)
             agent.nomins += qty
             self.model_manager.nomins -= qty
             self.fees_distributed += qty
