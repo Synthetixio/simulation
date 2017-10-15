@@ -80,7 +80,6 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
 
     this.setSeriesColour = function (selector, colour) {
         var bars = document.querySelectorAll(selector);
-        console.log(bars);
         for (let i = 0; i < bars.length; ++i) {
             bars[i].style.stroke = colour;
         }
