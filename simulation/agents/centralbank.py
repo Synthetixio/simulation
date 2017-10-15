@@ -101,8 +101,8 @@ class CentralBank(MarketPlayer):
             # Price is too high, it should decrease: we will sell nomins at a discount.
             if nomin_price > (self.nomin_target * (1 + self.tolerance)):
                 if self.nomins > 0:
-                    self.nomin_order = self.place_nomin_fiat_ask_with_fee(self._fraction_(self.nomins),
-                                                                            self.nomin_target)
+                    self.place_nomin_fiat_ask_with_fee(self._fraction_(self.nomins),
+                                                                       self.nomin_target)
                     # print("Selling nomins to bring price down.")
                 else:
                     # If we have some curits, we can issue nomins on the back of them to sell.
@@ -121,8 +121,8 @@ class CentralBank(MarketPlayer):
             # Price is too low, it should increase: we will buy nomins at a premium.
             elif nomin_price < (self.nomin_target * (1 - self.tolerance)):
                 if self.fiat > 0:
-                    self.nomin_order = self.place_nomin_fiat_bid_with_fee(self._fraction_(self.fiat),
-                                                                            self.nomin_target)
+                    self.place_nomin_fiat_bid_with_fee(self._fraction_(self.fiat),
+                                                       self.nomin_target)
                     # print("Buying nomins to bring price up.")
                 else:
                     if self.curits > 0:
