@@ -1,10 +1,13 @@
 from typing import Set, Tuple, Callable
+from collections import namedtuple
 
 from mesa import Agent
 
 import model
 import orderbook as ob
 
+Portfolio = namedtuple("Portfolio",
+                       ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
 
 class MarketPlayer(Agent):
     """
@@ -43,7 +46,7 @@ class MarketPlayer(Agent):
         Used for depleting reserves gradually.
         """
         return max(qty / divisor, min(minimum, qty))
-    
+
     def cancel_orders(self) -> None:
         """
         Cancel all of this agent's orders.
@@ -57,19 +60,27 @@ class MarketPlayer(Agent):
                                      nomins = (self.nomins - self.issued_nomins),
                                      fiat = self.fiat)
 
-    def wealth_breakdown(self, absolute: bool = False) -> Tuple[float, float, float, float, float]:
+    def portfolio(self, fiat_values: bool = False) -> Tuple[float, float, float, float, float]:
         """
-        Return the parts of the agent that dictate its wealth, at equivalent fiat value.
-        If absolute is True, then return the nominal values only.
+        Return the parts of the agent that dictate its wealth.
+        If fiat_value is True, then return the equivalent fiat values at the going market rates.
         """
-        if absolute:
-            return (self.curits, self.escrowed_curits,
-                    self.nomins, self.fiat, self.issued_nomins)
 
-        v_f = self.model.fiat_value
-        return (v_f(curits=self.curits), v_f(curits=self.escrowed_curits),
-                v_f(nomins=self.nomins), v_f(fiat=self.fiat),
-                v_f(nomins=self.issued_nomins))
+        fiat = self.fiat
+        curits = self.curits
+        escrowed_curits = self.escrowed_curits
+        nomins = self.nomins
+        issued_nomins = self.issued_nomins
+
+        if fiat_values:
+            v_f = self.model.fiat_value
+            curits = v_f(curits=curits)
+            escrowed_curits = v_f(curits=escrowed_curits)
+            nomins = v_f(nomins=nomins)
+            issued_nomins = v_f(nomins=issued_nomins)
+
+        return Portfolio(fiat=fiat, curits=curits, escrowed_curits=escrowed_curits,
+                         nomins=nomins, issued_nomins=issued_nomins)
 
     def reset_initial_wealth(self) -> float:
         """Reset this agent's initial wealth to the current wealth, returning the old value."""

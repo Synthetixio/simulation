@@ -1,6 +1,5 @@
 // BarGraphModule.js
 
-
 var BarGraphModule = function (graph_id, num_agents, width, height) {
 
     // Create the elements
@@ -9,13 +8,12 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
     // Append it to body:
     let div = $(div_tag)[0];
     $("body").append(div);
-    // Prep the chart properties and series:
 
+    // Prep the chart properties and series:
     let data = {
         labels: [],
         series: [[]]
     };
-
 
     let options = {
         stackBars: true,
@@ -61,10 +59,30 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
         }
 
         chart.update();
+
+        // Set styles
+        // Fiat
+        this.setSeriesColour(".ct-series-a .ct-bar", "darkgreen");
+        // Escrowed Curits
+        this.setSeriesColour(".ct-series-b .ct-bar", "darkred");
+        // Curits
+        this.setSeriesColour(".ct-series-c .ct-bar", "red");
+        // Nomins
+        this.setSeriesColour(".ct-series-d .ct-bar", "deepskyblue");
+        // Issued Nomins
+        this.setSeriesColour(".ct-series-e .ct-bar", "blue");
     };
 
     this.reset = function () {
         chart.data.series = [];
         chart.data.labels = [];
     };
+
+    this.setSeriesColour = function (selector, colour) {
+        var bars = document.querySelectorAll(selector);
+        console.log(bars);
+        for (let i = 0; i < bars.length; ++i) {
+            bars[i].style.stroke = colour;
+        }
+    }
 };

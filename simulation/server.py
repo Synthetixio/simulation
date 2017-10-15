@@ -7,7 +7,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization import OrderBookModule, WealthModule, WealthBreakdownModule
+from visualization import OrderBookModule, WealthModule, PortfolioModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
@@ -22,9 +22,9 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     charts: List[VisualizationElement] = [
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Nomin Price", "Color": "blue"},
-            {"Label": "Nomin Ask", "Color": "blue"},
-            {"Label": "Nomin Bid", "Color": "blue"}]),
+            {"Label": "Nomin Price", "Color": "deepskyblue"},
+            {"Label": "Nomin Ask", "Color": "deepskyblue"},
+            {"Label": "Nomin Bid", "Color": "deepskyblue"}]),
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
@@ -34,18 +34,18 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "1", "Color": "grey"},
-            {"Label": "Curit/Nomin Price", "Color": "fuchsia"},
-            {"Label": "Curit/Nomin Ask", "Color": "fuchsia"},
-            {"Label": "Curit/Nomin Bid", "Color": "fuchsia"}]),
+            {"Label": "Curit/Nomin Price", "Color": "darkorchid"},
+            {"Label": "Curit/Nomin Ask", "Color": "darkorchid"},
+            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"}]),
 
         ChartModule([
-            {"Label": "Havven Nomins", "Color": "blue"},
+            {"Label": "Havven Nomins", "Color": "deepskyblue"},
             {"Label": "Havven Curits", "Color": "red"},
-            {"Label": "Havven Fiat", "Color": "green"}]),
+            {"Label": "Havven Fiat", "Color": "darkgreen"}]),
 
         ChartModule([
             {"Label": "0", "Color": "grey"},
-            {"Label": "Gini", "Color": "red"}]),
+            {"Label": "Gini", "Color": "navy"}]),
             #{"Label": "Wealth SD", "Color": "blue"}]),
 
         ChartModule([
@@ -60,20 +60,20 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Rand Profit %", "Color": "green"}]),
 
         ChartModule([
-            {"Label": "Nomins", "Color": "blue"},
-            {"Label": "Escrowed Curits", "Color": "limegreen"}]),
+            {"Label": "Nomins", "Color": "deepskyblue"},
+            {"Label": "Escrowed Curits", "Color": "darkred"}]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
             {"Label": "Curit Supply", "Color": "orange"}]),
 
         ChartModule([
-            {"Label": "Nomin Demand", "Color": "blue"},
+            {"Label": "Nomin Demand", "Color": "deepskyblue"},
             {"Label": "Nomin Supply", "Color": "purple"}]),
 
         ChartModule([
-            {"Label": "Fiat Demand", "Color": "green"},
-            {"Label": "Fiat Supply", "Color": "cyan"}]),
+            {"Label": "Fiat Demand", "Color": "darkgreen"},
+            {"Label": "Fiat Supply", "Color": "lightgreen"}]),
 
         ChartModule([
             {"Label": "0", "Color": "grey"},
@@ -83,7 +83,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        WealthBreakdownModule([{"Label": "WealthBreakdown"}], absolute=True),
+        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=True),
 
         WealthModule([{"Label": "Wealth"}]),
 
