@@ -1,5 +1,4 @@
 import agents
-import model
 
 from .havvenmanager import HavvenManager
 from .marketmanager import MarketManager
