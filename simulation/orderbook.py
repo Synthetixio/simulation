@@ -238,6 +238,8 @@ class OrderBook:
         """
         The bid price to buy a certain quantity. Note that this is an instantaneous
         metric which may be invalidated if intervening trades are made.
+
+        This doesn't take into account the fee
         """
         cumulative = 0
         price = self.price
@@ -252,6 +254,8 @@ class OrderBook:
         """
         The ask price to sell a certain quantity. Note that this is an instantaneous
         metric which may be invalidated if intervening trades are made.
+
+        This doesn't take into account the fee
         """
         cumulative = 0
         price = self.price
