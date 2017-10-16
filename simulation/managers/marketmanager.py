@@ -62,17 +62,17 @@ class MarketManager:
         # The earlier poster trades at their posted price,
         #   while the later poster transacts at a price no worse than posted;
         #   they may do better.
-        price = ask.price if ask.time < bid.time else bid.price
-        quantity = min(ask.quantity, bid.quantity)
+        price = self.round_decimal(ask.price if ask.time < bid.time else bid.price)
+        quantity = self.round_decimal(min(ask.quantity, bid.quantity))
 
         # only charge a fraction of the fee
         if quantity == ask.quantity:
-            ask_fee = ask.fee
-            bid_fee = quantity/bid.quantity * bid.fee
+            ask_fee = self.round_decimal(ask.fee)
+            bid_fee = self.round_decimal(quantity/bid.quantity * bid.fee)
         else:
-            bid_fee = bid.fee
-            ask_fee = quantity/ask.quantity * ask.fee
-        buy_val = quantity * price
+            bid_fee = self.round_decimal(bid.fee)
+            ask_fee = self.round_decimal(quantity/ask.quantity * ask.fee)
+        buy_val = self.round_decimal(quantity * price)
 
         # Only perform the actual transfer if it would be successful.
         # Cancel any orders that would not succeed.
@@ -92,8 +92,8 @@ class MarketManager:
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
-        ask.update_quantity(ask.quantity - quantity, ask_fee)
-        bid.update_quantity(bid.quantity - quantity, bid_fee)
+        ask.update_quantity(self.round_decimal(ask.quantity - quantity), ask_fee)
+        bid.update_quantity(self.round_decimal(bid.quantity - quantity), bid_fee)
 
         return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
 
@@ -216,3 +216,6 @@ class MarketManager:
     def fiat_to_nomins(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
         return quantity / self.nomin_fiat_market.price
+
+    def round_decimal(self, value: "Decimal") -> "Decimal":
+        return round(value, self.model_manager.currency_precision)
