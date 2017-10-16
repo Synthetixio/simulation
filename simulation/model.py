@@ -81,11 +81,13 @@ class Havven(Model):
 
         fractions = {"banks": 0.2,
                      "arbs": 0.25,
-                     "rands": 0.55}
+                     "rands": 0.35,
+                     "nomin shorter": 0.2}
 
         num_banks = int(num_agents * fractions["banks"])
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
+        nomin_shorters = int(num_agents * fractions["nomin shorter"])
 
         i = 0
 
@@ -95,7 +97,7 @@ class Havven(Model):
             i += 1
         for _ in range(num_rands):
             rand = ag.Randomizer(i, self, fiat=max_fiat)
-            self.endow_curits(rand, 3*max_fiat)
+            self.endow_curits(rand, max_fiat)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
@@ -103,8 +105,12 @@ class Havven(Model):
             self.endow_curits(arb, max_fiat/2)
             self.schedule.add(arb)
             i += 1
+        for _ in range(nomin_shorters):
+            nomin_shorter = ag.NominShorter(i, self, nomins=max_fiat*3)
+            self.schedule.add(nomin_shorter)
+            i += 1
 
-        central_bank = ag.CentralBank(i, self, fiat = (num_agents * max_fiat), curit_target=1.0)
+        central_bank = ag.CentralBank(i+1, self, fiat=(num_agents * max_fiat), curit_target=1.0)
         self.endow_curits(central_bank, (num_agents * max_fiat))
         self.schedule.add(central_bank)
 
