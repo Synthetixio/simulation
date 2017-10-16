@@ -1,10 +1,12 @@
 from typing import Optional, Callable
+from decimal import Decimal
 
 import orderbook as ob
 import agents as ag
 
 from .havvenmanager import HavvenManager
 from .feemanager import FeeManager
+
 
 class MarketManager:
     """
@@ -21,19 +23,19 @@ class MarketManager:
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.curit_nomin_market = ob.OrderBook(
-            "CUR", "NOM", self.curit_nomin_match,
+            model_manager, "CUR", "NOM", self.curit_nomin_match,
             self.fee_manager.transferred_nomins_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.curit_fiat_market = ob.OrderBook(
-            "CUR", "FIAT", self.curit_fiat_match,
+            model_manager, "CUR", "FIAT", self.curit_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
-            "NOM", "FIAT", self.nomin_fiat_match,
+            model_manager, "NOM", "FIAT", self.nomin_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_nomins_fee,
             self.model_manager.match_on_order
@@ -41,10 +43,10 @@ class MarketManager:
 
     def __bid_ask_match__(
             self, bid: "ob.Bid", ask: "ob.Ask",
-            bid_success: Callable[["ag.MarketPlayer", float, float], bool],
-            ask_success: Callable[["ag.MarketPlayer", float, float], bool],
-            bid_transfer: Callable[["ag.MarketPlayer", "ag.MarketPlayer", float, float], bool],
-            ask_transfer: Callable[["ag.MarketPlayer", "ag.MarketPlayer", float, float], bool]
+            bid_success: Callable[["ag.MarketPlayer", "Decimal", "Decimal"], bool],
+            ask_success: Callable[["ag.MarketPlayer", "Decimal", "Decimal"], bool],
+            bid_transfer: Callable[["ag.MarketPlayer", "ag.MarketPlayer", "Decimal", "Decimal"], bool],
+            ask_transfer: Callable[["ag.MarketPlayer", "ag.MarketPlayer", "Decimal", "Decimal"], bool]
     ) -> Optional["ob.TradeRecord"]:
         """
         If possible, match the given bid and ask, with the given transfer
@@ -132,22 +134,22 @@ class MarketManager:
                                       self.transfer_nomins)
 
     def transfer_fiat_success(self, sender: "ag.MarketPlayer",
-                              quantity: float, fee: float) -> bool:
+                              quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of fiat."""
         return 0 <= quantity + fee <= sender.fiat
 
     def transfer_curits_success(self, sender: "ag.MarketPlayer",
-                                quantity: float, fee: float) -> bool:
+                                quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of curits."""
         return 0 <= quantity + fee <= sender.curits
 
     def transfer_nomins_success(self, sender: "ag.MarketPlayer",
-                                quantity: float, fee: float) -> bool:
+                                quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of nomins."""
         return 0 <= quantity + fee <= sender.nomins
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
-                      recipient: "ag.MarketPlayer", quantity: float, fee: float) -> bool:
+                      recipient: "ag.MarketPlayer", quantity: "Decimal", fee: "Decimal") -> bool:
         """
         Transfer a positive quantity of fiat currency from the sender to the
           recipient, if balance is sufficient. Return True on success.
@@ -160,7 +162,7 @@ class MarketManager:
         return False
 
     def transfer_curits(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: float, fee: float) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: "Decimal", fee: "Decimal") -> bool:
         """
         Transfer a positive quantity of curits from the sender to the recipient,
           if balance is sufficient. Return True on success.
@@ -173,7 +175,7 @@ class MarketManager:
         return False
 
     def transfer_nomins(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: float, fee: float) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: "Decimal", fee: "Decimal") -> bool:
         """
         Transfer a positive quantity of nomins from the sender to the recipient,
           if balance is sufficient. Return True on success.
@@ -185,32 +187,32 @@ class MarketManager:
             return True
         return False
 
-    def curits_to_nomins(self, quantity: float) -> float:
+    def curits_to_nomins(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of curits to its equivalent quantity in nomins."""
         return quantity * self.curit_nomin_market.price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.curit_fiat_market.price) / self.nomin_fiat_market.price
 
-    def curits_to_fiat(self, quantity: float) -> float:
+    def curits_to_fiat(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of curits to its equivalent quantity in fiat."""
         return quantity * self.curit_fiat_market.price
 
-    def nomins_to_curits(self, quantity: float) -> float:
+    def nomins_to_curits(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of nomins to its equivalent quantity in curits."""
         return quantity / self.curit_nomin_market.price
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.nomin_fiat_market.price) / self.curit_fiat_market.price
 
-    def nomins_to_fiat(self, quantity: float) -> float:
+    def nomins_to_fiat(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of nomins to its equivalent quantity in fiat."""
         return quantity * self.nomin_fiat_market.price
 
-    def fiat_to_curits(self, quantity: float) -> float:
+    def fiat_to_curits(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of fiat to its equivalent quantity in curits."""
         return quantity / self.curit_fiat_market.price
 
-    def fiat_to_nomins(self, quantity: float) -> float:
+    def fiat_to_nomins(self, quantity: "Decimal") -> "Decimal":
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
         return quantity / self.nomin_fiat_market.price

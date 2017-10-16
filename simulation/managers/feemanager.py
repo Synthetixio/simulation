@@ -1,7 +1,9 @@
 from typing import List
+from decimal import Decimal
 
 import agents 
 from .havvenmanager import HavvenManager
+
 
 class FeeManager:
     """
@@ -16,56 +18,56 @@ class FeeManager:
         self.fee_period: int = 50
 
         # Multiplicative transfer fee rates
-        self.nom_fee_rate: float = 0.005
-        self.cur_fee_rate: float = 0.005
-        self.fiat_fee_rate: float = 0.005
+        self.nom_fee_rate: "Decimal" = Decimal('0.005')
+        self.cur_fee_rate: "Decimal" = Decimal('0.005')
+        self.fiat_fee_rate: "Decimal" = Decimal('0.005')
 
         # Multiplicative issuance fee rates
-        self.issuance_fee_rate: float = 0.0
-        self.redemption_fee_rate: float = 0.0
+        self.issuance_fee_rate: "Decimal" = Decimal("0.0")
+        self.redemption_fee_rate: "Decimal" = Decimal("0.0")
 
-        self.fees_distributed: float = 0.0
+        self.fees_distributed: "Decimal" = Decimal("0.0")
 
-    def transferred_fiat_received(self, quantity: float) -> float:
+    def transferred_fiat_received(self, quantity: "Decimal") -> "Decimal":
         """
         Returns the fiat received by the recipient if a given quantity
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (1 + self.fiat_fee_rate)
+        return Decimal(quantity / (1 + self.fiat_fee_rate))
 
-    def transferred_curits_received(self, quantity: float) -> float:
+    def transferred_curits_received(self, quantity: "Decimal") -> "Decimal":
         """
         Returns the curits received by the recipient if a given quantity
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (1 + self.cur_fee_rate)
+        return Decimal(quantity / (1 + self.cur_fee_rate))
 
-    def transferred_nomins_received(self, quantity: float) -> float:
+    def transferred_nomins_received(self, quantity: "Decimal") -> "Decimal":
         """
         Returns the nomins received by the recipient if a given quantity
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (1 + self.nom_fee_rate)
+        return Decimal(quantity / (1 + self.nom_fee_rate))
 
-    def transferred_fiat_fee(self, quantity: float) -> float:
+    def transferred_fiat_fee(self, quantity: "Decimal") -> "Decimal":
         """
         Return the fee charged for transferring a quantity of fiat.
         """
         return quantity * self.fiat_fee_rate
 
-    def transferred_curits_fee(self, quantity: float) -> float:
+    def transferred_curits_fee(self, quantity: "Decimal") -> "Decimal":
         """
         Return the fee charged for transferring a quantity of curits.
         """
         return quantity * self.cur_fee_rate
 
-    def transferred_nomins_fee(self, quantity: float) -> float:
+    def transferred_nomins_fee(self, quantity: "Decimal") -> "Decimal":
         """
         Return the fee charged for transferring a quantity of nomins.
         """

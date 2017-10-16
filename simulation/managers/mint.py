@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 import agents
 
 from .havvenmanager import HavvenManager
 from .marketmanager import MarketManager
+
 
 class Mint:
     """
@@ -14,7 +17,7 @@ class Mint:
         self.market_manager = market_manager
 
     def escrow_curits(self, agent: "agents.MarketPlayer",
-                      value: float) -> bool:
+                      value: "Decimal") -> bool:
         """
         Escrow a positive value of curits in order to be able to issue
         nomins against them.
@@ -27,7 +30,7 @@ class Mint:
         return False
 
     def unescrow_curits(self, agent: "agents.MarketPlayer",
-                        value: float) -> bool:
+                        value: "Decimal") -> bool:
         """
         Unescrow a quantity of curits, if there are not too many
         issued nomins locking it.
@@ -50,7 +53,7 @@ class Mint:
         """
         return agent.escrowed_curits - self.unavailable_escrowed_curits(agent)
 
-    def unavailable_escrowed_curits(self, agent: "agents.MarketPlayer") -> float:
+    def unavailable_escrowed_curits(self, agent: "agents.MarketPlayer") -> "Decimal":
         """
         Return the quantity of locked escrowed curits,
           having had nomins issued against it.
@@ -58,22 +61,21 @@ class Mint:
         """
         return self.market_manager.nomins_to_curits(agent.issued_nomins)
 
-    def max_issuance_rights(self, agent: "agents.MarketPlayer") -> float:
+    def max_issuance_rights(self, agent: "agents.MarketPlayer") -> "Decimal":
         """
         The total quantity of nomins this agent has a right to issue.
         """
         return self.market_manager.curits_to_nomins(agent.escrowed_curits) * \
             self.havven_manager.utilisation_ratio_max
 
-    def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> float:
+    def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> "Decimal":
         """
         Return the remaining quantity of tokens this agent can issued on the back of their
           escrowed curits. May be negative.
         """
         return self.market_manager.curits_to_nomins(self.available_escrowed_curits(agent))
 
-    def issue_nomins(self, agent: "agents.MarketPlayer",
-                     value: float) -> bool:
+    def issue_nomins(self, agent: "agents.MarketPlayer", value: "Decimal") -> bool:
         """
         Issue a positive value of nomins against currently escrowed curits,
           up to the utilisation ratio maximum.
@@ -86,8 +88,7 @@ class Mint:
             return True
         return False
 
-    def burn_nomins(self, agent: "agents.MarketPlayer",
-                    value: float) -> bool:
+    def burn_nomins(self, agent: "agents.MarketPlayer", value: "Decimal") -> bool:
         """
         Burn a positive value of issued nomins, which frees up curits.
         """
