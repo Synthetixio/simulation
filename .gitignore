@@ -12,3 +12,5 @@ block8logo_svg*
 .vscode
 .ipynb_checkpoints
 .mypy_cache
+
+./analysis/whitepaper.pdf
