@@ -7,12 +7,15 @@ from itertools import takewhile
 from sortedcontainers import SortedListWithKey
 
 import agents as ag
+from managers import FeeManager
+
 
 class LimitOrder:
     """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
-    def __init__(self, price: float, time: int, quantity: float,
+    def __init__(self, price: float, time: int, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
+        self.fee = fee
         self.time = time
         self.quantity = quantity
         self.issuer = issuer
@@ -23,29 +26,32 @@ class LimitOrder:
         """Remove this order from the issuer and the order book if it's active."""
         pass
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         """Update this order's price, updating its timestamp, possibly reordering its order book."""
         pass
 
-    def update_quantity(self, quantity: float) -> None:
+    def update_quantity(self, quantity: float, fee: float) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
-        if quantity >= 0:
+        if quantity > 0:
             self.quantity = quantity
+            self.fee = fee
         else:
             self.quantity = 0
+            self.fee = 0
             self.cancel()
 
     def __str__(self) -> str:
         return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
                f"@ {self.time} by {self.issuer}"
 
+
 class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: float, quantity: float,
+    def __init__(self, price: float, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
-        super().__init__(price, book.time, quantity, issuer, book)
+        super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
-            self.active = False
+            self.active = False  # bid will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.bids.add(self)
@@ -54,7 +60,7 @@ class Bid(LimitOrder):
     @classmethod
     def comparator(cls, bid: "Bid"):
         """Bids are sorted first by descending price and then by ascending time."""
-        return (-bid.price, bid.time)
+        return -bid.price, bid.time
 
     def cancel(self) -> None:
         if self.active:
@@ -64,10 +70,11 @@ class Bid(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         if self.active:
             self.book.bids.remove(self)
             self.price = price
+            self.fee = fee
             self.time = self.book.time
             self.book.bids.add(self)
             self.book.step()
@@ -78,11 +85,11 @@ class Bid(LimitOrder):
 
 class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: float, quantity: float,
+    def __init__(self, price: float, quantity: float, fee: float,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
-        super().__init__(price, book.time, quantity, issuer, book)
+        super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
-            self.active = False
+            self.active = False  # ask will not be added to the orderbook
         else:
             issuer.orders.add(self)
             book.asks.add(self)
@@ -91,7 +98,7 @@ class Ask(LimitOrder):
     @classmethod
     def comparator(cls, ask: "Ask"):
         """Asks are sorted first by ascending price and then by ascending time."""
-        return (ask.price, ask.time)
+        return ask.price, ask.time
 
     def cancel(self) -> None:
         if self.active:
@@ -101,10 +108,11 @@ class Ask(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: float) -> None:
+    def update_price(self, price: float, fee: float) -> None:
         if self.active:
             self.book.asks.remove(self)
             self.price = price
+            self.fee = fee
             self.time = self.book.time
             self.book.asks.add(self)
             self.book.step()
@@ -129,11 +137,18 @@ class TradeRecord:
 # A type for matching functions in the order book.
 Matcher = Callable[[Bid, Ask], Optional[TradeRecord]]
 
-class OrderBook:
-    """An order book for Havven agents to interact with.""" \
-    """This one is generic, but there will have to be a market for each currency pair."""
 
-    def __init__(self, base: str, quote: str, matcher: Matcher, match_on_order: bool = True) -> None:
+class OrderBook:
+    """
+    An order book for Havven agents to interact with.
+    This one is generic, but there will have to be a market for each currency pair.
+    """
+
+    def __init__(self, base: str, quote: str,
+                 matcher: Matcher, bid_fee_fn: Callable[[float], float],
+                 ask_fee_fn: Callable[[float], float],
+                 match_on_order: bool = True) -> None:
+
         # Define the currency pair held by this book.
         self.base: str = base
         self.quote: str = quote
@@ -154,6 +169,10 @@ class OrderBook:
         # and which returns True iff the transfer succeeded.
         self.matcher: Matcher = matcher
 
+        # Fees will be calculated with the following functions.
+        self.bid_fee_fn: Callable[[float], float] = bid_fee_fn
+        self.ask_fee_fn: Callable[[float], float] = ask_fee_fn
+
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
@@ -162,39 +181,58 @@ class OrderBook:
 
     @property
     def name(self) -> str:
-        """Return this market's name."""
+        """
+        Return this market's name.
+        """
         return f"{self.base}/{self.quote}"
 
     def step(self) -> None:
-        """Advance the time on this order book by one step."""
+        """
+        Advance the time on this order book by one step.
+        """
         self.time += 1
 
     def bid(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Bid:
-        """Submit a new sell order to the book."""
-        bid = Bid(price, quantity, agent, self)
+        """
+        Submit a new sell order to the book.
+        """
+        fee = self.bid_fee_fn(price * quantity)
+        bid = Bid(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
         return bid
 
     def ask(self, price: float, quantity: float, agent: "ag.MarketPlayer") -> Ask:
-        """Submit a new buy order to the book."""
-        ask = Ask(price, quantity, agent, self)
+        """
+        Submit a new buy order to the book.
+        """
+        fee = self.ask_fee_fn(quantity)
+        ask = Ask(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
         return ask
 
-    def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0) -> Bid:
-        """Buy a quantity of the sale token at the best available price."""
-        price = self.price_to_buy_quantity(quantity)
+    def buy(self, quantity: float, agent: "ag.MarketPlayer", premium: float = 0.0) -> Bid:
+        """
+        Buy a quantity of the sale token at the best available price.
+        Optionally buy at a premium a certain fraction above the market price.
+        """
+        price = self.price_to_buy_quantity(quantity) * (1.0 + premium)
         return self.bid(price, quantity, agent)
 
-    def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0) -> Ask:
-        """Sell a quantity of the sale token at the best available price."""
-        price = self.price_to_sell_quantity(quantity)
+    def sell(self, quantity: float, agent: "ag.MarketPlayer", discount: float = 0.0) -> Ask:
+        """
+        Sell a quantity of the sale token at the best available price.
+        Optionally sell at a discount a certain fraction below the market price.
+        """
+        price = self.price_to_sell_quantity(quantity) * (1.0 - discount)
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: float) -> float:
-        """The bid price to buy a certain quantity."""
+        """
+        The bid price to buy a certain quantity. Note that this is an instantaneous
+        metric which may be invalidated if intervening trades are made.
+        """
         cumulative = 0
         price = self.price
         for ask in self.asks:
@@ -205,7 +243,10 @@ class OrderBook:
         return price
 
     def price_to_sell_quantity(self, quantity: float) -> float:
-        """The ask price to sell a certain quantity."""
+        """
+        The ask price to sell a certain quantity. Note that this is an instantaneous
+        metric which may be invalidated if intervening trades are made.
+        """
         cumulative = 0
         price = self.price
         for bid in self.bids:
@@ -251,10 +292,11 @@ class OrderBook:
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.
         while spread <= 0 and len(self.bids) and len(self.asks) and \
-              not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
-            
+                not (prev_bid == self.bids[0] and prev_ask == self.asks[0]):
+
             # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
+
             trade = self.matcher(prev_bid, prev_ask)
 
             # If a trade was made, then save it in the history.
