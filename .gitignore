@@ -1,5 +1,12 @@
+# Python runtime files
 *.pyc
 __pycache__
+
+# Python library/util caches
+.ipynb_checkpoints
+.mypy_cache
+
+# Latex build auxiliaries
 *.aux
 *.fdb_latexmk
 *.fls
@@ -8,8 +15,9 @@ __pycache__
 *.bbl
 *.blg
 block8logo_svg*
-.DS_Store
-.vscode
-.ipynb_checkpoints
-.mypy_cache
+
+# IDE, editor, and OS caches
+# (these should probably be in ./git/info/exclude)
 .idea
+.vscode
+.DS_Store
