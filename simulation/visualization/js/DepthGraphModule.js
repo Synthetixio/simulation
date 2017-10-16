@@ -71,20 +71,20 @@ var DepthGraphModule = function (graph_id, width, height) {
             // meta is the "label" that shows up on the tooltip
             // for some reason the x axis is the default value, so show the quant
             chart.data.series[0].unshift(
-                {x: price, y: cumulative_quant, meta: 'Quant: ' + cumulative_quant}
+                {x: this.round(price), y: this.round(cumulative_quant), meta: 'Quant: ' + this.round(cumulative_quant)}
             );
             chart.data.series[1].unshift(undefined);
             chart.data.labels.unshift(bids[i][0])
         }
         if (added_bid) {
             chart.data.series[0].unshift(
-                {x:avg_price * (1 - price_range), y:chart.data.series[0][0].y,
+                {x:this.round(avg_price * (1 - price_range)), y:chart.data.series[0][0].y,
                  meta: 'Quant: ' + chart.data.series[0][0].y}
             );
             chart.data.series[1].unshift(undefined);
         } else {
             chart.data.series[0].unshift(
-                {x:avg_price * (1 - price_range), y:0,
+                {x:this.round(avg_price * (1 - price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
             chart.data.series[1].unshift(undefined);
@@ -103,19 +103,20 @@ var DepthGraphModule = function (graph_id, width, height) {
             // meta is the "label" that shows up on the tooltip
             // for some reason the x axis is the default value, so show the quant
             chart.data.series[1].push(
-                {x: price, y: cumulative_quant, meta: 'Quant: ' + cumulative_quant}
+                {x: this.round(price), y: this.round(cumulative_quant), meta: 'Quant: ' + this.round(cumulative_quant)}
             );
             chart.data.labels.push(price)
         }
+
         if (added_ask) {
             chart.data.series[1].push(
-                {x:avg_price * (1 + price_range), y:chart.data.series[1][chart.data.series[1].length-1].y,
+                {x:this.round(avg_price * (1 + price_range)), y:chart.data.series[1][chart.data.series[1].length-1].y,
                  meta: 'Quant: ' + chart.data.series[1][chart.data.series[1].length-1].y}
             );
             chart.data.series[0].push(undefined);
         } else {
             chart.data.series[1].push(
-                {x:avg_price * (1 + price_range), y:0,
+                {x:this.round(avg_price * (1 + price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
             chart.data.series[0].push(undefined);
@@ -131,4 +132,8 @@ var DepthGraphModule = function (graph_id, width, height) {
             chart.data.labels = [];
         }
     };
+
+    this.round = function (value) {
+        return Math.floor(value*10000)/10000
+    }
 };
