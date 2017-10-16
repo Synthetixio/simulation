@@ -83,7 +83,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=True),
+        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
 
         WealthModule([{"Label": "Wealth"}]),
 

@@ -46,7 +46,7 @@ class Mint:
     ### THIS LOGIC IS BROKEN. UTILISATION RATIO NOT TAKEN INTO ACCOUNT AT EVERY LOCATION ###
     ### ALSO NEED TO ENSURE THAT NOMINS ARE ACTUALLY PROPERLY-ISSUABLE ###
 
-    def available_escrowed_curits(self, agent: "agents.MarketPlayer") -> float:
+    def available_escrowed_curits(self, agent: "agents.MarketPlayer") -> "Decimal":
         """
         Return the quantity of escrowed curits which is not
         locked by issued nomins. May be negative.
@@ -73,7 +73,7 @@ class Mint:
         Return the remaining quantity of tokens this agent can issued on the back of their
           escrowed curits. May be negative.
         """
-        return self.market_manager.curits_to_nomins(self.available_escrowed_curits(agent))
+        return self.max_issuance_rights(agent) - agent.issued_nomins
 
     def issue_nomins(self, agent: "agents.MarketPlayer", value: "Decimal") -> bool:
         """

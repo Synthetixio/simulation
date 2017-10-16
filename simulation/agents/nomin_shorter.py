@@ -89,8 +89,8 @@ class CuritEscrowNominShorter(NominShorter):
 
     curits-(issue)->nomins->fiat(and wait)->nomin-(burn)->curits+extra nomins
 
-    This should profit on both the issuing and burning mechanics (when they scale
-    with the price) and the nomin/fiat trade
+    This should profit on the issuing and burning mechanics (if they scale
+    with the price), the nomin/fiat trade and accruing fees
 
     In the end this player should hold escrowed curits and nomins left over that he
     can't burn
@@ -100,15 +100,30 @@ class CuritEscrowNominShorter(NominShorter):
         if self.curits > 0:
             self.escrow_curits(self.curits)
 
-        nomins = self.nomins + self.max_issuance_rights()
+        nomins = self.nomins + self.remaining_issuance_rights()
+
         if nomins > 0:
             trade = self._find_best_nom_fiat_trade()
-            while trade is not None and nomins > 0:
+            while trade is not None and self.round_decimal(nomins) > 0:
                 self._issue_nomins_up_to(trade[1])
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
+                nomins = self.nomins + self.remaining_issuance_rights()
 
-    def _issue_nomins_up_to(self, quantity: "Decimal") -> None:
+        if self.fiat > 0:
+            trade = self._find_best_fiat_nom_trade()
+            while trade is not None and self.round_decimal(self.fiat) > 0:
+                print("Fiat:", trade)
+                bid = self._make_fiat_nom_trade(trade)
+                trade = self._find_best_fiat_nom_trade()
+
+        if self.issued_nomins:
+            if self.nomins < self.issued_nomins:
+                self.burn_nomins(self.nomins)
+            else:
+                self.burn_nomins(self.issued_nomins)
+
+    def _issue_nomins_up_to(self, quantity: "Decimal") -> bool:
         """
         If quantity > currently issued nomins, including fees to trade, issue more nomins
 
@@ -118,11 +133,11 @@ class CuritEscrowNominShorter(NominShorter):
 
         # if there are enough nomins, return
         if self.nomins > fee + quantity:
-            return
+            return True
 
         nomins_needed = fee + quantity - self.nomins
 
-        if self.max_issuance_rights() > nomins_needed:
-            self.issue_nomins(nomins_needed)
+        if self.remaining_issuance_rights() > nomins_needed:
+            return self.issue_nomins(nomins_needed)
         else:
-            self.issue_nomins(self.max_issuance_rights())
+            return self.issue_nomins(self.remaining_issuance_rights())
