@@ -17,7 +17,7 @@
 \newcommand{\NOM}{\textsc{nom}}
 
 
-\title{Havven - A Stablecoin \\ v0.1}
+\title{Havven -- A Stablecoin \\ v0.1}
 \author{Anton Jurisevic, Samuel Brooks, Kain Warwick}
 \date{October 2017}
 
@@ -36,9 +36,9 @@ Introduction. \\
 
 They key requirement of money is for it to hold a known value over an arbitrary period of time, such that rational actors are able to make economic plans. \\
 
-\noindent Under the gold standard system of money, it was found that in times of economic crises this method of representing value caused exacerbations in poor economic conditions due to the tendency of rational actors to cut spending and 'hoard' cash. \\
+\noindent Under the gold standard system of money, it was found that in times of economic crises this method of representing value caused exacerbations in poor economic conditions due to the tendency of rational actors to cut spending and `hoard' cash. \\
 
-\noindent Fiat currency was introduced to relieve this problem. Fiat has no intrinsic value or representative value, instead, it derives its (community market) value from the trust that is placed in the government which issues it. That is, fiat money is only worth what people think it's worth. This is just the same as with Bitcoin, however with Fiat, there is a central authority that has some globally known reputation, rather than a program (the Bitcoin protocol). Fiat then is not 'backed', but it is underpinned by the reputation of the issuing agency.
+\noindent Fiat currency was introduced to relieve this problem. Fiat has no intrinsic value or representative value, instead, it derives its (community market) value from the trust that is placed in the government which issues it. That is, fiat money is only worth what people think it's worth. This is just the same as with Bitcoin, however with Fiat, there is a central authority that has some globally known reputation, rather than a program (the Bitcoin protocol). Fiat then is not `backed', but it is underpinned by the reputation of the issuing agency.
 
 \subsection{Why stablecoins}
 
@@ -69,7 +69,7 @@ underpinning reserve. Each holder of Curits is granted the right to issue their 
 
 \noindent Clearly, the introduction of a new cryptocurrency, in isolation, offers no additional value given the existing and established alternatives, such as Bitcoin and Ether. Havven then seeks to derive value from the addition of \textbf{stability} to its inherited properties as a modern cryptocurrency. \\
 
-\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible "Nomin" tokens of the Havven system represent some value held in reserve. We define the Curit to be the token of backing value as this is both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability to develop stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value as we define Curits as carrying the functional value associated with being able to derive a stable medium of exchange. It's representative money because Curits represent the tokenised ownership of the system that supports the functionality. If this relies on some implicit assumption that a group of actors think it has value, this is also valuable, given the friction/stickiness associated with an actor changing out their value store to some other form of money. \\
+\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible ``Nomin'' tokens of the Havven system represent some value held in reserve. We define the Curit to be the token of backing value as this is both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability to develop stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value as we define Curits as carrying the functional value associated with being able to derive a stable medium of exchange. It's representative money because Curits represent the tokenised ownership of the system that supports the functionality. If this relies on some implicit assumption that a group of actors think it has value, this is also valuable, given the friction/stickiness associated with an actor changing out their value store to some other form of money. \\
 
 \noindent However, Havven is not representative money as we have traditionally known it. Historical instantiations, such as the gold standard which allowed anyone to claim against the reserve, caused exacerbations in times of economic turmoil. Havven instead provides an ability for Nomins to be pegged against some external form of value by regulating supply with clever market incentives.
 
@@ -96,7 +96,7 @@ Fundamentally, we wish to configure the system such that it incentivises the des
 This paper focuses on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free.
 
 
-Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, "How can we \textbf{control the value} of the cryptocurrency such that one unit of the pegged currency matches one unit of value of the denominating currency?" This is a challenging scenario because there are multiple related forces at work on the value of each currency. We consider these as two independent groups: "market forces" and "control forces". \\
+Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, ``How can we \textbf{control the value} of the cryptocurrency such that one unit of the pegged currency matches one unit of value of the denominating currency?'' This is a challenging scenario because there are multiple related forces at work on the value of each currency. We consider these as two independent groups: ``market forces'' and ``control forces''. \\
 
 \noindent \textbf{Market} forces represent supply and demand. These are necessarily different for both currencies, otherwise the value of both currencies would move in unison. \\
 
@@ -113,9 +113,9 @@ Let us consider the various ways in which one can maintain a stable value relati
 	\item \textit{Others?}
 \end{itemize}
 
-\noindent Unilateral balance control, such as that as described in Amentrano's paper on Hyak Money, is discounted on the basis that individual's balances being directly modified would be unpalatable to the general population. \\
+\noindent Unilateral balance control, such as that as described in Amentrano's paper on Hayek Money, is discounted on the basis that individual's balances being directly modified would be unpalatable to the general population. \\
 
-This leaves us with simply the forces relating to modifying supply...
+This leaves us with simply the forces relating to modifying supply\ldots
 
 We review the key incentive drivers in the design of an economically stable cryptocurrency. \\
 
@@ -143,7 +143,7 @@ We review the key incentive drivers in the design of an economically stable cryp
 
 \subsection{Description of mechanism}
 
-Curit holders have an ongoing option to commit to an escrow of their collateral token in return for an amount of Nomins valued at some fraction of the value of the Curits, denominated in USD. We call this fraction the Utilisation Ratio, (or later more formally, the Issuance Ratio), $ U $. \\
+Curit holders have an ongoing option to commit to an escrow of their collateral token in return for an amount of Nomins valued at some fraction of the value of the Curits, denominated in USD. We call this fraction the Utilisation Ratio, (or later more formally, the Issuance Ratio), \(U\). \\
 
 \noindent The Curit holder can then sell their Nomins for ETH for any price (or we can force a sale at the correct ETH price), and retain the ETH.
 
@@ -158,7 +158,7 @@ Curit holders have an ongoing option to commit to an escrow of their collateral 
 
 \subsection{Price discovery}
 
-One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted "Oracle" service in order to gain knowledge of the external world and build a causal link. \cite{brooks2017blog}.\\
+One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted ``Oracle'' service in order to gain knowledge of the external world and build a causal link.\cite{brooks2017blog}.\\
 
 \noindent Havven achieves this causal bridge to USD through market arbitrage; on the Havven decentralised exchange (hosted on Ethereum), both Curits and Nomins are denominated in ETH. Ether, in turn, is assumed to have some instantaneous value in USD on one or more external markets. In this way, we can avoid a trusted bridge and instead reduce our price-finding requirement to the minimum viable assumption that there will always be some external market for ETH in USD (or some other chosen denomination) and that market actors will seek profit through arbitrage. \\
 
@@ -180,7 +180,7 @@ Central to the design of the Havven money system is how the currency is backed b
 
 \noindent Finally, in backing by a real-world (external) asset, such as gold or a state currency, we encounter centralisation risks once again, including an inability to prove the existence of the backing asset (fraud risk). \\
 
-\noindent Fundamentally, whenever you want to denominate a stablecoin in something from the real world (such as USD), then you will always need a bridge between the 'real-world' and the walled garden of the blockchain. \\
+\noindent Fundamentally, whenever you want to denominate a stablecoin in something from the real world (such as USD), then you will always need a bridge between the `real-world' and the walled garden of the blockchain. \\
 
 \noindent To this end, our design incorporates a special exchange (bridge) between fiat and Ether. This exchange is run as a not-for-profit by the Havven benevolent dictatorship. The price of Ether is then taken from this exchange and injected into the DEX (again, assuming scalability issues aside). The DEX then has an authoritive Ether/USD value  \\
 
@@ -190,7 +190,7 @@ Central to the design of the Havven money system is how the currency is backed b
 
 \paragraph{Raised funds}
 
-What happens with accumulated ICO funds beyond what is required to build and market the platform? Currently these do not "back" the platform; if the value of the fund moves, the value of Curits is insulated from this. Assuming that the value of funds raised far exceeds the funds required to build. \\
+What happens with accumulated ICO funds beyond what is required to build and market the platform? Currently these do not ``back'' the platform; if the value of the fund moves, the value of Curits is insulated from this. Assuming that the value of funds raised far exceeds the funds required to build. \\
 
 \noindent \textit{SGB: Perhaps these raised funds can be used to help stabilise the system in the same way that Basecoin does it. I.e. issue a small buyer of last resort function that perhaps takes a very small fee clip that adds to the collateral in reserve so that the system becomes more stable over time given the increasing reserves.}
 
@@ -199,13 +199,13 @@ What happens with accumulated ICO funds beyond what is required to build and mar
 \begin{itemize}
 	\item Functionality of Curits and Nomins
 	\item Initial Pricing of the value of the system:
-		\subitem  1. market-found (likely to be undervalued and grow into your value)
-		\subitem     2. pre-determined (\$5b)
-		\subitem     3. Hybrid (capped ICO of a portion of the Curits at a value Haven specifies)
-	\item 3. Ongoing pricing:
-		\subitem     1. Dex - current proposal.
-		\subitem     2. Rolling auction is still on the table.
-		\subitem     3. Oracle
+		\subitem{1. market-found (likely to be undervalued and grow into your value)}
+		\subitem{2. pre-determined (\$5b)}
+		\subitem{3. Hybrid (capped ICO of a portion of the Curits at a value Haven specifies)}
+	\item Ongoing pricing:
+		\subitem{1. Dex -- current proposal.}
+		\subitem{2. Rolling auction is still on the table.}
+		\subitem{3. Oracle}
 \end{itemize}
 
 This section will provide an informal treatment of the proposed market's structure and dynamics, while section 2 will scaffold out its structure with a little more formality, including the definitions of all the important system variables. If you see an unfamiliar symbol in section 1, look up its definition in section 2.
@@ -266,7 +266,9 @@ The question is what levels to place these fees at. We might in general like to 
 It's also possible for fees to float. The fee schedule could be altered dynamically in order to stabilise the system. It's even conceivable that the system could set negative fee rates if it needed to. We might charge punitive fees if a user is above the targeted utilisation ratio.
 
 One example: if Nomin liquidity is low, meaning the system wants to incentivise issuance, then Nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued by issuers, thus incentivising issuance and at the same time making it more expensive to transact in Nomins,
-reducing demand and decreasing the liquidity requirements. \\
+reducing demand and decreasing the liquidity requirements.
+
+\paragraph{Fees and arbitrage}
 
 It should be pointed out that fees are antithetical to arbitrage. The higher the fee, the higher the friction, and the harder it is to make money by arbitrage. For example, if exchange fees amount to 1\% per trade, then a full arbitrage cycle between all three markets, (Nomins, Curits, and fiat) will cost in excess of 3\%. So it would not make sense to undertake arbitrage until such a time as the quoted exchange rate is misvalued by more than 3\% relative to the cross exchange rate. Hence, fees place a clear limit on the ability of arbitrage to stabilise price. Lower fees allow tighter stabilisation, within a window exactly in proportion with the fee rates themselves.
 
@@ -303,8 +305,8 @@ We don't like short cycles. We don't like isolated subgraphs. Would be cool if t
 
 \paragraph{Definitions}
 \begin{align*}
-    A \ &: \ \text{The set of all accounts} \\
-    T \ &: \ \text{The multiset of all transactions; a subset of \(A \times A \times \mathbb{N}.\)} \\
+    A \ &: \ \text{The set of all accounts.} \\
+    T \ &: \ \text{The multiset of all transactions; a subset of \(A \times A \times \mathbb{N}\).} \\
     T_{a \rightarrow b} \subseteq T \ &: \ \text{The set of transactions from \(a\) to \(b\) with \(a, \ b \ \in A\).} \\
     v_t \ &: \ \text{the value of a transaction} \ t \in T. \\
     V_{a \rightarrow b} \ &:= \ \sum_{t \in T_{a \rightarrow b}}{v_t} \ \ \text{(the total value transferred from \(a\) to \(b\))} \\
@@ -354,6 +356,12 @@ We will update motility scores whenever a new transaction \(t\) from \(a\) to \(
 
 \noindent It may also be nice to add a decay term, so that accounts that have not moved any money in a long time are taken to have a lower motility.
 
+\subsection{System-actuated arbitrage}
+
+It is agreed that the system relies upon arbitrage to bring the prices of its various components into equilibrium.
+Arbitrage is in some sense a form of economic friction, though. Arbitrageurs extract the quantity they skim as profit. Why not allow Havven itself to perform this arbitrage? This serves the dual purposes of improving the efficiency of the markets, and contributing to Havven's own capital pools.\\
+
+\noindent In some imagined future, where Havven is its own blockchain, or has its own DEX, arbitrage opportunities could be spotted early, capitalised upon in a fee-free manner, and keeping all arbitrage profit within the havven ecosystem for productive price-stabilisation purposes, mining rewards, and any other uses that are found for this excess capital.
 
 \pagebreak
 \subsection{Utilisation ratio}
@@ -490,13 +498,13 @@ Outline the research to date done by Kain and why certain approaches were discar
 
 The Basecoin team appear to have mounted a somewhat a credible attempt to design a stablecoin, however we consider there to be a number of fatal issues that are discussed below. \\
 
-\noindent The whitepaper at the time of writing is still in draft, with much of it actually dedicated to explaining why a stable cryptocurrency would be useful. Only a high level description exists of how the stablisation mechanism operates. Basecoin is described as operating similarly to Havven in that there is separation between a backing token and a transactional token, however Basecoin also separates out a specific bond token. The peg to an arbitrary external asset is maintained by using an oracle service to discover the price on an external market, before regulating the supply of "basecoins" through actively increasing supply (issuing new basecoin), and decreasing supply (auctioning of bonds), effectively acting like an autonomous central bank. \\
+\noindent The whitepaper at the time of writing is still in draft, with much of it actually dedicated to explaining why a stable cryptocurrency would be useful. Only a high level description exists of how the stablisation mechanism operates. Basecoin is described as operating similarly to Havven in that there is separation between a backing token and a transactional token, however Basecoin also separates out a specific bond token. The peg to an arbitrary external asset is maintained by using an oracle service to discover the price on an external market, before regulating the supply of ``basecoins'' through actively increasing supply (issuing new basecoin), and decreasing supply (auctioning of bonds), effectively acting like an autonomous central bank. \\
 
-\noindent In the abstract, the paper indicates that Basecoin is  "a cryptocurrency whose tokens can be robustly pegged to arbitrary assets or baskets of goods while remaining completely decentralized." While the system it might run on a decentralised computing architecture, it is inherently centralised due to the use of an oracle price-finding mechanism. We feel that this is a key weakness in the approach. This weakness is also implicitly recognised by the team in their discussion on how to implement an Oracle system in a decentralised fashion; whilst some discussion exists around various options for creating a pseudo-decentralised oracle, none are selected due to the fact that Oracles by nature are fundamentally centralised information bridges. \\
+\noindent In the abstract, the paper indicates that Basecoin is ``a cryptocurrency whose tokens can be robustly pegged to arbitrary assets or baskets of goods while remaining completely decentralized.'' While the system it might run on a decentralised computing architecture, it is inherently centralised due to the use of an oracle price-finding mechanism. We feel that this is a key weakness in the approach. This weakness is also implicitly recognised by the team in their discussion on how to implement an Oracle system in a decentralised fashion; whilst some discussion exists around various options for creating a pseudo-decentralised oracle, none are selected due to the fact that Oracles by nature are fundamentally centralised information bridges. \\
 
-\noindent Basecoin is intended to operate "as a decentralized, protocol-enforced algorithm, without the need for direct human judgment. For this reason, Basecoin can be understood as implementing an algorithmic central bank." Whilst not without merit, this approach was discarded by Havven due to the high amount of complexity required to be anticipated up-front in order to ensure the stabilisation mechanism is effective. The paper claims that Monte Carlo simulations have been run which indicate stability under a range of scenarios, however details are yet to be released by the team. Havven's model by contrast is far simpler in that the system is designed with open market arbitrage incentives to encourage the peg. In this way, a set of rational participating actors can discover the price of the stablecoin rather than a single set of smart contracts that attempt to develop complex algorithms for processes that are today managed by a combination humans and markets. \\
+\noindent Basecoin is intended to operate ``as a decentralized, protocol-enforced algorithm, without the need for direct human judgment. For this reason, Basecoin can be understood as implementing an algorithmic central bank.'' Whilst not without merit, this approach was discarded by Havven due to the high amount of complexity required to be anticipated up-front in order to ensure the stabilisation mechanism is effective. The paper claims that Monte Carlo simulations have been run which indicate stability under a range of scenarios, however details are yet to be released by the team. Havven's model by contrast is far simpler in that the system is designed with open market arbitrage incentives to encourage the peg. In this way, a set of rational participating actors can discover the price of the stablecoin rather than a single set of smart contracts that attempt to develop complex algorithms for processes that are today managed by a combination humans and markets. \\
 
-\noindent Some of the criticisms levelled at alternatives seem to be unneccesarily hypocritical. For example "The only reason BitShares are worth 1 USD is because everyone believes it’ll be worth 1 USD." We would like to see the Basecoin team  reexamine their understanding and/or clarify their description here relating to the fundamental nature of money, as this is the very thing that makes all money work: everyone believes it has value. Further, while a significant devaluation of Bitcoin (relative to say, USD) is a possibility, we feel that comparisons that imply that Bitcoin may experience structural and cyclical devaluation are unhelpful. The USD is inherently inflationary, and so some level of inflation just in order to maintain a peg is not just neccessary, but actuallly desirable. The problem with using an appreciating asset to back a currency is that it acts to damp economic activity in times of economic stress, causing exaccerbations of economic problems. This is precisely why the gold standard was abandoned in favour of fiat last century. \\
+\noindent Some of the criticisms levelled at alternatives seem to be unneccesarily hypocritical. For example ``The only reason BitShares are worth 1 USD is because everyone believes it’ll be worth 1 USD.'' We would like to see the Basecoin team  reexamine their understanding and/or clarify their description here relating to the fundamental nature of money, as this is the very thing that makes all money work: everyone believes it has value. Further, while a significant devaluation of Bitcoin (relative to say, USD) is a possibility, we feel that comparisons that imply that Bitcoin may experience structural and cyclical devaluation are unhelpful. The USD is inherently inflationary, and so some level of inflation just in order to maintain a peg is not just neccessary, but actuallly desirable. The problem with using an appreciating asset to back a currency is that it acts to damp economic activity in times of economic stress, causing exaccerbations of economic problems. This is precisely why the gold standard was abandoned in favour of fiat last century. \\
 
 \noindent Critically, the removal of Basecoin from the system to ensure the stable peg is predicated on the significant assumption that participants will take positions the ongoing bond auctions in order to remove basecoin from the system and support the peg. This assumption remains untested. \\
 
@@ -513,19 +521,19 @@ The Basecoin team appear to have mounted a somewhat a credible attempt to design
 
 \paragraph{Description of system}
 
-Tethers accepts fiat deposits into the Hong Kong-based Tether Limited bank account and issues "USDT" (USD Tether) over Bitcoin via the Omni Layer protocol. Tethers are an asset-backed digital token, representing a claim on the cash held in reserve.
+Tethers accepts fiat deposits into the Hong Kong-based Tether Limited bank account and issues ``USDT'' (USD Tether) over Bitcoin via the Omni Layer protocol. Tethers are an asset-backed digital token, representing a claim on the cash held in reserve.
 
-The stability of the USDT 'coin' effectively relies on the force of external market arbitrage to ensure the peg holds over time.
+The stability of the USDT `coin' effectively relies on the force of external market arbitrage to ensure the peg holds over time.
 
 \paragraph{Key issues}
 
-Despite the whitepaper claiming that the "goal of any successful cryptocurrency is to completely eliminate the requirement for trust," and that each Tether is "fully redeemable/exchangeable any time for the underlying fiat currency," the company's terms of service quite clearly state that "there is no contractual right or other right or legal claim against us to redeem or exchange your Tethers for money."
+Despite the whitepaper claiming that the ``goal of any successful cryptocurrency is to completely eliminate the requirement for trust,'' and that each Tether is ``fully redeemable/exchangeable any time for the underlying fiat currency,'' the company's terms of service quite clearly state that ``there is no contractual right or other right or legal claim against us to redeem or exchange your Tethers for money.''
 
-Tether clearly relies on a manual, centralised proof of existence for the backing asset, and so suffers from the very issue that the Tether whitepaper decries. Indeed the same issue is encountered with tokenised gold, or similarly any other 'real-world' asset where some Oracle bridge is required to interface into a distributed ledger.
+Tether clearly relies on a manual, centralised proof of existence for the backing asset, and so suffers from the very issue that the Tether whitepaper decries. Indeed the same issue is encountered with tokenised gold, or similarly any other `real-world' asset where some Oracle bridge is required to interface into a distributed ledger.
 
 \paragraph{Current state}
 
-Recently, Tether announced support for issuing ERC-20 compatible tokens on Ethereum as opposed to releasing "tethers" on the Bitcoin blockchain using the Omni Layer protocol.
+Recently, Tether announced support for issuing ERC-20 compatible tokens on Ethereum as opposed to releasing ``tethers'' on the Bitcoin blockchain using the Omni Layer protocol.
 
 At the time of writing, the market capitalisation for USDT was approximately \$440m, and the discrepancy regarding their terms of service remains unresolved.
 
