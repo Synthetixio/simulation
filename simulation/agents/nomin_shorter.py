@@ -11,7 +11,10 @@ class NominShorter(MarketPlayer):
 
     Primary aim is to increase amount of nomins
 
-    TODO: Rates should be set based on fees (should try to make 0.5% or so on each cycle)
+    TODO: Rates should be set based on fees (should try to make at least 0.5% or so on each cycle),
+      Also rates could be set based on some random factor per player that can dictate
+      the upper limit, lower limit and gap between limits
+
 
     TODO: Maybe put up a wall by placing nomin ask @ sell_rate_threshold
     """
@@ -30,7 +33,7 @@ class NominShorter(MarketPlayer):
         if self.nomins > 0:
             trade = self._find_best_nom_fiat_trade()
             while trade is not None and self.nomins > 0:
-                if trade[1] < 1e-10:
+                if trade[1] < 1e-5:
                     break
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
@@ -38,7 +41,7 @@ class NominShorter(MarketPlayer):
         if self.fiat > 0:
             trade = self._find_best_fiat_nom_trade()
             while trade is not None and self.fiat > 0:
-                if trade[1] < 1e-10:
+                if trade[1] < 1e-5:
                     break
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
@@ -80,18 +83,18 @@ class NominShorter(MarketPlayer):
         return self.sell_fiat_for_nomins(trade_price_quant[1])
 
 
-# class CuritEscrowNominShorter(MarketPlayer):
-#     """
-#     Escrows curits for nomins when the rate of nom->fiat is favourable
-#     then waits for market to stabilise, trusting that nomin price will go back
-#     to 1
-#
-#     curits-(issue)->nomins->fiat(and wait)->nomin-(burn)->curits+extra nomins
-#
-#     This should profit on both the issuing and burning mechanics (when they scale
-#     with the price) and the fiat trade
-#
-#     In the end this player should hold escrowed curits and nomins left over that he
-#     can't burn
-#     """
-#     pass
+class CuritEscrowNominShorter(NominShorter):
+    """
+    Escrows curits for nomins when the rate of nom->fiat is favourable
+    then waits for market to stabilise, trusting that nomin price will go back
+    to 1
+
+    curits-(issue)->nomins->fiat(and wait)->nomin-(burn)->curits+extra nomins
+
+    This should profit on both the issuing and burning mechanics (when they scale
+    with the price) and the fiat trade
+
+    In the end this player should hold escrowed curits and nomins left over that he
+    can't burn
+    """
+    pass
