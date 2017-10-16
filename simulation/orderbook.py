@@ -201,7 +201,8 @@ class OrderBook:
         Submit a new sell order to the book.
         """
         fee = self.bid_fee_fn(price * quantity)
-        bid = Bid(price, quantity, fee, agent, self)
+        bid = Bid(self.round_decimal(price), self.round_decimal(quantity),
+                  self.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return bid
@@ -211,7 +212,8 @@ class OrderBook:
         Submit a new buy order to the book.
         """
         fee = self.ask_fee_fn(quantity)
-        ask = Ask(price, quantity, fee, agent, self)
+        ask = Ask(self.round_decimal(price), self.round_decimal(quantity),
+                  self.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return ask

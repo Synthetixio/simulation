@@ -90,9 +90,39 @@ class CuritEscrowNominShorter(NominShorter):
     curits-(issue)->nomins->fiat(and wait)->nomin-(burn)->curits+extra nomins
 
     This should profit on both the issuing and burning mechanics (when they scale
-    with the price) and the fiat trade
+    with the price) and the nomin/fiat trade
 
     In the end this player should hold escrowed curits and nomins left over that he
     can't burn
     """
-    pass
+    def step(self) -> None:
+        # keep all curits escrowed to make issuing nomins easier
+        if self.curits > 0:
+            self.escrow_curits(self.curits)
+
+        nomins = self.nomins + self.max_issuance_rights()
+        if nomins > 0:
+            trade = self._find_best_nom_fiat_trade()
+            while trade is not None and nomins > 0:
+                self._issue_nomins_up_to(trade[1])
+                ask = self._make_nom_fiat_trade(trade)
+                trade = self._find_best_nom_fiat_trade()
+
+    def _issue_nomins_up_to(self, quantity: "Decimal") -> None:
+        """
+        If quantity > currently issued nomins, including fees to trade, issue more nomins
+
+        If the player cant issue more nomins than the quantity,
+        """
+        fee = self.round_decimal(self.model.fee_manager.transferred_nomins_fee(quantity))
+
+        # if there are enough nomins, return
+        if self.nomins > fee + quantity:
+            return
+
+        nomins_needed = fee + quantity - self.nomins
+
+        if self.max_issuance_rights() > nomins_needed:
+            self.issue_nomins(nomins_needed)
+        else:
+            self.issue_nomins(self.max_issuance_rights())
