@@ -1,20 +1,21 @@
-from typing import Optional, Union
+from typing import Optional
+from decimal import Decimal
 
 from .marketplayer import MarketPlayer
 
 import model
-import orderbook as ob
+
 
 class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
     
     def __init__(self, unique_id: int, havven: "model.Havven",
-                 fiat: float = 0.0, curits: float = 0.0,
-                 nomins: float = 0.0,
-                 curit_target: Optional[float] = None,
-                 nomin_target: Optional[float] = None,
-                 curit_nomin_target: Optional[float] = None,
-                 tolerance: float = 0.01) -> None:
+                 fiat: "Decimal" = Decimal(0), curits: "Decimal" = Decimal(0),
+                 nomins: "Decimal" = Decimal(0),
+                 curit_target: Optional["Decimal"] = None,
+                 nomin_target: Optional["Decimal"] = None,
+                 curit_nomin_target: Optional["Decimal"] = None,
+                 tolerance: "Decimal" = Decimal('0.01')) -> None:
 
         super().__init__(unique_id, havven, fiat=fiat,
                          curits=curits, nomins=nomins)

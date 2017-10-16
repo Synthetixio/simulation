@@ -1,4 +1,5 @@
 from typing import List, Tuple, Dict
+from decimal import Decimal
 
 from mesa.datacollection import DataCollector
 from mesa.visualization.ModularVisualization import VisualizationElement
@@ -40,8 +41,8 @@ class OrderBookModule(VisualizationElement):
             model, self.data_collector_name
         )
 
-        bids: List[Tuple[float, float]] = []
-        asks: List[Tuple[float, float]] = []
+        bids: List[Tuple["Decimal", "Decimal"]] = []
+        asks: List[Tuple["Decimal", "Decimal"]] = []
 
         for s in self.series:  # TODO: not use series, as it should only really be one graph
             name: str = s['Label']
@@ -51,27 +52,29 @@ class OrderBookModule(VisualizationElement):
 
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
-
                 for item in order_book.bids:
+                    price = round(item.price, model.manager.currency_precision)
                     if len(bids) > 0:
-                        if item.price == bids[-1][0]:
-                            bids[-1] = (item.price, item.quantity + bids[-1][1])
+                        if price == bids[-1][0]:
+                            bids[-1] = (price, item.quantity + bids[-1][1])
                         else:
-                            bids.append((item.price, item.quantity))
+                            bids.append((price, item.quantity))
                     else:
-                        bids.append((item.price, item.quantity))
+                        bids.append((price, item.quantity))
 
                 for item in order_book.asks:
+                    price = round(item.price, model.manager.currency_precision)
                     if len(asks) > 0:
-                        if item.price == asks[-1][0]:
-                            asks[-1] = (item.price, item.quantity + asks[-1][1])
+                        if price == asks[-1][0]:
+                            asks[-1] = (price, item.quantity + asks[-1][1])
                         else:
-                            asks.append((item.price, item.quantity))
+                            asks.append((price, item.quantity))
                     else:
-                        asks.append((item.price, item.quantity))
+                        asks.append((price, item.quantity))
 
             except Exception:
                 bids = []
                 asks = []
 
-        return [bids, asks]
+        # convert decimals to floats
+        return [[(float(i[0]), float(i[1])) for i in bids], [(float(i[0]), float(i[1])) for i in asks]]
