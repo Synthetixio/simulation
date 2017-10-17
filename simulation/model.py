@@ -1,7 +1,7 @@
 """model.py: The havven model itself lives here."""
 
 from scipy.stats import skewnorm
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -22,7 +22,7 @@ class Havven(Model):
       velocity of money and so on.
     """
 
-    def __init__(self, num_agents: int, max_fiat: float = 1000,
+    def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
 
@@ -74,7 +74,7 @@ class Havven(Model):
 
         # Create the model settings objects
 
-        self.manager = HavvenManager(utilisation_ratio_max, match_on_order)
+        self.manager = HavvenManager(Dec(utilisation_ratio_max), match_on_order)
         self.fee_manager = FeeManager(self.manager)
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
@@ -89,42 +89,42 @@ class Havven(Model):
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
 
-        # convert max_fiat to decimal type, be careful with floats!
-        max_fiat = Decimal(max_fiat)
+        # convert init_value to decimal type, be careful with floats!
+        init_value_d = Dec(init_value)
 
         i = 0
 
         for _ in range(num_banks):
-            endowment = Decimal(skewnorm.rvs(100))*max_fiat
+            endowment = Dec(skewnorm.rvs(100))*init_value_d
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
-            rand = ag.Randomizer(i, self, fiat=max_fiat)
-            self.endow_curits(rand, 3*max_fiat)
+            rand = ag.Randomizer(i, self, fiat=init_value_d)
+            self.endow_curits(rand, 3*init_value_d)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=max_fiat/2)
-            self.endow_curits(arb, max_fiat/2)
+            arb = ag.Arbitrageur(i, self, fiat=init_value_d/2)
+            self.endow_curits(arb, init_value_d/2)
             self.schedule.add(arb)
             i += 1
 
         central_bank = ag.CentralBank(
-            i, self, fiat=(num_agents * max_fiat), curit_target=Decimal('1.0')
+            i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
         )
-        self.endow_curits(central_bank, (num_agents * max_fiat))
+        self.endow_curits(central_bank, (num_agents * init_value_d))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()
 
-    def fiat_value(self, curits: 'Decimal' = Decimal('0'), nomins: "Decimal" = Decimal('0'),
-                   fiat: "Decimal" = Decimal('0')) -> "Decimal":
+    def fiat_value(self, curits: Dec = Dec('0'), nomins: Dec = Dec('0'),
+                   fiat: Dec = Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""
         return self.market_manager.curits_to_fiat(curits) + \
             self.market_manager.nomins_to_fiat(nomins) + fiat
 
-    def endow_curits(self, agent: ag.MarketPlayer, curits: "Decimal") -> None:
+    def endow_curits(self, agent: ag.MarketPlayer, curits: Dec) -> None:
         """Grant an agent an endowment of curits."""
         if curits > 0:
             value = min(self.manager.curits, curits)

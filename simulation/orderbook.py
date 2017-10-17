@@ -2,7 +2,7 @@
 
 from typing import Iterable, Callable, List, Optional
 from itertools import takewhile
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
 from sortedcontainers import SortedListWithKey, SortedDict
@@ -14,7 +14,7 @@ from managers import HavvenManager
 
 class LimitOrder:
     """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
-    def __init__(self, price: "Decimal", time: int, quantity: "Decimal", fee: "Decimal",
+    def __init__(self, price: Dec, time: int, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = price
         self.fee = fee
@@ -28,19 +28,19 @@ class LimitOrder:
         """Remove this order from the issuer and the order book if it's active."""
         pass
 
-    def update_price(self, price: "Decimal", fee: "Decimal") -> None:
+    def update_price(self, price: Dec, fee: Dec) -> None:
         """Update this order's price, updating its timestamp, possibly reordering its order book."""
         pass
 
-    def update_quantity(self, quantity: "Decimal", fee: "Decimal") -> None:
+    def update_quantity(self, quantity: Dec, fee: Dec) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
         self.update_orderbook(self.price, quantity, fee, False)
         if quantity > 0:
             self.quantity = quantity
             self.fee = fee
         else:
-            self.quantity = 0
-            self.fee = 0
+            self.quantity = Dec('0.0')
+            self.fee = Dec('0.0')
             self.cancel()
 
     def update_orderbook(self, new_price: "Decimal", new_quantity: "Decimal",
@@ -54,7 +54,7 @@ class LimitOrder:
 
 class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: "Decimal", quantity: "Decimal", fee: "Decimal",
+    def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
@@ -78,7 +78,7 @@ class Bid(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: "Decimal", fee: "Decimal",) -> None:
+    def update_price(self, price: Dec, fee: Dec,) -> None:
         if self.active:
             self.update_orderbook(price, self.quantity, fee, False)
             self.price = price
@@ -114,7 +114,7 @@ class Bid(LimitOrder):
 
 class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
-    def __init__(self, price: "Decimal", quantity: "Decimal", fee: "Decimal",
+    def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
         if quantity <= 0:
@@ -138,7 +138,7 @@ class Ask(LimitOrder):
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
-    def update_price(self, price: "Decimal", fee: "Decimal") -> None:
+    def update_price(self, price: Dec, fee: Dec) -> None:
         if self.active:
             self.update_orderbook(price, self.quantity, fee)
 
@@ -176,7 +176,7 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
-                 price: "Decimal", quantity: "Decimal") -> None:
+                 price: Dec, quantity: Dec) -> None:
         self.buyer = buyer
         self.seller = seller
         self.price = price
@@ -197,8 +197,8 @@ class OrderBook:
     """
 
     def __init__(self, model_manager: "HavvenManager", base: str, quote: str,
-                 matcher: Matcher, bid_fee_fn: Callable[["Decimal"], "Decimal"],
-                 ask_fee_fn: Callable[["Decimal"], "Decimal"],
+                 matcher: Matcher, bid_fee_fn: Callable[[Dec], Dec],
+                 ask_fee_fn: Callable[[Dec], Dec],
                  match_on_order: bool = True) -> None:
         # hold onto the model to be able to access variables
         self.model_manager = model_manager
@@ -218,7 +218,7 @@ class OrderBook:
         self.ask_quants: SortedDict = SortedDict(lambda x: x)
         self.ask_fees: SortedDict = SortedDict(lambda x: x)
 
-        self.price: "Decimal" = Decimal('1.0')
+        self.price: "Dec" = Dec('1.0')
 
         self.time: int = 0
 
@@ -230,8 +230,8 @@ class OrderBook:
         self.matcher: Matcher = matcher
 
         # Fees will be calculated with the following functions.
-        self.bid_fee_fn: Callable[["Decimal"], "Decimal"] = bid_fee_fn
-        self.ask_fee_fn: Callable[["Decimal"], "Decimal"] = ask_fee_fn
+        self.bid_fee_fn: Callable[[Dec], Dec] = bid_fee_fn
+        self.ask_fee_fn: Callable[[Dec], Dec] = ask_fee_fn
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
@@ -252,7 +252,7 @@ class OrderBook:
         """
         self.time += 1
 
-    def bid(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Optional[Bid]:
+    def bid(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
         Submit a new sell order to the book.
         """
@@ -266,7 +266,7 @@ class OrderBook:
             self.match()
         return bid
 
-    def ask(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Optional[Ask]:
+    def ask(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Ask]:
         """
         Submit a new buy order to the book.
         """
@@ -280,29 +280,29 @@ class OrderBook:
             self.match()
         return ask
 
-    def buy(self, quantity: "Decimal", agent: "ag.MarketPlayer", premium: "Decimal" = 0.0) -> Bid:
+    def buy(self, quantity: Dec, agent: "ag.MarketPlayer", premium: Dec = Dec('0.0')) -> Bid:
         """
         Buy a quantity of the sale token at the best available price.
         Optionally buy at a premium a certain fraction above the market price.
         """
-        price = self.price_to_buy_quantity(quantity) * Decimal(1 + premium)
+        price = self.price_to_buy_quantity(quantity) * Dec(1 + premium)
         return self.bid(price, quantity, agent)
 
-    def sell(self, quantity: "Decimal", agent: "ag.MarketPlayer", discount: "Decimal" = 0.0) -> Ask:
+    def sell(self, quantity: Dec, agent: "ag.MarketPlayer", discount: Dec = Dec('0.0')) -> Ask:
         """
         Sell a quantity of the sale token at the best available price.
         Optionally sell at a discount a certain fraction below the market price.
         """
-        price = self.price_to_sell_quantity(quantity) * Decimal(1 - discount)
+        price = self.price_to_sell_quantity(quantity) * Dec(1 - discount)
         return self.ask(price, quantity, agent)
 
-    def price_to_buy_quantity(self, quantity: "Decimal") -> "Decimal":
+    def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """
         The bid price to buy a certain quantity. Note that this is an instantaneous
           metric which may be invalidated if intervening trades are made.
         TODO: handle the null case properly, not just use self.price
         """
-        cumulative = Decimal(0)
+        cumulative = Dec(0)
         price = self.price
         for price in self.ask_quants:
             cumulative += self.ask_quants[price]
@@ -310,13 +310,13 @@ class OrderBook:
                 break
         return price
 
-    def price_to_sell_quantity(self, quantity: "Decimal") -> "Decimal":
+    def price_to_sell_quantity(self, quantity: Dec) -> Dec:
         """
         The ask price to sell a certain quantity. Note that this is an instantaneous
           metric which may be invalidated if intervening trades are made.
         TODO: handle the null case properly, not just use self.price
         """
-        cumulative = Decimal(0)
+        cumulative = Dec(0)
         price = self.price
         for price in self.bid_quants:
             cumulative += self.bid_quants[price]
@@ -324,11 +324,11 @@ class OrderBook:
                 break
         return price
 
-    def bids_higher_or_equal(self, price: "Decimal") -> Iterable[Bid]:
+    def bids_higher_or_equal(self, price: Dec) -> Iterable[Bid]:
         """Return an iterator of bids whose prices are no lower than the given price."""
         return takewhile(lambda bid: bid.price >= price, self.bids)
 
-    def highest_bid_price(self) -> "Decimal":
+    def highest_bid_price(self) -> Dec:
         """Return the highest available buy price."""
         return self.bids[0].price if (len(self.bids) > 0) else self.price
 
@@ -336,11 +336,11 @@ class OrderBook:
         """Return the list of highest-priced bids. May be empty if there are none."""
         return self.bids_higher_or_equal(self.highest_bid_price())
 
-    def asks_lower_or_equal(self, price: "Decimal") -> Iterable[Bid]:
+    def asks_lower_or_equal(self, price: Dec) -> Iterable[Bid]:
         """Return an iterator of asks whose prices are no higher than the given price."""
         return takewhile(lambda ask: ask.price <= price, self.asks)
 
-    def lowest_ask_price(self) -> "Decimal":
+    def lowest_ask_price(self) -> Dec:
         """Return the lowest available sell price."""
         return self.asks[0].price if (len(self.asks) > 0) else self.price
 
@@ -348,20 +348,14 @@ class OrderBook:
         """Return the list of lowest-priced asks. May be empty if there are none."""
         return self.asks_lower_or_equal(self.lowest_ask_price())
 
-    def spread(self) -> "Decimal":
+    def spread(self) -> Dec:
         """Return the gap between best buy and sell prices."""
         return self.lowest_ask_price() - self.highest_bid_price()
-
-    def round_float(self, value: float) -> "Decimal":
-        return round(Decimal(value), self.model_manager.currency_precision)
-
-    def round_decimal(self, value: "Decimal") -> "Decimal":
-        return round(value, self.model_manager.currency_precision)
 
     def match(self) -> None:
         """Match bids with asks and perform any trades that can be made."""
         prev_bid, prev_ask = None, None
-        spread = 0.0
+        spread = Dec('0.0')
         # Repeatedly match the best pair of orders until no more matches can succeed.
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.
