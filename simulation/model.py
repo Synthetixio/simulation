@@ -55,6 +55,7 @@ class Havven(Model):
                 "Bank Profit %": lambda h: round(100*stats.mean_banker_profit_fraction(h), 3),
                 "Arb Profit %": lambda h: round(100*stats.mean_arb_profit_fraction(h), 3),
                 "Rand Profit %": lambda h: round(100*stats.mean_rand_profit_fraction(h), 3),
+                "NomShort Profit %": lambda h: round(100*stats.mean_nomshort_profit_fraction(h), 3),
                 "Curit Demand": stats.curit_demand,
                 "Curit Supply": stats.curit_supply,
                 "Nomin Demand": stats.nomin_demand,
@@ -82,12 +83,16 @@ class Havven(Model):
         # Create the market players
 
         fractions = {"banks": 0.2,
-                     "arbs": 0.25,
-                     "rands": 0.55}
+                     "arbs": 0.2,
+                     "rands": 0.3,
+                     "nomin shorter": 0.15,
+                     "escrow nomin shorter": 0.15}
 
         num_banks = int(num_agents * fractions["banks"])
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
+        nomin_shorters = int(num_agents * fractions["nomin shorter"])
+        escrow_nomin_shorters = int(num_agents * fractions["escrow nomin shorter"])
 
         # convert init_value to decimal type, be careful with floats!
         init_value_d = Dec(init_value)
@@ -95,24 +100,32 @@ class Havven(Model):
         i = 0
 
         for _ in range(num_banks):
-            endowment = Dec(skewnorm.rvs(100))*init_value_d
+            endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100))*init_value_d)
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
             rand = ag.Randomizer(i, self, fiat=init_value_d)
-            self.endow_curits(rand, 3*init_value_d)
+            self.endow_curits(rand, Dec(3)*init_value_d)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=init_value_d/2)
-            self.endow_curits(arb, init_value_d/2)
+            arb = ag.Arbitrageur(i, self, fiat=HavvenManager.round_decimal(init_value_d/Dec(2)))
+            self.endow_curits(arb, HavvenManager.round_decimal(init_value_d/Dec(2)))
             self.schedule.add(arb)
+            i += 1
+        for _ in range(nomin_shorters):
+            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*Dec(2))
+            self.schedule.add(nomin_shorter)
+            i += 1
+        for _ in range(escrow_nomin_shorters):
+            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=init_value_d*Dec(2))
+            self.schedule.add(escrow_nomin_shorter)
             i += 1
 
         central_bank = ag.CentralBank(
-            i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
+            i, self, fiat=Dec(num_agents * init_value_d), curit_target=Dec('1.0')
         )
-        self.endow_curits(central_bank, (num_agents * init_value_d))
+        self.endow_curits(central_bank, Dec(num_agents * init_value_d))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:

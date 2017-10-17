@@ -48,8 +48,9 @@ class LimitOrder:
         pass
 
     def __str__(self) -> str:
-        return f"{self.quantity}@{self.price} ({self.book.name if self.book else None}) " \
-               f"t={self.time} by {self.issuer}"
+        return f"{self.quantity}@{self.price} + {self.fee} " \
+               f"({self.book.name if self.book else None}) " \
+               f"t:{self.time} by {self.issuer}"
 
 
 class Bid(LimitOrder):
@@ -176,14 +177,17 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
-                 price: Dec, quantity: Dec) -> None:
+                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec) -> None:
         self.buyer = buyer
         self.seller = seller
         self.price = price
         self.quantity = quantity
+        self.bid_fee = bid_fee
+        self.ask_fee = ask_fee
 
     def __str__(self) -> str:
-        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}"
+        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
+               f" + ({self.bid_fee}, {self.ask_fee})"
 
 
 # A type for matching functions in the order book.
@@ -261,7 +265,8 @@ class OrderBook:
         if agent.__dict__[self.quote] - agent.__dict__["used_"+self.quote] < quantity + fee:
             return None
 
-        bid = Bid(price, quantity, fee, agent, self)
+        bid = Bid(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
+                  HavvenManager.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return bid
@@ -275,7 +280,8 @@ class OrderBook:
         if agent.__dict__[self.base] - agent.__dict__["used_"+self.base] < quantity + fee:
             return None
 
-        ask = Ask(price, quantity, fee, agent, self)
+        ask = Ask(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
+                  HavvenManager.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return ask
@@ -285,7 +291,7 @@ class OrderBook:
         Buy a quantity of the sale token at the best available price.
         Optionally buy at a premium a certain fraction above the market price.
         """
-        price = self.price_to_buy_quantity(quantity) * Dec(1 + premium)
+        price = self.price_to_buy_quantity(quantity) * (Dec(1) + premium)
         return self.bid(price, quantity, agent)
 
     def sell(self, quantity: Dec, agent: "ag.MarketPlayer", discount: Dec = Dec('0.0')) -> Ask:
@@ -293,13 +299,14 @@ class OrderBook:
         Sell a quantity of the sale token at the best available price.
         Optionally sell at a discount a certain fraction below the market price.
         """
-        price = self.price_to_sell_quantity(quantity) * Dec(1 - discount)
+        price = self.price_to_sell_quantity(quantity) * (Dec(1) - discount)
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """
-        The bid price to buy a certain quantity. Note that this is an instantaneous
-          metric which may be invalidated if intervening trades are made.
+        The bid price to buy a certain quantity, ignoring fees.
+        Note that this is an instantaneous metric which may be
+          invalidated if intervening trades are made.
         TODO: handle the null case properly, not just use self.price
         """
         cumulative = Dec(0)
@@ -312,8 +319,9 @@ class OrderBook:
 
     def price_to_sell_quantity(self, quantity: Dec) -> Dec:
         """
-        The ask price to sell a certain quantity. Note that this is an instantaneous
-          metric which may be invalidated if intervening trades are made.
+        The ask price to sell a certain quantity, ignoring fees.
+        Note that this is an instantaneous metric which may be
+          invalidated if intervening trades are made.
         TODO: handle the null case properly, not just use self.price
         """
         cumulative = Dec(0)

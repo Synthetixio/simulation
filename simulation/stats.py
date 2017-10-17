@@ -28,6 +28,10 @@ def mean_rand_profit_fraction(havven: "model.Havven") -> float:
     return mean(float(a.profit_fraction()) for a in havven.schedule.agents
                 if isinstance(a, agents.Randomizer))
 
+def mean_nomshort_profit_fraction(havven: "model.Havven") -> float:
+    """Return the average fraction of profit being made by NominShorters in the market."""
+    return mean(float(a.profit_fraction()) for a in havven.schedule.agents
+                if isinstance(a, agents.NominShorter))
 
 def wealth_sd(havven: "model.Havven") -> float:
     """Return the standard deviation of wealth in the market."""

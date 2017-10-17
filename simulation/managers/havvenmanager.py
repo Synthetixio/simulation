@@ -1,3 +1,4 @@
+from decimal import getcontext, ROUND_HALF_UP
 from decimal import Decimal as Dec
 
 
@@ -6,7 +7,7 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
-    currency_precision = 8
+    currency_precision = 18
     """
     Number of decimal places for currency precision.
     The decimal context precision should be significantly higher than this.
@@ -14,6 +15,9 @@ class HavvenManager:
 
     def __init__(self, utilisation_ratio_max: Dec = Dec(1),
                  match_on_order: bool = True) -> None:
+        # Set the decimal rounding mode
+        getcontext().rounding = ROUND_HALF_UP
+
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: Dec = utilisation_ratio_max
 
@@ -36,8 +40,12 @@ class HavvenManager:
         """
         Round a float (as a Decimal) to the number of decimal places specified by
         the precision setting.
-        Equivalent to Dec(value).quantize(Decimal(1e(-cls.currency_precision)))
+        Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
         """
+        # This check for numbers which are smaller than the precision allows will
+        # be commented out for now as it seems to kill economic activity.
+        # if value < 1E-8:
+            # return Dec('0')
         return round(Dec(value), cls.currency_precision)
 
     @classmethod
@@ -45,6 +53,10 @@ class HavvenManager:
         """
         Round a Decimal to the number of decimal places specified by
         the precision setting.
-        Equivalent to value.quantize(Decimal(1e(-cls.currency_precision)))
+        Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
         """
+        # This check for numbers which are smaller than the precision allows will
+        # be commented out for now as it seems to kill economic activity.
+        # if value < Dec('1E-8'):
+            # return Dec('0')
         return round(value, cls.currency_precision)

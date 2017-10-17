@@ -4,6 +4,7 @@ from decimal import Decimal as Dec
 from .marketplayer import MarketPlayer
 
 import model
+from managers import HavvenManager as hm
 
 
 class CentralBank(MarketPlayer):
@@ -43,7 +44,7 @@ class CentralBank(MarketPlayer):
         if self.curit_target is not None:
             curit_price = self.model.market_manager.curit_fiat_market.price
             # Price is too high, it should decrease: we will sell curits at a discount.
-            if curit_price > (self.curit_target * (1 + self.tolerance)):
+            if curit_price > hm.round_decimal(self.curit_target * (Dec(1) + self.tolerance)):
                 # If we have curits, sell them.
                 if self.curits > 0:
                     self.place_curit_fiat_ask_with_fee(self._fraction_(self.curits),
@@ -58,13 +59,13 @@ class CentralBank(MarketPlayer):
                     if self.unavailable_escrowed_curits() > 0:
                         # If we have nomins, then we should burn them.
                         if self.available_nomins > 0:
-                            self.burn_nomins(self._fraction_(self.available_nomins()))
+                            self.burn_nomins(self._fraction_(self.available_nomins))
                         # Otherwise, we should buy some to burn, if we can.
                         elif self.available_fiat > 0:
                             self.sell_fiat_for_nomins_with_fee(self._fraction_(self.available_fiat))
 
             # Price is too low, it should increase: we will buy curits at a premium.
-            elif curit_price < (self.curit_target * (1 - self.tolerance)):
+            elif curit_price < hm.round_decimal(self.curit_target * (Dec(1) - self.tolerance)):
                 # Buy some if we have fiat to buy it with.
                 if self.available_fiat > 0:
                     self.place_curit_fiat_bid_with_fee(self._fraction_(self.available_fiat),
@@ -76,7 +77,7 @@ class CentralBank(MarketPlayer):
                     else:
                         # If we have some curits we could escrow to get nomins, escrow them.
                         if self.available_curits > 0:
-                            self.escrow_curits(self._fraction_(self.available_curits()))
+                            self.escrow_curits(self._fraction_(self.available_curits))
                             # If we have remaining issuance capacity, then issue some nomins to sell.
                             issuance_rights = self.remaining_issuance_rights()
                             if issuance_rights > 0:
@@ -85,7 +86,7 @@ class CentralBank(MarketPlayer):
         if self.nomin_target is not None:
             nomin_price = self.model.market_manager.nomin_fiat_market.price
             # Price is too high, it should decrease: we will sell nomins at a discount.
-            if nomin_price > (self.nomin_target * (1 + self.tolerance)):
+            if nomin_price > hm.round_decimal(self.nomin_target * (Dec(1) + self.tolerance)):
                 if self.available_nomins > 0:
                     self.place_nomin_fiat_ask_with_fee(self._fraction_(self.available_nomins),
                                                        self.nomin_target)
@@ -101,7 +102,7 @@ class CentralBank(MarketPlayer):
                         self.sell_fiat_for_curits_with_fee(self._fraction_(self.available_fiat))
 
             # Price is too low, it should increase: we will buy nomins at a premium.
-            elif nomin_price < (self.nomin_target * (1 - self.tolerance)):
+            elif nomin_price < hm.round_decimal(self.nomin_target * (Dec(1) - self.tolerance)):
                 if self.available_fiat > 0:
                     self.place_nomin_fiat_bid_with_fee(self._fraction_(self.available_fiat),
                                                        self.nomin_target)
