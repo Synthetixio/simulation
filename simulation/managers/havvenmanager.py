@@ -6,10 +6,14 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
+    currency_precision = 8
+    """
+    Number of decimal places for currency precision.
+    The decimal environment precision should be higher than this.
+    """
+
     def __init__(self, utilisation_ratio_max: Dec = Dec(1),
                  match_on_order: bool = True) -> None:
-        self.currency_precision = 8
-
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: Dec = utilisation_ratio_max
 
@@ -26,3 +30,21 @@ class HavvenManager:
         self.curits: Dec = self.curit_supply
         self.nomins: Dec = self.nomin_supply
         self.fiat: Dec = self.escrowed_curits
+
+    @classmethod
+    def round_float(cls, value: float) -> Dec:
+        """
+        Round a float (as a Decimal) to the number of decimal places specified by
+        the precision setting.
+        Equivalent to Dec(value).quantize(Decimal(1e(-cls.currency_precision)))
+        """
+        return round(Dec(value), cls.currency_precision)
+
+    @classmethod
+    def round_decimal(cls, value: Dec) -> Dec:
+        """
+        Round a Decimal to the number of decimal places specified by
+        the precision setting.
+        Equivalent to value.quantize(Decimal(1e(-cls.currency_precision)))
+        """
+        return round(value, cls.currency_precision)

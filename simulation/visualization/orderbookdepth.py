@@ -5,6 +5,7 @@ from mesa.datacollection import DataCollector
 from mesa.visualization.ModularVisualization import VisualizationElement
 
 from model import Havven
+from managers import HavvenManager
 import orderbook as ob
 
 
@@ -53,7 +54,7 @@ class OrderBookModule(VisualizationElement):
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
                 for item in order_book.bids:
-                    price = round(item.price, model.manager.currency_precision)
+                    price = HavvenManager.round_decimal(item.price)
                     if len(bids) > 0:
                         if price == bids[-1][0]:
                             bids[-1] = (price, item.quantity + bids[-1][1])
@@ -63,7 +64,7 @@ class OrderBookModule(VisualizationElement):
                         bids.append((price, item.quantity))
 
                 for item in order_book.asks:
-                    price = round(item.price, model.manager.currency_precision)
+                    price = HavvenManager.round_decimal(item.price)
                     if len(asks) > 0:
                         if price == asks[-1][0]:
                             asks[-1] = (price, item.quantity + asks[-1][1])

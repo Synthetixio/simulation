@@ -6,6 +6,7 @@ from mesa import Agent
 
 import model
 import orderbook as ob
+from managers import HavvenManager as hm
 
 Portfolio = namedtuple("Portfolio",
                        ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
@@ -104,7 +105,7 @@ class MarketPlayer(Agent):
         Return profit accrued as a fraction of initial wealth.
         May be negative.
         """
-        if round(self.initial_wealth, self.model.manager.currency_precision) != 0:
+        if hm.round_decimal(self.initial_wealth) != 0:
             return self.profit() / self.initial_wealth
         else:
             return Dec('0')
@@ -407,12 +408,6 @@ class MarketPlayer(Agent):
         """
         qty = self.model.fee_manager.transferred_curits_received(quantity)
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
-
-    def round_float(self, value: float) -> Dec:
-        return round(Dec(value), self.model.manager.currency_precision)
-
-    def round_decimal(self, value: Dec) -> Dec:
-        return round(value, self.model.manager.currency_precision)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """

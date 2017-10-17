@@ -288,12 +288,6 @@ class OrderBook:
         """Return the gap between best buy and sell prices."""
         return self.lowest_ask_price() - self.highest_bid_price()
 
-    def round_float(self, value: float) -> Dec:
-        return round(Dec(value), self.model_manager.currency_precision)
-
-    def round_decimal(self, value: Dec) -> Dec:
-        return round(value, self.model_manager.currency_precision)
-
     def match(self) -> None:
         """Match bids with asks and perform any trades that can be made."""
         prev_bid, prev_ask = None, None
