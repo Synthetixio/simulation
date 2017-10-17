@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 
 class HavvenManager:
@@ -6,24 +6,45 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
-    def __init__(self, utilisation_ratio_max: float = 1.0,
-                 match_on_order: bool = True) -> None:
-        self.currency_precision = 8
+    currency_precision = 8
+    """
+    Number of decimal places for currency precision.
+    The decimal context precision should be significantly higher than this.
+    """
 
+    def __init__(self, utilisation_ratio_max: Dec = Dec(1),
+                 match_on_order: bool = True) -> None:
         # Utilisation Ratio maximum (between 0 and 1)
-        self.utilisation_ratio_max: "Decimal" = Decimal.from_float(utilisation_ratio_max)
+        self.utilisation_ratio_max: Dec = utilisation_ratio_max
 
         # If true, match orders whenever an order is posted,
         #   otherwise do so at the end of each period
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: "Decimal" = Decimal('10.0e9')
-        self.nomin_supply: "Decimal" = Decimal('0.0')
-        self.escrowed_curits: "Decimal" = Decimal('0.0')
+        self.curit_supply: Dec = Dec('10.0e9')
+        self.nomin_supply: Dec = Dec('0.0')
+        self.escrowed_curits: Dec = Dec('0.0')
 
         # Havven's own capital supplies
-        self.curits: float = self.curit_supply
-        self.nomins: float = self.nomin_supply
-        self.fiat: float = self.escrowed_curits
+        self.curits: Dec = self.curit_supply
+        self.nomins: Dec = self.nomin_supply
+        self.fiat: Dec = self.escrowed_curits
 
+    @classmethod
+    def round_float(cls, value: float) -> Dec:
+        """
+        Round a float (as a Decimal) to the number of decimal places specified by
+        the precision setting.
+        Equivalent to Dec(value).quantize(Decimal(1e(-cls.currency_precision)))
+        """
+        return round(Dec(value), cls.currency_precision)
+
+    @classmethod
+    def round_decimal(cls, value: Dec) -> Dec:
+        """
+        Round a Decimal to the number of decimal places specified by
+        the precision setting.
+        Equivalent to value.quantize(Decimal(1e(-cls.currency_precision)))
+        """
+        return round(value, cls.currency_precision)
