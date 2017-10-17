@@ -9,7 +9,7 @@ class HavvenManager:
     currency_precision = 8
     """
     Number of decimal places for currency precision.
-    The decimal environment precision should be higher than this.
+    The decimal context precision should be significantly higher than this.
     """
 
     def __init__(self, utilisation_ratio_max: Dec = Dec(1),
