@@ -42,8 +42,10 @@ class HavvenManager:
         the precision setting.
         Equivalent to Dec(value).quantize(Decimal(1e(-cls.currency_precision)))
         """
-        if value < 1E-8:
-            return Dec('0')
+        # This check for numbers which are smaller than the precision allows will
+        # be commented out for now as it seems to kill economic activity.
+        # if value < 1E-8:
+        #    return Dec('0')
         return round(Dec(value), cls.currency_precision)
 
     @classmethod
@@ -53,6 +55,8 @@ class HavvenManager:
         the precision setting.
         Equivalent to value.quantize(Decimal(1e(-cls.currency_precision)))
         """
-        if value < Dec('1E-8'):
-            return Dec('0')
+        # This check for numbers which are smaller than the precision allows will
+        # be commented out for now as it seems to kill economic activity.
+        #if value < Dec('1E-8'):
+        #   return Dec('0')
         return round(value, cls.currency_precision)
