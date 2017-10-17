@@ -413,6 +413,15 @@ class MarketPlayer(Agent):
         qty = self.model.fee_manager.transferred_curits_received(quantity)
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
 
+    def available_fiat(self) -> "Decimal":
+        return self.fiat - self.used_fiat
+
+    def available_curits(self) -> "Decimal":
+        return self.curits - self.used_curits
+
+    def available_nomins(self) -> "Decimal":
+        return self.nomins - self.used_nomins
+
     def round_float(self, value: float) -> "Decimal":
         return round(Decimal(value), self.model.manager.currency_precision)
 

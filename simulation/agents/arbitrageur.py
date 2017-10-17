@@ -28,41 +28,41 @@ class Arbitrageur(MarketPlayer):
             fn_qty = sum(a.quantity for a in self.model.market_manager.nomin_fiat_market.lowest_asks())
             nc_qty = sum(a.quantity for a in self.model.market_manager.curit_nomin_market.lowest_asks())
             
-            # cur_val = self.model.fiat_value(curits=self.curits)
-            # nom_val = self.model.fiat_value(nomins=self.nomins)
+            # cur_val = self.model.fiat_value(curits=self.available_curits())
+            # nom_val = self.model.fiat_value(nomins=self.available_nomins())
 
             # if cur_val < nom_val and cur_val < self.fiat:
             """
-            c_qty = min(self.curits, cf_qty)
+            c_qty = min(self.available_curits(), cf_qty)
             self.sell_curits_for_fiat(c_qty)
 
             f_qty = min(self.fiat, fn_qty * fn_price)
             self.sell_fiat_for_curits(f_qty)
 
-            n_qty = min(self.nomins, nc_qty * nc_price)
+            n_qty = min(self.available_nomins(), nc_qty * nc_price)
             self.sell_nomins_for_curits(n_qty)
             """
-            c_qty = min(self.curits, cf_qty)
+            c_qty = min(self.available_curits(), cf_qty)
             self.sell_curits_for_fiat(c_qty)
 
             f_qty = min(self.fiat, fn_qty * fn_price)
             self.sell_fiat_for_curits(f_qty)
 
-            n_qty = min(self.nomins, nc_qty * nc_price)
+            n_qty = min(self.available_nomins(), nc_qty * nc_price)
             self.sell_nomins_for_curits(n_qty)
 
             """
             elif nom_val < cur_val and nom_val < self.fiat:
-                n_qty = min(self.nomins, nc_qty)
+                n_qty = min(self.available_nomins(), nc_qty)
                 self.sell_nomins_for_curits(n_qty)
 
-                c_qty = min(self.curits, n_qty * nc_price)
+                c_qty = min(self.available_curits(), n_qty * nc_price)
                 self.sell_curits_for_fiat(c_qty)
 
-                f_qty = min(self.fiat, fn_qty * fn_price)
+                f_qty = min(self.available_fiat(), fn_qty * fn_price)
                 self.sell_fiat_for_curits(f_qty)
 
-                n_qty = min(self.nomins, nc_qty * nc_price)
+                n_qty = min(self.available_nomins(), nc_qty * nc_price)
                 self.sell_nomins_for_curits(n_qty)
 
             else:
@@ -77,13 +77,13 @@ class Arbitrageur(MarketPlayer):
             nf_qty = sum(b.quantity for b in self.model.market_manager.nomin_fiat_market.highest_bids())
             fc_qty = sum(a.quantity for a in self.model.market_manager.curit_fiat_market.lowest_asks())
 
-            c_qty = min(self.curits, cn_qty)
+            c_qty = min(self.available_curits(), cn_qty)
             self.sell_curits_for_nomins(c_qty)
 
-            n_qty = min(self.nomins, nf_qty)
+            n_qty = min(self.available_nomins(), nf_qty)
             self.sell_nomins_for_fiat(n_qty)
 
-            f_qty = min(self.fiat, fc_qty * fc_price)
+            f_qty = min(self.available_fiat(), fc_qty * fc_price)
             self.sell_nomins_for_curits(n_qty)
 
     def _cycle_fee_rate_(self) -> "Decimal":
