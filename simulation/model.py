@@ -55,6 +55,7 @@ class Havven(Model):
                 "Bank Profit %": lambda h: round(100*stats.mean_banker_profit_fraction(h), 3),
                 "Arb Profit %": lambda h: round(100*stats.mean_arb_profit_fraction(h), 3),
                 "Rand Profit %": lambda h: round(100*stats.mean_rand_profit_fraction(h), 3),
+                "NomShort Profit %": lambda h: round(100*stats.mean_nomshort_profit_fraction(h), 3),
                 "Curit Demand": stats.curit_demand,
                 "Curit Supply": stats.curit_supply,
                 "Nomin Demand": stats.nomin_demand,
@@ -114,13 +115,13 @@ class Havven(Model):
             nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*3)
             self.schedule.add(nomin_shorter)
             i += 1
-        
+
         central_bank = ag.CentralBank(
             i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
         )
         self.endow_curits(central_bank, (num_agents * init_value_d))
         self.schedule.add(central_bank)
-        
+
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()
 
