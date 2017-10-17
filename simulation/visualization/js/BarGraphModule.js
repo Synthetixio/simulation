@@ -22,7 +22,10 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
         chartPadding: {
             right: 40
         },
-        plugins: [Chartist.plugins.tooltip()]
+        plugins: [Chartist.plugins.tooltip()],
+        classNames: {
+            series: 'ct-bar-series'
+        }
     };
     // Create the chart object
     var chart = new Chartist.Bar('#' + graph_id, data, options);
@@ -45,9 +48,9 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
             for (let i = 2; i < new_data.length; i++) {
                 for (let j = 0; j < new_data[i].length; j++) {
                     if (data_labels.length > 0) {
-                        chart.data.series[i - 2][j] = {meta: data_labels[i - 2], value: new_data[i][j]};
+                        chart.data.series[i - 2][j] = {meta: data_labels[i - 2], value: this.round(new_data[i][j])};
                     } else {
-                        chart.data.series[i - 2][j] = {meta: bar_labels[j], value: new_data[i][j]};
+                        chart.data.series[i - 2][j] = {meta: bar_labels[j], value: this.round(new_data[i][j])};
                     }
                 }
             }
@@ -59,18 +62,6 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
         }
 
         chart.update();
-
-        // Set styles
-        // Fiat
-        this.setSeriesColour(".ct-series-a .ct-bar", "darkgreen");
-        // Escrowed Curits
-        this.setSeriesColour(".ct-series-b .ct-bar", "darkred");
-        // Curits
-        this.setSeriesColour(".ct-series-c .ct-bar", "red");
-        // Nomins
-        this.setSeriesColour(".ct-series-d .ct-bar", "deepskyblue");
-        // Issued Nomins
-        this.setSeriesColour(".ct-series-e .ct-bar", "blue");
     };
 
     this.reset = function () {
@@ -78,10 +69,7 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
         chart.data.labels = [];
     };
 
-    this.setSeriesColour = function (selector, colour) {
-        var bars = document.querySelectorAll(selector);
-        for (let i = 0; i < bars.length; ++i) {
-            bars[i].style.stroke = colour;
-        }
+    this.round = function (value) {
+        return Math.floor(value*10000)/10000
     }
 };

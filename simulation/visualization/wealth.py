@@ -10,6 +10,7 @@ from .bargraph import BarGraphModule
 
 # TODO: make leaving out the last guy optional.
 
+
 class WealthModule(BarGraphModule):
     def render(self, model: Havven) -> Tuple[List[str], List[str], List[float]]:
         data_collector: "DataCollector" = getattr(
@@ -27,12 +28,11 @@ class WealthModule(BarGraphModule):
 
             for item in agents:
                 vals[1].append(item[1].name)
-                vals[2].append(item[1].wealth())
+                vals[2].append(float(item[1].wealth()))
 
         except Exception:
             vals = []
         return vals
-
 
 
 PortfolioTuple = Tuple[List[str], List[str],
@@ -71,7 +71,7 @@ class PortfolioModule(BarGraphModule):
                 vals[1].append(item[1].name)
                 breakdown = item[1].portfolio(self.fiat_values)
                 for i in range(len(breakdown)):
-                    vals[i + 2].append(breakdown[i])
+                    vals[i + 2].append(float(breakdown[i]))
 
         except Exception:
             vals = []
