@@ -1,6 +1,7 @@
 """model.py: The havven model itself lives here."""
 
 from scipy.stats import skewnorm
+from decimal import Decimal as Dec
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -21,9 +22,10 @@ class Havven(Model):
       velocity of money and so on.
     """
 
-    def __init__(self, num_agents: int, max_fiat: float = 1000,
+    def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
+
         # Mesa setup
         super().__init__()
         self.schedule = RandomActivation(self)
@@ -31,21 +33,21 @@ class Havven(Model):
             model_reporters={
                 "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
                 "1": lambda x: 1,
-                "Nomin Price": lambda h: h.market_manager.nomin_fiat_market.price,
-                "Nomin Ask": lambda h: h.market_manager.nomin_fiat_market.lowest_ask_price(),
-                "Nomin Bid": lambda h: h.market_manager.nomin_fiat_market.highest_bid_price(),
-                "Curit Price": lambda h: h.market_manager.curit_fiat_market.price,
-                "Curit Ask": lambda h: h.market_manager.curit_fiat_market.lowest_ask_price(),
-                "Curit Bid": lambda h: h.market_manager.curit_fiat_market.highest_bid_price(),
-                "Curit/Nomin Price": lambda h: h.market_manager.curit_nomin_market.price,
-                "Curit/Nomin Ask": lambda h: h.market_manager.curit_nomin_market.lowest_ask_price(),
-                "Curit/Nomin Bid": lambda h: h.market_manager.curit_nomin_market.highest_bid_price(),
-                "Havven Nomins": lambda h: h.manager.nomins,
-                "Havven Curits": lambda h: h.manager.curits,
-                "Havven Fiat": lambda h: h.manager.fiat,
+                "Nomin Price": lambda h: float(h.market_manager.nomin_fiat_market.price),
+                "Nomin Ask": lambda h: float(h.market_manager.nomin_fiat_market.lowest_ask_price()),
+                "Nomin Bid": lambda h: float(h.market_manager.nomin_fiat_market.highest_bid_price()),
+                "Curit Price": lambda h: float(h.market_manager.curit_fiat_market.price),
+                "Curit Ask": lambda h: float(h.market_manager.curit_fiat_market.lowest_ask_price()),
+                "Curit Bid": lambda h: float(h.market_manager.curit_fiat_market.highest_bid_price()),
+                "Curit/Nomin Price": lambda h: float(h.market_manager.curit_nomin_market.price),
+                "Curit/Nomin Ask": lambda h: float(h.market_manager.curit_nomin_market.lowest_ask_price()),
+                "Curit/Nomin Bid": lambda h: float(h.market_manager.curit_nomin_market.highest_bid_price()),
+                "Havven Nomins": lambda h: float(h.manager.nomins),
+                "Havven Curits": lambda h: float(h.manager.curits),
+                "Havven Fiat": lambda h: float(h.manager.fiat),
                 "Gini": stats.gini,
-                "Nomins": lambda h: h.manager.nomin_supply,
-                "Escrowed Curits": lambda h: h.manager.escrowed_curits,
+                "Nomins": lambda h: float(h.manager.nomin_supply),
+                "Escrowed Curits": lambda h: float(h.manager.escrowed_curits),
                 #"Wealth SD": stats.wealth_sd,
                 "Max Wealth": stats.max_wealth,
                 "Min Wealth": stats.min_wealth,
@@ -59,20 +61,20 @@ class Havven(Model):
                 "Nomin Supply": stats.nomin_supply,
                 "Fiat Demand": stats.fiat_demand,
                 "Fiat Supply": stats.fiat_supply,
-                "Fee Pool": lambda h: h.manager.nomins,
-                "Fees Distributed": lambda h: h.fee_manager.fees_distributed,
+                "Fee Pool": lambda h: float(h.manager.nomins),
+                "Fees Distributed": lambda h: float(h.fee_manager.fees_distributed),
                 "NominFiatOrderBook": lambda h: h.market_manager.nomin_fiat_market,
                 "CuritFiatOrderBook": lambda h: h.market_manager.curit_fiat_market,
                 "CuritNominOrderBook": lambda h: h.market_manager.curit_nomin_market
             }, agent_reporters={
-                "Agents": lambda agent: agent,
+                "Agents": lambda a: a,
             })
 
         self.time: int = 1
 
         # Create the model settings objects
 
-        self.manager = HavvenManager(utilisation_ratio_max, match_on_order)
+        self.manager = HavvenManager(Dec(utilisation_ratio_max), match_on_order)
         self.fee_manager = FeeManager(self.manager)
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
@@ -87,36 +89,42 @@ class Havven(Model):
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
 
+        # convert init_value to decimal type, be careful with floats!
+        init_value_d = Dec(init_value)
+
         i = 0
 
         for _ in range(num_banks):
-            endowment = int(skewnorm.rvs(100)*max_fiat)
+            endowment = Dec(skewnorm.rvs(100))*init_value_d
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
-            rand = ag.Randomizer(i, self, fiat=max_fiat)
-            self.endow_curits(rand, 3*max_fiat)
+            rand = ag.Randomizer(i, self, fiat=init_value_d)
+            self.endow_curits(rand, 3*init_value_d)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=max_fiat/2)
-            self.endow_curits(arb, max_fiat/2)
+            arb = ag.Arbitrageur(i, self, fiat=init_value_d/2)
+            self.endow_curits(arb, init_value_d/2)
             self.schedule.add(arb)
             i += 1
 
-        central_bank = ag.CentralBank(i, self, fiat = (num_agents * max_fiat), curit_target=1.0)
-        self.endow_curits(central_bank, (num_agents * max_fiat))
+        central_bank = ag.CentralBank(
+            i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
+        )
+        self.endow_curits(central_bank, (num_agents * init_value_d))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()
 
-    def fiat_value(self, curits: float = 0.0, nomins: float = 0.0, fiat: float = 0.0) -> float:
+    def fiat_value(self, curits: Dec = Dec('0'), nomins: Dec = Dec('0'),
+                   fiat: Dec = Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""
         return self.market_manager.curits_to_fiat(curits) + \
-               self.market_manager.nomins_to_fiat(nomins) + fiat
+            self.market_manager.nomins_to_fiat(nomins) + fiat
 
-    def endow_curits(self, agent: ag.MarketPlayer, curits: float) -> None:
+    def endow_curits(self, agent: ag.MarketPlayer, curits: Dec) -> None:
         """Grant an agent an endowment of curits."""
         if curits > 0:
             value = min(self.manager.curits, curits)

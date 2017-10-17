@@ -1,20 +1,21 @@
-from typing import Optional, Union
+from typing import Optional
+from decimal import Decimal as Dec
 
 from .marketplayer import MarketPlayer
 
 import model
-import orderbook as ob
+
 
 class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
-    
+
     def __init__(self, unique_id: int, havven: "model.Havven",
-                 fiat: float = 0.0, curits: float = 0.0,
-                 nomins: float = 0.0,
-                 curit_target: Optional[float] = None,
-                 nomin_target: Optional[float] = None,
-                 curit_nomin_target: Optional[float] = None,
-                 tolerance: float = 0.01) -> None:
+                 fiat: Dec = Dec(0), curits: Dec = Dec(0),
+                 nomins: Dec = Dec(0),
+                 curit_target: Optional[Dec] = None,
+                 nomin_target: Optional[Dec] = None,
+                 curit_nomin_target: Optional[Dec] = None,
+                 tolerance: Dec = Dec('0.01')) -> None:
 
         super().__init__(unique_id, havven, fiat=fiat,
                          curits=curits, nomins=nomins)
@@ -46,10 +47,10 @@ class CentralBank(MarketPlayer):
                 # If we have curits, sell them.
                 if self.curits > 0:
                     self.place_curit_fiat_ask_with_fee(self._fraction_(self.curits),
-                                                                       self.curit_target)
+                                                       self.curit_target)
                 else:
-                    # If we do not have curits, but we have some escrowed which we can immediately free,
-                    # free them.
+                    # If we do not have curits, but we have some escrowed which we can
+                    # immediately free, free them.
                     available_curits = self.available_escrowed_curits()
                     if available_curits > 0:
                         self.unescrow_curits(self._fraction_(available_curits))
@@ -87,7 +88,7 @@ class CentralBank(MarketPlayer):
             if nomin_price > (self.nomin_target * (1 + self.tolerance)):
                 if self.nomins > 0:
                     self.place_nomin_fiat_ask_with_fee(self._fraction_(self.nomins),
-                                                                       self.nomin_target)
+                                                       self.nomin_target)
                 else:
                     # If we have some curits, we can issue nomins on the back of them to sell.
                     if self.curits > 0:
@@ -108,8 +109,8 @@ class CentralBank(MarketPlayer):
                     if self.curits > 0:
                         self.sell_curits_for_fiat_with_fee(self._fraction_(self.curits))
                     else:
-                        # If we do not have curits, but we have some escrowed which we can immediately free,
-                        # free them.
+                        # If we do not have curits, but we have some escrowed which we can
+                        # immediately free, free them.
                         available_curits = self.available_escrowed_curits()
                         if available_curits > 0:
                             self.unescrow_curits(self._fraction_(available_curits))
