@@ -10,12 +10,12 @@ class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
     
     def __init__(self, unique_id: int, havven: "model.Havven",
-                 fiat: "Decimal" = Decimal(0), curits: "Decimal" = Decimal(0),
-                 nomins: "Decimal" = Decimal(0),
-                 curit_target: Optional["Decimal"] = None,
-                 nomin_target: Optional["Decimal"] = None,
-                 curit_nomin_target: Optional["Decimal"] = None,
-                 tolerance: "Decimal" = Decimal('0.01')) -> None:
+                 fiat: Dec = Dec(0), curits: Dec = Dec(0),
+                 nomins: Dec = Dec(0),
+                 curit_target: Optional[Dec] = None,
+                 nomin_target: Optional[Dec] = None,
+                 curit_nomin_target: Optional[Dec] = None,
+                 tolerance: Dec = Dec('0.01')) -> None:
 
         super().__init__(unique_id, havven, fiat=fiat,
                          curits=curits, nomins=nomins)
