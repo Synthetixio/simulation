@@ -4,10 +4,9 @@ from typing import Iterable, Callable, List, Optional
 from itertools import takewhile
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
-from sortedcontainers import SortedListWithKey
+from sortedcontainers import SortedListWithKey, SortedDict
 
 import agents as ag
-from managers import FeeManager
 
 
 class LimitOrder:
@@ -32,6 +31,7 @@ class LimitOrder:
 
     def update_quantity(self, quantity: float, fee: float) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
+        self.update_orderbook(self.price, quantity, fee)
         if quantity > 0:
             self.quantity = quantity
             self.fee = fee
@@ -40,9 +40,12 @@ class LimitOrder:
             self.fee = 0
             self.cancel()
 
+    def update_orderbook(self, new_price: "Decimal", new_quantity, new_fee, remove=True):
+        pass
+
     def __str__(self) -> str:
-        return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
-               f"@ {self.time} by {self.issuer}"
+        return f"{self.quantity}@{self.price} ({self.book.name if self.book else None}) " \
+               f"t={self.time} by {self.issuer}"
 
 
 class Bid(LimitOrder):
@@ -54,7 +57,7 @@ class Bid(LimitOrder):
             self.active = False  # bid will not be added to the orderbook
         else:
             issuer.orders.add(self)
-            book.bids.add(self)
+            self.update_orderbook(self.price, self.quantity, self.fee, remove=False)
             book.step()
 
     @classmethod
@@ -65,19 +68,38 @@ class Bid(LimitOrder):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.book.bids.remove(self)
+            self.remove_from_orderbook()
             self.book.step()
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
     def update_price(self, price: float, fee: float) -> None:
         if self.active:
-            self.book.bids.remove(self)
+            self.update_orderbook(price, self.quantity, fee)
             self.price = price
             self.fee = fee
             self.time = self.book.time
             self.book.bids.add(self)
             self.book.step()
+
+    def update_orderbook(self, new_price, new_quantity, new_fee, remove=True):
+        self.remove_from_orderbook()
+        try:
+            self.book.bid_quants[new_price] = self.book.bid_quants[self.price] + new_quantity
+            self.book.bid_fees[new_price] = self.book.bid_fees[self.price] + new_fee
+        except KeyError:
+            self.book.bid_quants[new_price] = new_quantity
+            self.book.bid_fees[new_price] = new_fee
+
+    def remove_from_orderbook(self):
+        self.book.bids.remove(self)
+
+        self.book.bid_quants[self.price] -= self.quantity
+        self.book.bid_fees[self.price] -= self.fee
+
+        if self.book.bid_quants[self.price] == 0:
+            self.book.bid_quants.pop(self.price)
+            self.book.bid_fees.pop(self.price)
 
     def __str__(self) -> str:
         return "Bid: " + super().__str__()
@@ -92,7 +114,7 @@ class Ask(LimitOrder):
             self.active = False  # ask will not be added to the orderbook
         else:
             issuer.orders.add(self)
-            book.asks.add(self)
+            self.update_orderbook(self.price, self.quantity, self.fee, False)
             book.step()
 
     @classmethod
@@ -103,19 +125,39 @@ class Ask(LimitOrder):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.book.asks.remove(self)
+            self.remove_from_orderbook()
             self.book.step()
             self.issuer.orders.remove(self)
             self.issuer.notify_cancelled(self)
 
     def update_price(self, price: float, fee: float) -> None:
         if self.active:
-            self.book.asks.remove(self)
+            self.update_orderbook(price, self.quantity, fee)
+
             self.price = price
             self.fee = fee
             self.time = self.book.time
             self.book.asks.add(self)
             self.book.step()
+
+    def update_orderbook(self, new_price, new_quantity, new_fee, remove=True):
+        self.remove_from_orderbook()
+        try:
+            self.book.ask_quants[new_price] = self.book.ask_quants[self.price] + new_quantity
+            self.book.ask_fees[new_price] = self.book.ask_fees[self.price] + new_fee
+        except KeyError:
+            self.book.ask_quants[new_price] = new_quantity
+            self.book.ask_fees[new_price] = new_fee
+
+    def remove_from_orderbook(self):
+        self.book.asks.remove(self)
+
+        self.book.ask_quants[self.price] -= self.quantity
+        self.book.ask_fees[self.price] -= self.fee
+
+        if self.book.ask_quants[self.price] == 0:
+            self.book.ask_quants.pop(self.price)
+            self.book.ask_fees.pop(self.price)
 
     def __str__(self) -> str:
         return "Ask: " + super().__str__()
@@ -158,6 +200,11 @@ class OrderBook:
         self.bids: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
         # Asks are ordered lowest-first
         self.asks: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
+
+        self.bid_quants: SortedDict = SortedDict(lambda x: -x)
+        self.bid_fees: SortedDict = SortedDict(lambda x: -x)
+        self.ask_quants: SortedDict = SortedDict(lambda x: x)
+        self.ask_fees: SortedDict = SortedDict(lambda x: x)
 
         self.price: float = 1.0
         self.time: int = 0
