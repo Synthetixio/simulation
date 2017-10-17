@@ -85,12 +85,14 @@ class Havven(Model):
         fractions = {"banks": 0.2,
                      "arbs": 0.25,
                      "rands": 0.35,
-                     "nomin shorter": 0.2}
+                     "nomin shorter": 0.2,
+                     "escrow nomin shorter": 0.2}
 
         num_banks = int(num_agents * fractions["banks"])
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
         nomin_shorters = int(num_agents * fractions["nomin shorter"])
+        escrow_nomin_shorters = int(num_agents * fractions["escrow nomin shorter"])
 
         # convert init_value to decimal type, be careful with floats!
         init_value_d = Dec(init_value)
@@ -112,8 +114,12 @@ class Havven(Model):
             self.schedule.add(arb)
             i += 1
         for _ in range(nomin_shorters):
-            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*3)
+            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*2)
             self.schedule.add(nomin_shorter)
+            i += 1
+        for _ in range(escrow_nomin_shorters):
+            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=init_value_d*2)
+            self.schedule.add(escrow_nomin_shorter)
             i += 1
 
         central_bank = ag.CentralBank(

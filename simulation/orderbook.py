@@ -201,7 +201,8 @@ class OrderBook:
         Submit a new sell order to the book.
         """
         fee = self.bid_fee_fn(price * quantity)
-        bid = Bid(price, quantity, fee, agent, self)
+        bid = Bid(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
+                  HavvenManager.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return bid
@@ -211,7 +212,8 @@ class OrderBook:
         Submit a new buy order to the book.
         """
         fee = self.ask_fee_fn(quantity)
-        ask = Ask(price, quantity, fee, agent, self)
+        ask = Ask(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
+                  HavvenManager.round_decimal(fee), agent, self)
         if self.match_on_order:
             self.match()
         return ask
@@ -236,6 +238,8 @@ class OrderBook:
         """
         The bid price to buy a certain quantity. Note that this is an instantaneous
         metric which may be invalidated if intervening trades are made.
+
+        This doesn't take into account the fee
         """
         cumulative = 0
         price = self.price
@@ -250,6 +254,8 @@ class OrderBook:
         """
         The ask price to sell a certain quantity. Note that this is an instantaneous
         metric which may be invalidated if intervening trades are made.
+
+        This doesn't take into account the fee
         """
         cumulative = 0
         price = self.price
