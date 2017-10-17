@@ -92,10 +92,13 @@ class MarketManager:
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
-        ask.update_quantity(HavvenManager.round_decimal(ask.quantity - quantity), ask_fee)
-        bid.update_quantity(HavvenManager.round_decimal(bid.quantity - quantity), bid_fee)
+        ask.update_quantity(HavvenManager.round_decimal(ask.quantity - quantity),
+                            HavvenManager.round_decimal(ask_fee))
+        bid.update_quantity(HavvenManager.round_decimal(bid.quantity - quantity),
+                            HavvenManager.round_decimal(bid_fee))
 
-        return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
+        return ob.TradeRecord(bid.issuer, ask.issuer,
+                              price, quantity, bid_fee, ask_fee)
 
     def curit_nomin_match(self, bid: "ob.Bid",
                           ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
@@ -136,17 +139,17 @@ class MarketManager:
     def transfer_fiat_success(self, sender: "ag.MarketPlayer",
                               quantity: Dec, fee: Dec) -> bool:
         """True iff the sender could successfully send a quantity of fiat."""
-        return 0 <= quantity + fee <= sender.fiat
+        return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.fiat)
 
     def transfer_curits_success(self, sender: "ag.MarketPlayer",
                                 quantity: Dec, fee: Dec) -> bool:
         """True iff the sender could successfully send a quantity of curits."""
-        return 0 <= quantity + fee <= sender.curits
+        return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.curits)
 
     def transfer_nomins_success(self, sender: "ag.MarketPlayer",
                                 quantity: Dec, fee: Dec) -> bool:
         """True iff the sender could successfully send a quantity of nomins."""
-        return 0 <= quantity + fee <= sender.nomins
+        return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.nomins)
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
                       recipient: "ag.MarketPlayer", quantity: Dec, fee: Dec) -> bool:

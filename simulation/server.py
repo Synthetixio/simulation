@@ -46,7 +46,6 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         ChartModule([
             {"Label": "0", "Color": "grey"},
             {"Label": "Gini", "Color": "navy"}]),
-            #{"Label": "Wealth SD", "Color": "blue"}]),
 
         ChartModule([
             {"Label": "Max Wealth", "Color": "purple"},
@@ -57,7 +56,8 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Avg Profit %", "Color": "grey"},
             {"Label": "Bank Profit %", "Color": "blue"},
             {"Label": "Arb Profit %", "Color": "red"},
-            {"Label": "Rand Profit %", "Color": "green"}]),
+            {"Label": "Rand Profit %", "Color": "green"},
+            {"Label": "NomShort Profit %", "Color": "orchid"}]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
@@ -83,7 +83,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": "grey"},
             {"Label": "Fees Distributed", "Color": "blue"}]),
 
-        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=True),
+        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
 
         WealthModule([{"Label": "Wealth"}]),
 

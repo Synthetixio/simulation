@@ -49,7 +49,7 @@ class MarketPlayer(Agent):
         Return a fraction of the given quantity, with a minimum.
         Used for depleting reserves gradually.
         """
-        return max(qty / divisor, min(minimum, qty))
+        return max(hm.round_decimal(qty / divisor), min(minimum, qty))
 
     def cancel_orders(self) -> None:
         """
@@ -106,7 +106,7 @@ class MarketPlayer(Agent):
         May be negative.
         """
         if hm.round_decimal(self.initial_wealth) != 0:
-            return self.profit() / self.initial_wealth
+            return hm.round_decimal(self.profit() / self.initial_wealth)
         else:
             return Dec('0')
 
@@ -195,7 +195,7 @@ class MarketPlayer(Agent):
         Sell a quantity of the quoted currency into the given market.
         """
         price = book.lowest_ask_price()
-        return book.buy(quantity/price, self, premium)
+        return book.buy(hm.round_decimal(quantity/price), self, premium)
 
     def _sell_base_(self, book: "ob.OrderBook", quantity: Dec,
                     discount: Dec = Dec('0')) -> "ob.Ask":
@@ -260,7 +260,7 @@ class MarketPlayer(Agent):
           fee, as calculated by the provided function.
         """
         price = book.lowest_ask_price()
-        return book.buy(received_qty_fn(quantity/price), self, premium)
+        return book.buy(received_qty_fn(hm.round_decimal(quantity/price)), self, premium)
 
     def _sell_base_with_fee_(self, received_qty_fn: Callable[[Dec], Dec],
                              book: "ob.OrderBook", quantity: Dec,

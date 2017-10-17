@@ -21,7 +21,7 @@ class Banker(MarketPlayer):
             if self.fiat_curit_order:
                 self.fiat_curit_order.cancel()
             fiat = self.model.fee_manager.transferred_fiat_received(self.fiat)
-            self.fiat_curit_order = self.sell_fiat_for_curits(fiat * self.rate)
+            self.fiat_curit_order = self.sell_fiat_for_curits(hm.round_decimal(fiat * self.rate))
 
         if hm.round_decimal(self.nomins) > 0:
             if self.nomin_curit_order:
