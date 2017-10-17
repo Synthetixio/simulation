@@ -1,5 +1,5 @@
 from typing import Optional
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 from .marketplayer import MarketPlayer
 
@@ -47,10 +47,10 @@ class CentralBank(MarketPlayer):
                 # If we have curits, sell them.
                 if self.curits > 0:
                     self.place_curit_fiat_ask_with_fee(self._fraction_(self.curits),
-                                                                       self.curit_target)
+                                                       self.curit_target)
                 else:
-                    # If we do not have curits, but we have some escrowed which we can immediately free,
-                    # free them.
+                    # If we do not have curits, but we have some escrowed which we can
+                    # immediately free, free them.
                     available_curits = self.available_escrowed_curits()
                     if available_curits > 0:
                         self.unescrow_curits(self._fraction_(available_curits))

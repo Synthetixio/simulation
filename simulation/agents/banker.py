@@ -1,5 +1,5 @@
 from typing import Optional
-from decimal import Decimal
+from decimal import Decimal as Dec
 import random
 
 import orderbook as ob
@@ -13,7 +13,7 @@ class Banker(MarketPlayer):
         super().__init__(*args, **kwargs)
         self.fiat_curit_order: Optional["ob.Bid"] = None
         self.nomin_curit_order: Optional["ob.Bid"] = None
-        self.rate: "Decimal" = Decimal(random.random() * 0.05)
+        self.rate: Dec = Dec(random.random() * 0.05)
 
     def step(self) -> None:
         if round(self.fiat, self.model.manager.currency_precision) > 0:
