@@ -16,22 +16,22 @@ class Banker(MarketPlayer):
         self.rate: "Decimal" = Decimal(random.random() * 0.05)
 
     def step(self) -> None:
-        if round(self.fiat, self.model.manager.currency_precision) > 0:
+        if self.round_decimal(self.fiat) > 0:
             if self.fiat_curit_order:
                 self.fiat_curit_order.cancel()
             fiat = self.model.fee_manager.transferred_fiat_received(self.fiat)
             self.fiat_curit_order = self.sell_fiat_for_curits(fiat * self.rate)
 
-        if round(self.nomins, self.model.manager.currency_precision) > 0:
+        if self.round_decimal(self.nomins) > 0:
             if self.nomin_curit_order:
                 self.nomin_curit_order.cancel()
             nomins = self.model.fee_manager.transferred_nomins_received(self.nomins)
             self.nomin_curit_order = self.sell_nomins_for_curits(nomins)
 
-        if round(self.curits, self.model.manager.currency_precision) > 0:
+        if self.round_decimal(self.curits) > 0:
             self.escrow_curits(self.curits)
 
         issuable = self.max_issuance_rights() - self.issued_nomins
-        if round(issuable, self.model.manager.currency_precision) > 0:
+        if self.round_decimal(issuable) > 0:
             self.issue_nomins(issuable)
 

@@ -34,13 +34,17 @@ class NominShorter(MarketPlayer):
 
         if self.nomins > 0:
             trade = self._find_best_nom_fiat_trade()
-            while trade is not None and self.nomins > 0:
+            count = 10  # to avoid long loops of smaller and smaller trades
+            while count > 0 and trade is not None and self.nomins > 0:
+                count -= 1
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
 
         if self.fiat > 0:
             trade = self._find_best_fiat_nom_trade()
-            while trade is not None and self.fiat > 0:
+            count = 10  # to avoid long loops of smaller and smaller trades
+            while count > 0 and trade is not None and self.fiat > 0:
+                count -= 1
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
 

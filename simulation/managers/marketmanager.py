@@ -92,8 +92,8 @@ class MarketManager:
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
-        ask.update_quantity(self.round_decimal(ask.quantity - quantity), ask_fee)
-        bid.update_quantity(self.round_decimal(bid.quantity - quantity), bid_fee)
+        ask.update_quantity(self.round_decimal(ask.quantity - quantity), self.round_decimal(ask_fee))
+        bid.update_quantity(self.round_decimal(bid.quantity - quantity), self.round_decimal(bid_fee))
 
         return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
 
