@@ -75,6 +75,7 @@ class MarketManager:
         buy_val = self.round_decimal(quantity * price)
 
         # Only perform the actual transfer if it would be successful.
+        # Assuming that used_currency is correct
         # Cancel any orders that would not succeed.
         fail = False
         if not bid_success(bid.issuer, buy_val, bid_fee):
@@ -156,6 +157,7 @@ class MarketManager:
         """
         if self.transfer_fiat_success(sender, quantity, fee):
             sender.fiat -= quantity + fee
+            sender.used_fiat -= quantity + fee
             recipient.fiat += quantity
             self.model_manager.fiat += fee
             return True
@@ -169,6 +171,7 @@ class MarketManager:
         """
         if self.transfer_curits_success(sender, quantity, fee):
             sender.curits -= quantity + fee
+            sender.used_curits -= quantity + fee
             recipient.curits += quantity
             self.model_manager.curits += fee
             return True
@@ -182,6 +185,7 @@ class MarketManager:
         """
         if self.transfer_nomins_success(sender, quantity, fee):
             sender.nomins -= quantity + fee
+            sender.used_nomins -= quantity + fee
             recipient.nomins += quantity
             self.model_manager.nomins += fee
             return True

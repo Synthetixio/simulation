@@ -258,7 +258,7 @@ class OrderBook:
         """
         fee = self.bid_fee_fn(price * quantity)
 
-        if agent.__dict__[self.quote] < quantity + fee:
+        if agent.__dict__[self.quote] - agent.__dict__["used_"+self.quote] < quantity + fee:
             return None
 
         bid = Bid(price, quantity, fee, agent, self)
@@ -272,7 +272,7 @@ class OrderBook:
         """
         fee = self.ask_fee_fn(quantity)
 
-        if agent.__dict__[self.base] < quantity + fee:
+        if agent.__dict__[self.base] - agent.__dict__["used_"+self.base] < quantity + fee:
             return None
 
         ask = Ask(price, quantity, fee, agent, self)

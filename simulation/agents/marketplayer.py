@@ -30,6 +30,11 @@ class MarketPlayer(Agent):
         self.escrowed_curits: "Decimal" = Decimal('0.0')
         self.issued_nomins: "Decimal" = Decimal('0.0')
 
+        # values that are currently used in orders
+        self.used_fiat: "Decimal" = Decimal('0')
+        self.used_curits: "Decimal" = Decimal('0')
+        self.used_nomins: "Decimal" = Decimal('0')
+
         self.initial_wealth: "Decimal" = self.wealth()
 
         self.orders: Set["ob.LimitOrder"] = set()
