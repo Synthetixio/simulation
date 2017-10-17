@@ -252,21 +252,29 @@ class OrderBook:
         """
         self.time += 1
 
-    def bid(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Bid:
+    def bid(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
         Submit a new sell order to the book.
         """
         fee = self.bid_fee_fn(price * quantity)
+
+        if agent.__dict__[self.quote] < quantity + fee:
+            return None
+
         bid = Bid(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
         return bid
 
-    def ask(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Ask:
+    def ask(self, price: "Decimal", quantity: "Decimal", agent: "ag.MarketPlayer") -> Optional[Ask]:
         """
         Submit a new buy order to the book.
         """
         fee = self.ask_fee_fn(quantity)
+
+        if agent.__dict__[self.base] < quantity + fee:
+            return None
+
         ask = Ask(price, quantity, fee, agent, self)
         if self.match_on_order:
             self.match()
@@ -291,7 +299,8 @@ class OrderBook:
     def price_to_buy_quantity(self, quantity: "Decimal") -> "Decimal":
         """
         The bid price to buy a certain quantity. Note that this is an instantaneous
-        metric which may be invalidated if intervening trades are made.
+          metric which may be invalidated if intervening trades are made.
+        TODO: handle the null case properly, not just use self.price
         """
         cumulative = Decimal(0)
         price = self.price
@@ -304,7 +313,8 @@ class OrderBook:
     def price_to_sell_quantity(self, quantity: "Decimal") -> "Decimal":
         """
         The ask price to sell a certain quantity. Note that this is an instantaneous
-        metric which may be invalidated if intervening trades are made.
+          metric which may be invalidated if intervening trades are made.
+        TODO: handle the null case properly, not just use self.price
         """
         cumulative = Decimal(0)
         price = self.price

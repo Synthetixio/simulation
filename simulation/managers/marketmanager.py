@@ -23,19 +23,19 @@ class MarketManager:
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.curit_nomin_market = ob.OrderBook(
-            model_manager, "CUR", "NOM", self.curit_nomin_match,
+            model_manager, "curits", "nomins", self.curit_nomin_match,
             self.fee_manager.transferred_nomins_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.curit_fiat_market = ob.OrderBook(
-            model_manager, "CUR", "FIAT", self.curit_fiat_match,
+            model_manager, "curits", "fiat", self.curit_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
-            model_manager, "NOM", "FIAT", self.nomin_fiat_match,
+            model_manager, "nomins", "fiat", self.nomin_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_nomins_fee,
             self.model_manager.match_on_order

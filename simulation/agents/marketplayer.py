@@ -7,8 +7,8 @@ from mesa import Agent
 import model
 import orderbook as ob
 
-Portfolio = namedtuple("Portfolio",
-                       ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
+Portfolio: 'namedtuple' = namedtuple(
+    "Portfolio", ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
 
 
 class MarketPlayer(Agent):
@@ -64,7 +64,7 @@ class MarketPlayer(Agent):
                                      fiat=self.fiat)
 
     def portfolio(self, fiat_values: bool = False
-                  ) -> Tuple["Decimal", "Decimal", "Decimal", "Decimal", "Decimal"]:
+                  ) -> "Portfolio":
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.
