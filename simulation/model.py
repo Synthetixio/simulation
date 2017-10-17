@@ -22,7 +22,7 @@ class Havven(Model):
       velocity of money and so on.
     """
 
-    def __init__(self, num_agents: int, max_fiat: float = 1000.0,
+    def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
 
@@ -89,30 +89,30 @@ class Havven(Model):
         num_rands = int(num_agents * fractions["rands"])
         num_arbs = int(num_agents * fractions["arbs"])
 
-        # convert max_fiat to decimal type, be careful with floats!
-        max_fiat = Dec(max_fiat)
+        # convert init_value to decimal type, be careful with floats!
+        init_value_d = Dec(init_value)
 
         i = 0
 
         for _ in range(num_banks):
-            endowment = Dec(skewnorm.rvs(100))*max_fiat
+            endowment = Dec(skewnorm.rvs(100))*init_value_d
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
-            rand = ag.Randomizer(i, self, fiat=max_fiat)
-            self.endow_curits(rand, 3*max_fiat)
+            rand = ag.Randomizer(i, self, fiat=init_value_d)
+            self.endow_curits(rand, 3*init_value_d)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=max_fiat/2)
-            self.endow_curits(arb, max_fiat/2)
+            arb = ag.Arbitrageur(i, self, fiat=init_value_d/2)
+            self.endow_curits(arb, init_value_d/2)
             self.schedule.add(arb)
             i += 1
 
         central_bank = ag.CentralBank(
-            i, self, fiat=(num_agents * max_fiat), curit_target=Dec('1.0')
+            i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
         )
-        self.endow_curits(central_bank, (num_agents * max_fiat))
+        self.endow_curits(central_bank, (num_agents * init_value_d))
         self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:

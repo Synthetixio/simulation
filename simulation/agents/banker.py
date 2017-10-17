@@ -34,4 +34,3 @@ class Banker(MarketPlayer):
         issuable = self.max_issuance_rights() - self.issued_nomins
         if round(issuable, self.model.manager.currency_precision) > 0:
             self.issue_nomins(issuable)
-

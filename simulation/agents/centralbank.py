@@ -8,7 +8,7 @@ import model
 
 class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
-    
+
     def __init__(self, unique_id: int, havven: "model.Havven",
                  fiat: Dec = Dec(0), curits: Dec = Dec(0),
                  nomins: Dec = Dec(0),
@@ -88,7 +88,7 @@ class CentralBank(MarketPlayer):
             if nomin_price > (self.nomin_target * (1 + self.tolerance)):
                 if self.nomins > 0:
                     self.place_nomin_fiat_ask_with_fee(self._fraction_(self.nomins),
-                                                                       self.nomin_target)
+                                                       self.nomin_target)
                 else:
                     # If we have some curits, we can issue nomins on the back of them to sell.
                     if self.curits > 0:
@@ -109,8 +109,8 @@ class CentralBank(MarketPlayer):
                     if self.curits > 0:
                         self.sell_curits_for_fiat_with_fee(self._fraction_(self.curits))
                     else:
-                        # If we do not have curits, but we have some escrowed which we can immediately free,
-                        # free them.
+                        # If we do not have curits, but we have some escrowed which we can
+                        # immediately free, free them.
                         available_curits = self.available_escrowed_curits()
                         if available_curits > 0:
                             self.unescrow_curits(self._fraction_(available_curits))

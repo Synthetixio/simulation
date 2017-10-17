@@ -64,7 +64,7 @@ class MarketPlayer(Agent):
                                      fiat=self.fiat)
 
     def portfolio(self, fiat_values: bool = False
-                  ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
+                 ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.

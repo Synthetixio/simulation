@@ -41,7 +41,7 @@ class Mint:
             self.havven_manager.escrowed_curits -= value
             return True
         return False
-    
+
     ### FIXME TODO ###
     ### THIS LOGIC IS BROKEN. UTILISATION RATIO NOT TAKEN INTO ACCOUNT AT EVERY LOCATION ###
     ### ALSO NEED TO ENSURE THAT NOMINS ARE ACTUALLY PROPERLY-ISSUABLE ###
