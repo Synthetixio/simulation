@@ -84,7 +84,7 @@ class Havven(Model):
         fractions = {"banks": 0.2,
                      "arbs": 0.25,
                      "rands": 0.35,
-                     "nomin shorter": 0,
+                     "nomin shorter": 0.2,
                      "escrow nomin shorter": 0.2}
 
         num_banks = int(num_agents * fractions["banks"])

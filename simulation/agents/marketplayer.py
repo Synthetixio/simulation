@@ -409,9 +409,13 @@ class MarketPlayer(Agent):
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
 
     def round_float(self, value: float) -> "Decimal":
+        if value < 1E-8:
+            return Decimal('0')
         return round(Decimal(value), self.model.manager.currency_precision)
 
     def round_decimal(self, value: "Decimal") -> "Decimal":
+        if value < Decimal('1E-8'):
+            return Decimal('0')
         return round(value, self.model.manager.currency_precision)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:

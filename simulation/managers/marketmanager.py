@@ -136,17 +136,17 @@ class MarketManager:
     def transfer_fiat_success(self, sender: "ag.MarketPlayer",
                               quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of fiat."""
-        return 0 <= quantity + fee <= sender.fiat
+        return 0 <= quantity + fee <= self.round_decimal(sender.fiat)
 
     def transfer_curits_success(self, sender: "ag.MarketPlayer",
                                 quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of curits."""
-        return 0 <= quantity + fee <= sender.curits
+        return 0 <= quantity + fee <= self.round_decimal(sender.curits)
 
     def transfer_nomins_success(self, sender: "ag.MarketPlayer",
                                 quantity: "Decimal", fee: "Decimal") -> bool:
         """True iff the sender could successfully send a quantity of nomins."""
-        return 0 <= quantity + fee <= sender.nomins
+        return 0 <= quantity + fee <= self.round_decimal(sender.nomins)
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
                       recipient: "ag.MarketPlayer", quantity: "Decimal", fee: "Decimal") -> bool:

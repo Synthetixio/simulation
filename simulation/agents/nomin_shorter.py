@@ -103,18 +103,20 @@ class CuritEscrowNominShorter(NominShorter):
         nomins = self.nomins + self.remaining_issuance_rights()
 
         if nomins > 0:
+            count = 10  # to avoid long loops of smaller and smaller trades
             trade = self._find_best_nom_fiat_trade()
-            while trade is not None and self.round_decimal(nomins) > 0:
-                print("Nom:", trade, self.nomins, self.remaining_issuance_rights(), self.round_decimal(nomins))
+            while count > 0 and trade is not None and self.round_decimal(nomins) > 0:
+                count -= 1
                 self._issue_nomins_up_to(trade[1])
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
                 nomins = self.nomins + self.remaining_issuance_rights()
 
         if self.fiat > 0:
+            count = 10  # to avoid long loops of smaller and smaller trades
             trade = self._find_best_fiat_nom_trade()
-            while trade is not None and self.round_decimal(self.fiat) > 0:
-                print("Fiat:", trade, self.fiat, self.round_decimal(self.fiat))
+            while count > 0 and trade is not None and self.round_decimal(self.fiat) > 0:
+                count -= 1
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
 
