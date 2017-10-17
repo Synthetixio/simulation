@@ -35,7 +35,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (Dec(1) + self.fiat_fee_rate)
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.fiat_fee_rate))
 
     def transferred_curits_received(self, quantity: Dec) -> Dec:
         """
@@ -44,7 +44,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (Dec(1) + self.cur_fee_rate)
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.cur_fee_rate))
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
@@ -53,25 +53,25 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return quantity / (Dec(1) + self.nom_fee_rate)
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.nom_fee_rate))
 
     def transferred_fiat_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of fiat.
         """
-        return quantity * self.fiat_fee_rate
+        return HavvenManager.round_decimal(quantity * self.fiat_fee_rate)
 
     def transferred_curits_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of curits.
         """
-        return quantity * self.cur_fee_rate
+        return HavvenManager.round_decimal(quantity * self.cur_fee_rate)
 
     def transferred_nomins_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of nomins.
         """
-        return quantity * self.nom_fee_rate
+        return HavvenManager.round_decimal(quantity * self.nom_fee_rate)
 
     def distribute_fees(self, schedule_agents: List["agents.MarketPlayer"]) -> None:
         """

@@ -83,10 +83,10 @@ class Havven(Model):
         # Create the market players
 
         fractions = {"banks": 0.2,
-                     "arbs": 0.25,
-                     "rands": 0.35,
-                     "nomin shorter": 0.2,
-                     "escrow nomin shorter": 0.2}
+                     "arbs": 0.2,
+                     "rands": 0.3,
+                     "nomin shorter": 0.15,
+                     "escrow nomin shorter": 0.15}
 
         num_banks = int(num_agents * fractions["banks"])
         num_rands = int(num_agents * fractions["rands"])
@@ -100,7 +100,7 @@ class Havven(Model):
         i = 0
 
         for _ in range(num_banks):
-            endowment = Dec(skewnorm.rvs(100))*init_value_d
+            endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100))*init_value_d)
             self.schedule.add(ag.Banker(i, self, fiat=endowment))
             i += 1
         for _ in range(num_rands):
@@ -109,8 +109,8 @@ class Havven(Model):
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=init_value_d/Dec(2))
-            self.endow_curits(arb, init_value_d/Dec(2))
+            arb = ag.Arbitrageur(i, self, fiat=HavvenManager.round_decimal(init_value_d/Dec(2)))
+            self.endow_curits(arb, HavvenManager.round_decimal(init_value_d/Dec(2)))
             self.schedule.add(arb)
             i += 1
         for _ in range(nomin_shorters):
@@ -126,7 +126,7 @@ class Havven(Model):
             i, self, fiat=Dec(num_agents * init_value_d), curit_target=Dec('1.0')
         )
         self.endow_curits(central_bank, Dec(num_agents * init_value_d))
-        # self.schedule.add(central_bank)
+        self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()
@@ -154,18 +154,6 @@ class Havven(Model):
             self.market_manager.curit_nomin_market.match()
             self.market_manager.curit_fiat_market.match()
             self.market_manager.nomin_fiat_market.match()
-
-        # print("CURFIAT")
-        # print([str(b) for b in self.market_manager.curit_fiat_market.bids])
-        # print([str(a) for a in self.market_manager.curit_fiat_market.asks])
-
-        # print("NOMFIAT")
-        # print([str(b) for b in self.market_manager.nomin_fiat_market.bids])
-        # print([str(a) for a in self.market_manager.nomin_fiat_market.asks])
-
-        # print("CURNOM")
-        # print([str(b) for b in self.market_manager.curit_nomin_market.bids])
-        # print([str(a) for a in self.market_manager.curit_nomin_market.asks])
 
         # Distribute fees periodically.
         if (self.time % self.fee_manager.fee_period) == 0:

@@ -240,10 +240,9 @@ class OrderBook:
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """
-        The bid price to buy a certain quantity. Note that this is an instantaneous
-        metric which may be invalidated if intervening trades are made.
-
-        This doesn't take into account the fee
+        The bid price to buy a certain quantity, ignoring fees.
+        Note that this is an instantaneous metric which may be
+        invalidated if intervening trades are made.
         """
         cumulative = Dec(0)
         price = self.price
@@ -256,10 +255,9 @@ class OrderBook:
 
     def price_to_sell_quantity(self, quantity: Dec) -> Dec:
         """
-        The ask price to sell a certain quantity. Note that this is an instantaneous
-        metric which may be invalidated if intervening trades are made.
-
-        This doesn't take into account the fee
+        The ask price to sell a certain quantity, ignoring fees.
+        Note that this is an instantaneous metric which may be
+        invalidated if intervening trades are made.
         """
         cumulative = Dec(0)
         price = self.price
@@ -320,4 +318,4 @@ class OrderBook:
 
             spread = self.spread()
 
-        self.price = (self.lowest_ask_price() + self.highest_bid_price()) / Dec(2)
+        self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))

@@ -46,7 +46,6 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         ChartModule([
             {"Label": "0", "Color": "grey"},
             {"Label": "Gini", "Color": "navy"}]),
-        #{"Label": "Wealth SD", "Color": "blue"}]),
 
         ChartModule([
             {"Label": "Max Wealth", "Color": "purple"},
