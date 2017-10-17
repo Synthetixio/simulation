@@ -97,7 +97,8 @@ class MarketManager:
         bid.update_quantity(HavvenManager.round_decimal(bid.quantity - quantity),
                             HavvenManager.round_decimal(bid_fee))
 
-        return ob.TradeRecord(bid.issuer, ask.issuer, price, quantity)
+        return ob.TradeRecord(bid.issuer, ask.issuer,
+                              price, quantity, bid_fee, ask_fee)
 
     def curit_nomin_match(self, bid: "ob.Bid",
                           ask: "ob.Ask") -> Optional["ob.TradeRecord"]:

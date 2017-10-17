@@ -155,6 +155,18 @@ class Havven(Model):
             self.market_manager.curit_fiat_market.match()
             self.market_manager.nomin_fiat_market.match()
 
+        # print("CURFIAT")
+        # print([str(b) for b in self.market_manager.curit_fiat_market.bids])
+        # print([str(a) for a in self.market_manager.curit_fiat_market.asks])
+
+        # print("NOMFIAT")
+        # print([str(b) for b in self.market_manager.nomin_fiat_market.bids])
+        # print([str(a) for a in self.market_manager.nomin_fiat_market.asks])
+
+        # print("CURNOM")
+        # print([str(b) for b in self.market_manager.curit_nomin_market.bids])
+        # print([str(a) for a in self.market_manager.curit_nomin_market.asks])
+
         # Distribute fees periodically.
         if (self.time % self.fee_manager.fee_period) == 0:
             self.fee_manager.distribute_fees(self.schedule.agents)

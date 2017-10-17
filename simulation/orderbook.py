@@ -43,7 +43,8 @@ class LimitOrder:
             self.cancel()
 
     def __str__(self) -> str:
-        return f"{self.quantity}x{self.price} ({self.book.name if self.book else None}) " \
+        return f"{self.quantity}x{self.price} + {self.fee} " \
+               f"({self.book.name if self.book else None}) " \
                f"@ {self.time} by {self.issuer}"
 
 
@@ -126,14 +127,17 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
-                 price: Dec, quantity: Dec) -> None:
+                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec) -> None:
         self.buyer = buyer
         self.seller = seller
         self.price = price
         self.quantity = quantity
+        self.bid_fee = bid_fee
+        self.ask_fee = ask_fee
 
     def __str__(self) -> str:
-        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}"
+        return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
+               f" + ({self.bid_fee}, {self.ask_fee})"
 
 
 # A type for matching functions in the order book.
