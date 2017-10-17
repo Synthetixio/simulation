@@ -35,7 +35,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return Dec(quantity / (1 + self.fiat_fee_rate))
+        return quantity / (Dec(1) + self.fiat_fee_rate)
 
     def transferred_curits_received(self, quantity: Dec) -> Dec:
         """
@@ -44,7 +44,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return Dec(quantity / (1 + self.cur_fee_rate))
+        return quantity / (Dec(1) + self.cur_fee_rate)
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
@@ -53,7 +53,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return Dec(quantity / (1 + self.nom_fee_rate))
+        return quantity / (Dec(1) + self.nom_fee_rate)
 
     def transferred_fiat_fee(self, quantity: Dec) -> Dec:
         """
@@ -87,7 +87,8 @@ class FeeManager:
         for agent in schedule_agents:
             if self.model_manager.nomins <= 0:
                 break
-            qty = min(pre_nomins * agent.issued_nomins / self.model_manager.nomin_supply,
+            qty = min(HavvenManager.round_decimal(pre_nomins * agent.issued_nomins / \
+                                                  self.model_manager.nomin_supply),
                       self.model_manager.nomins)
             agent.nomins += qty
             self.model_manager.nomins -= qty

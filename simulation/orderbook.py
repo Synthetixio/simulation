@@ -227,7 +227,7 @@ class OrderBook:
         Buy a quantity of the sale token at the best available price.
         Optionally buy at a premium a certain fraction above the market price.
         """
-        price = self.price_to_buy_quantity(quantity) * Dec(1 + premium)
+        price = self.price_to_buy_quantity(quantity) * (Dec(1) + premium)
         return self.bid(price, quantity, agent)
 
     def sell(self, quantity: Dec, agent: "ag.MarketPlayer", discount: Dec = Dec('0.0')) -> Ask:
@@ -235,7 +235,7 @@ class OrderBook:
         Sell a quantity of the sale token at the best available price.
         Optionally sell at a discount a certain fraction below the market price.
         """
-        price = self.price_to_sell_quantity(quantity) * Dec(1 - discount)
+        price = self.price_to_sell_quantity(quantity) * (Dec(1) - discount)
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
@@ -245,7 +245,7 @@ class OrderBook:
 
         This doesn't take into account the fee
         """
-        cumulative = 0
+        cumulative = Dec(0)
         price = self.price
         for ask in self.asks:
             cumulative += ask.quantity
@@ -261,7 +261,7 @@ class OrderBook:
 
         This doesn't take into account the fee
         """
-        cumulative = 0
+        cumulative = Dec(0)
         price = self.price
         for bid in self.bids:
             cumulative += bid.quantity
@@ -320,4 +320,4 @@ class OrderBook:
 
             spread = self.spread()
 
-        self.price = (self.lowest_ask_price() + self.highest_bid_price()) / 2
+        self.price = (self.lowest_ask_price() + self.highest_bid_price()) / Dec(2)

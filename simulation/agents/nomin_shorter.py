@@ -55,7 +55,7 @@ class NominShorter(MarketPlayer):
             if bid.price < self._nomin_sell_rate_threshold:
                 break
             if trade_price_quant is not None:
-                trade_price_quant = (bid.price, trade_price_quant[1]+bid.quantity)
+                trade_price_quant = (bid.price, trade_price_quant[1] + bid.quantity)
             else:
                 trade_price_quant = (bid.price, bid.quantity)
         return trade_price_quant

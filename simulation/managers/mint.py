@@ -65,8 +65,8 @@ class Mint:
         """
         The total quantity of nomins this agent has a right to issue.
         """
-        return self.market_manager.curits_to_nomins(agent.escrowed_curits) * \
-            self.havven_manager.utilisation_ratio_max
+        return HavvenManager.round_decimal(self.market_manager.curits_to_nomins(agent.escrowed_curits) * \
+            self.havven_manager.utilisation_ratio_max)
 
     def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
         """

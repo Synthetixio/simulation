@@ -4,6 +4,7 @@ from decimal import Decimal as Dec
 from .marketplayer import MarketPlayer
 
 import model
+from managers import HavvenManager as hm
 
 
 class CentralBank(MarketPlayer):
@@ -43,7 +44,7 @@ class CentralBank(MarketPlayer):
         if self.curit_target is not None:
             curit_price = self.model.market_manager.curit_fiat_market.price
             # Price is too high, it should decrease: we will sell curits at a discount.
-            if curit_price > (self.curit_target * (1 + self.tolerance)):
+            if curit_price > hm.round_decimal(self.curit_target * (Dec(1) + self.tolerance)):
                 # If we have curits, sell them.
                 if self.curits > 0:
                     self.place_curit_fiat_ask_with_fee(self._fraction_(self.curits),
@@ -64,7 +65,7 @@ class CentralBank(MarketPlayer):
                             self.sell_fiat_for_nomins_with_fee(self._fraction_(self.fiat))
 
             # Price is too low, it should increase: we will buy curits at a premium.
-            elif curit_price < (self.curit_target * (1 - self.tolerance)):
+            elif curit_price < hm.round_decimal(self.curit_target * (Dec(1) - self.tolerance)):
                 # Buy some if we have fiat to buy it with.
                 if self.fiat > 0:
                     self.place_curit_fiat_bid_with_fee(self._fraction_(self.fiat),
@@ -85,7 +86,7 @@ class CentralBank(MarketPlayer):
         if self.nomin_target is not None:
             nomin_price = self.model.market_manager.nomin_fiat_market.price
             # Price is too high, it should decrease: we will sell nomins at a discount.
-            if nomin_price > (self.nomin_target * (1 + self.tolerance)):
+            if nomin_price > hm.round_decimal(self.nomin_target * (Dec(1) + self.tolerance)):
                 if self.nomins > 0:
                     self.place_nomin_fiat_ask_with_fee(self._fraction_(self.nomins),
                                                        self.nomin_target)
@@ -101,7 +102,7 @@ class CentralBank(MarketPlayer):
                         self.sell_fiat_for_curits_with_fee(self._fraction_(self.fiat))
 
             # Price is too low, it should increase: we will buy nomins at a premium.
-            elif nomin_price < (self.nomin_target * (1 - self.tolerance)):
+            elif nomin_price < hm.round_decimal(self.nomin_target * (Dec(1) - self.tolerance)):
                 if self.fiat > 0:
                     self.place_nomin_fiat_bid_with_fee(self._fraction_(self.fiat),
                                                        self.nomin_target)

@@ -105,28 +105,28 @@ class Havven(Model):
             i += 1
         for _ in range(num_rands):
             rand = ag.Randomizer(i, self, fiat=init_value_d)
-            self.endow_curits(rand, 3*init_value_d)
+            self.endow_curits(rand, Dec(3)*init_value_d)
             self.schedule.add(rand)
             i += 1
         for _ in range(num_arbs):
-            arb = ag.Arbitrageur(i, self, fiat=init_value_d/2)
-            self.endow_curits(arb, init_value_d/2)
+            arb = ag.Arbitrageur(i, self, fiat=init_value_d/Dec(2))
+            self.endow_curits(arb, init_value_d/Dec(2))
             self.schedule.add(arb)
             i += 1
         for _ in range(nomin_shorters):
-            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*2)
+            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*Dec(2))
             self.schedule.add(nomin_shorter)
             i += 1
         for _ in range(escrow_nomin_shorters):
-            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=init_value_d*2)
+            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=init_value_d*Dec(2))
             self.schedule.add(escrow_nomin_shorter)
             i += 1
 
         central_bank = ag.CentralBank(
-            i, self, fiat=(num_agents * init_value_d), curit_target=Dec('1.0')
+            i, self, fiat=Dec(num_agents * init_value_d), curit_target=Dec('1.0')
         )
-        self.endow_curits(central_bank, (num_agents * init_value_d))
-        self.schedule.add(central_bank)
+        self.endow_curits(central_bank, Dec(num_agents * init_value_d))
+        # self.schedule.add(central_bank)
 
         for agent in self.schedule.agents:
             agent.reset_initial_wealth()
