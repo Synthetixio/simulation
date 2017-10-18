@@ -61,8 +61,8 @@ class Bid(LimitOrder):
         if self.active:
             self.active = False
             self.book.remove_from_bids(self)
-        self.quantity = Dec('0.0')
-        self.fee = Dec('0.0')
+        self.quantity = Dec(0)
+        self.fee = Dec(0)
 
     def update_price(self, price: Dec, fee: Dec) -> None:
         if self.active:
@@ -98,8 +98,8 @@ class Ask(LimitOrder):
         if self.active:
             self.active = False
             self.book.remove_from_asks(self)
-        self.quantity = Dec('0.0')
-        self.fee = Dec('0.0')
+        self.quantity = Dec(0)
+        self.fee = Dec(0)
 
     def update_price(self, price: Dec, fee: Dec) -> None:
         if self.active:
@@ -162,7 +162,7 @@ class OrderBook:
         self.bid_quants: SortedDict = SortedDict(lambda x: -x)
         self.ask_quants: SortedDict = SortedDict(lambda x: x)
 
-        self.price: "Dec" = Dec('1.0')
+        self.price: Dec = Dec('1.0')
 
         self.time: int = 0
 
@@ -410,7 +410,7 @@ class OrderBook:
     def match(self) -> None:
         """Match bids with asks and perform any trades that can be made."""
         prev_bid, prev_ask = None, None
-        spread = Dec('0.0')
+        spread = Dec(0)
         # Repeatedly match the best pair of orders until no more matches can succeed.
         # Finish if there there are no orders left, or if the last match failed to remove any orders
         # This relies upon the bid and ask books being maintained ordered.

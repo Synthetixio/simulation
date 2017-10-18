@@ -8,7 +8,7 @@ import model
 import orderbook as ob
 from managers import HavvenManager as hm
 
-Portfolio: 'namedtuple' = namedtuple(
+Portfolio = namedtuple(
     "Portfolio", ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
 
 
@@ -28,15 +28,15 @@ class MarketPlayer(Agent):
         self.fiat: Dec = Dec(fiat)
         self.curits: Dec = Dec(curits)
         self.nomins: Dec = Dec(nomins)
-        self.escrowed_curits: Dec = Dec('0.0')
-        self.issued_nomins: Dec = Dec('0.0')
+        self.escrowed_curits: Dec = Dec(0)
+        self.issued_nomins: Dec = Dec(0)
 
         # values that are currently used in orders
-        self.used_fiat: "Dec" = Dec('0')
-        self.used_curits: "Dec" = Dec('0')
-        self.used_nomins: "Dec" = Dec('0')
+        self.used_fiat: Dec = Dec(0)
+        self.used_curits: Dec = Dec(0)
+        self.used_nomins: Dec = Dec(0)
 
-        self.initial_wealth: "Dec" = self.wealth()
+        self.initial_wealth: Dec = self.wealth()
 
         self.orders: Set["ob.LimitOrder"] = set()
 
@@ -48,8 +48,8 @@ class MarketPlayer(Agent):
         """Return the name of this object; its type and its unique id."""
         return f"{self.__class__.__name__} {self.unique_id}"
 
-    def _fraction_(self, qty: Dec, divisor: Dec = Dec('3'),
-                   minimum: Dec = Dec('1')) -> Dec:
+    def _fraction_(self, qty: Dec, divisor: Dec = Dec(3),
+                   minimum: Dec = Dec(1)) -> Dec:
         """
         Return a fraction of the given quantity, with a minimum.
         Used for depleting reserves gradually.
@@ -70,7 +70,7 @@ class MarketPlayer(Agent):
                                      fiat=self.fiat)
 
     def portfolio(self, fiat_values: bool = False
-                  ) -> "Portfolio":
+                  ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.
@@ -415,15 +415,15 @@ class MarketPlayer(Agent):
         return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
 
     @property
-    def available_fiat(self) -> "Dec":
+    def available_fiat(self) -> Dec:
         return self.fiat - self.used_fiat
 
     @property
-    def available_curits(self) -> "Dec":
+    def available_curits(self) -> Dec:
         return self.curits - self.used_curits
 
     @property
-    def available_nomins(self) -> "Dec":
+    def available_nomins(self) -> Dec:
         return self.nomins - self.used_nomins
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:

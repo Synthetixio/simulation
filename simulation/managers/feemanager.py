@@ -26,7 +26,7 @@ class FeeManager:
         self.issuance_fee_rate: Dec = Dec('0.0')
         self.redemption_fee_rate: Dec = Dec('0.0')
 
-        self.fees_distributed: Dec = Dec("0.0")
+        self.fees_distributed: Dec = Dec(0)
 
     def transferred_fiat_received(self, quantity: Dec) -> Dec:
         """

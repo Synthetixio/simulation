@@ -1,5 +1,5 @@
 from typing import Tuple, Optional
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 from .marketplayer import MarketPlayer
 import orderbook as ob
@@ -22,10 +22,10 @@ class NominShorter(MarketPlayer):
     TODO: Maybe put up a wall by placing nomin ask @ sell_rate_threshold
     """
 
-    _nomin_sell_rate_threshold = Decimal('1.04')
+    _nomin_sell_rate_threshold = Dec('1.04')
     """The rate above which the player will sell nomins"""
 
-    _nomin_buy_rate_threshold = Decimal('1.01')
+    _nomin_buy_rate_threshold = Dec('1.01')
     """The rate below which the player will buy nomins"""
 
     def step(self) -> None:
@@ -49,7 +49,7 @@ class NominShorter(MarketPlayer):
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
 
-    def _find_best_nom_fiat_trade(self) -> Optional[Tuple["Decimal", "Decimal"]]:
+    def _find_best_nom_fiat_trade(self) -> Optional[Tuple[Dec, Dec]]:
         trade_price_quant = None
         for bid in self.model.market_manager.nomin_fiat_market.highest_bids():
             if bid.price < self._nomin_sell_rate_threshold:
@@ -60,14 +60,14 @@ class NominShorter(MarketPlayer):
                 trade_price_quant = (bid.price, bid.quantity)
         return trade_price_quant
 
-    def _make_nom_fiat_trade(self, trade_price_quant: Tuple["Decimal", "Decimal"]) -> "ob.Ask":
+    def _make_nom_fiat_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Ask":
         fee = self.model.fee_manager.transferred_nomins_fee(trade_price_quant[1])
         # if not enough nomins to cover whole ask
         if self.nomins < trade_price_quant[1] + fee:
             return self.sell_nomins_for_fiat_with_fee(self.nomins)
         return self.sell_nomins_for_fiat(trade_price_quant[1])
 
-    def _find_best_fiat_nom_trade(self) -> Optional[Tuple["Decimal", "Decimal"]]:
+    def _find_best_fiat_nom_trade(self) -> Optional[Tuple[Dec, Dec]]:
         trade_price_quant = None
         for ask in self.model.market_manager.nomin_fiat_market.lowest_asks():
             if ask.price > self._nomin_buy_rate_threshold:
@@ -78,7 +78,7 @@ class NominShorter(MarketPlayer):
                 trade_price_quant = (ask.price, ask.quantity)
         return trade_price_quant
 
-    def _make_fiat_nom_trade(self, trade_price_quant: Tuple["Decimal", "Decimal"]) -> "ob.Bid":
+    def _make_fiat_nom_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Bid":
         fee = self.model.fee_manager.transferred_fiat_fee(trade_price_quant[1])
         # if not enough fiat to cover whole ask
         if self.fiat < trade_price_quant[1] + fee:
@@ -131,7 +131,7 @@ class CuritEscrowNominShorter(NominShorter):
             else:
                 self.burn_nomins(self.issued_nomins)
 
-    def _issue_nomins_up_to(self, quantity: "Decimal") -> bool:
+    def _issue_nomins_up_to(self, quantity: Dec) -> bool:
         """
         If quantity > currently issued nomins, including fees to trade, issue more nomins
 
