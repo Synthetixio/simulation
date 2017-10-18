@@ -62,16 +62,14 @@ class MarketManager:
         # The earlier poster trades at their posted price,
         #   while the later poster transacts at a price no worse than posted;
         #   they may do better.
-        price = HavvenManager.round_decimal(ask.price if ask.time < bid.time else bid.price)
-        quantity = HavvenManager.round_decimal(min(ask.quantity, bid.quantity))
+        price = ask.price if ask.time < bid.time else bid.price
+        quantity = min(ask.quantity, bid.quantity)
 
-        # only charge a fraction of the fee
-        if quantity == ask.quantity:
-            ask_fee = HavvenManager.round_decimal(ask.fee)
-            bid_fee = HavvenManager.round_decimal(quantity/bid.quantity * bid.fee)
-        else:
-            bid_fee = HavvenManager.round_decimal(bid.fee)
-            ask_fee = HavvenManager.round_decimal(quantity/ask.quantity * ask.fee)
+        # Only charge a fraction of the fee if an order was not entirely filled.
+        bid_fee = HavvenManager.round_decimal((quantity/bid.quantity) * bid.fee)
+        ask_fee = HavvenManager.round_decimal((quantity/ask.quantity) * ask.fee)
+
+        # Compute the buy value. The sell value is just the quantity itself.
         buy_val = HavvenManager.round_decimal(quantity * price)
 
         # Only perform the actual transfer if it would be successful.
@@ -88,14 +86,16 @@ class MarketManager:
 
         # Perform the actual transfers.
         # We have already checked above if these would succeed.
-        ask_transfer(ask.issuer, bid.issuer, quantity, ask_fee)
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
+        ask_transfer(ask.issuer, bid.issuer, quantity, ask_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
-        ask.update_quantity(HavvenManager.round_decimal(ask.quantity - quantity),
-                            HavvenManager.round_decimal(ask_fee))
-        bid.update_quantity(HavvenManager.round_decimal(bid.quantity - quantity),
-                            HavvenManager.round_decimal(bid_fee))
+        bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
+        ask.update_quantity(ask.quantity - quantity, bid.fee - ask_fee)
+
+        # Remove the amount that was transferred from issuers' used value.
+        bid.issuer.__dict__[f"used_{bid.book.quote}"] -= quantity + bid_fee
+        ask.issuer.__dict__[f"used_{ask.book.base}"] -= quantity + ask_fee
 
         return ob.TradeRecord(bid.issuer, ask.issuer,
                               price, quantity, bid_fee, ask_fee)

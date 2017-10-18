@@ -22,18 +22,26 @@ class LimitOrder:
         self.quantity = quantity
         self.issuer = issuer
         self.book = book
-        self.active = True
+        self.active = quantity > 0
 
     def cancel(self) -> None:
         """Remove this order from the issuer and the order book if it's active."""
         pass
 
-    def update_price(self, price: Dec, fee: Dec) -> None:
-        """Update this order's price, updating its timestamp, possibly reordering its order book."""
+    def update_price(self, price: Dec,
+                     fee: Optional[Dec] = None) -> None:
+        """
+        Update this order's price, updating its timestamp, possibly reordering its order book.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
         pass
 
-    def update_quantity(self, quantity: Dec, fee: Dec) -> None:
-        """Update the quantity of this order, cancelling it if the quantity is not positive."""
+    def update_quantity(self, quantity: Dec,
+                        fee: Optional[Dec] = None) -> None:
+        """
+        Update the quantity of this order, updating its timestamp, cancelling if not positive.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
         pass
 
     def __str__(self) -> str:
@@ -47,10 +55,8 @@ class Bid(LimitOrder):
     def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
-        if quantity <= 0:
-            self.active = False  # bid will not be added to the orderbook
-        else:
-            self.book.add_new_bid(self)
+        # Note that the bid will not be active if quantity is not positive.
+        self.book._add_new_bid_(self)
 
     @classmethod
     def comparator(cls, bid: "Bid"):
@@ -58,22 +64,24 @@ class Bid(LimitOrder):
         return -bid.price, bid.time
 
     def cancel(self) -> None:
-        if self.active:
-            self.active = False
-            self.book.remove_from_bids(self)
-        self.quantity = Dec(0)
-        self.fee = Dec(0)
+        """Remove this bid from the issuer and the order book if it's active."""
+        self.book.cancel_bid(self)
 
-    def update_price(self, price: Dec, fee: Dec) -> None:
-        if self.active:
-            self.book.update_bid(self, price, self.quantity, fee)
-            self.time = self.book.time
+    def update_price(self, price: Dec,
+                     fee: Optional[Dec] = None) -> None:
+        """
+        Update this bid's price, updating its timestamp, possibly reordering its order book.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
+        self.book.update_bid(self, price, self.quantity, fee)
 
-    def update_quantity(self, quantity: Dec, fee: Dec):
-        if quantity > 0:
-            self.book.update_bid(self, self.price, quantity, fee)
-        else:
-            self.cancel()
+    def update_quantity(self, quantity: Dec,
+                        fee: Optional[Dec] = None) -> None:
+        """
+        Update the quantity of this bid, updating its timestamp, cancelling if not positive.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
+        self.book.update_bid(self, self.price, quantity, fee)
 
     def __str__(self) -> str:
         return "Bid: " + super().__str__()
@@ -84,10 +92,8 @@ class Ask(LimitOrder):
     def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
-        if quantity <= 0:
-            self.active = False  # ask will not be added to the orderbook
-        else:
-            self.book.add_new_ask(self)
+        # Note that the ask will not be active if quantity is not positive.
+        self.book._add_new_ask_(self)
 
     @classmethod
     def comparator(cls, ask: "Ask"):
@@ -95,22 +101,24 @@ class Ask(LimitOrder):
         return ask.price, ask.time
 
     def cancel(self) -> None:
-        if self.active:
-            self.active = False
-            self.book.remove_from_asks(self)
-        self.quantity = Dec(0)
-        self.fee = Dec(0)
+        """Remove this ask from the issuer and the order book if it's active."""
+        self.book.cancel_ask(self)
 
-    def update_price(self, price: Dec, fee: Dec) -> None:
-        if self.active:
-            self.book.update_ask(self, price, self.quantity, fee)
-            self.time = self.book.time
+    def update_price(self, price: Dec,
+                     fee: Optional[Dec] = None) -> None:
+        """
+        Update this ask's price, updating its timestamp, possibly reordering its order book.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
+        self.book.update_ask(self, price, self.quantity, fee)
 
-    def update_quantity(self, quantity: Dec, fee: Dec):
-        if quantity > 0:
-            self.book.update_ask(self, self.price, quantity, fee)
-        else:
-            self.cancel()
+    def update_quantity(self, quantity: Dec,
+                        fee: Optional[Dec] = None) -> None:
+        """
+        Update the quantity of this bid, updating its timestamp, cancelling if not positive.
+        If fee is not None, set the fee directly, otherwise recompute it.
+        """
+        self.book.update_ask(self, self.price, quantity, fee)
 
     def __str__(self) -> str:
         return "Ask: " + super().__str__()
@@ -174,8 +182,8 @@ class OrderBook:
         self.matcher: Matcher = matcher
 
         # Fees will be calculated with the following functions.
-        self.bid_fee_fn: Callable[[Dec], Dec] = bid_fee_fn
-        self.ask_fee_fn: Callable[[Dec], Dec] = ask_fee_fn
+        self._bid_fee_fn_: Callable[[Dec], Dec] = bid_fee_fn
+        self._ask_fee_fn_: Callable[[Dec], Dec] = ask_fee_fn
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
@@ -196,34 +204,94 @@ class OrderBook:
         """
         self.time += 1
 
+    def _bid_bucket_add_(self, price: Dec, quantity: Dec) -> None:
+        """
+        Add a quantity to the bid bucket for a price,
+        adding a new bucket if none exists.
+        """
+        if price in self.bid_quants:
+            self.bid_quants[price] += quantity
+        else:
+            self.bid_quants[price] = quantity
+
+    def _bid_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
+        """
+        Deduct a quantity from the bid bucket for a price,
+        removing the bucket if it is emptied.
+        """
+        if self.bid_quants[price] == quantity:
+            self.bid_quants.pop(price)
+        else:
+            self.bid_quants[price] -= quantity
+
+    def _ask_bucket_add_(self, price: Dec, quantity: Dec) -> None:
+        """
+        Add a quantity to the ask bucket for a price,
+        adding a new bucket if none exists.
+        """
+        if price in self.ask_quants:
+            self.ask_quants[price] += quantity
+        else:
+            self.ask_quants[price] = quantity
+
+    def _ask_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
+        """
+        Deduct a quantity from the ask bucket for a price,
+        removing the bucket if it is emptied.
+        """
+        if self.ask_quants[price] == quantity:
+            self.ask_quants.pop(price)
+        else:
+            self.ask_quants[price] -= quantity
+
+    def _bid_fee_(self, price: Dec, quantity: Dec) -> Dec:
+        """
+        Return the fee paid on the quoted end for a bid
+        of the given quantity and price.
+        """
+        return self._bid_fee_fn_(HavvenManager.round_decimal(price * quantity))
+
+    def _ask_fee_(self, price: Dec, quantity: Dec) -> Dec:
+        """
+        Return the fee paid on the base end for an ask
+        of the given quantity and price.
+        """
+        return self._ask_fee_fn_(quantity)
+
     def bid(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
         Submit a new sell order to the book.
         """
-        fee = self.bid_fee_fn(price * quantity)
+        fee = self._bid_fee_(price, quantity)
 
-        if agent.__dict__[self.quote] - agent.__dict__["used_"+self.quote] < quantity + fee:
+        # Fail if the value of the order exceeds the agent's available supply
+        if agent.__getattribute__(f"available_{self.quote}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
-        bid = Bid(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
-                  HavvenManager.round_decimal(fee), agent, self)
+        bid = Bid(price, quantity, fee, agent, self)
+
+        # Attempt to trde the bid immediately if desired.
         if self.match_on_order:
             self.match()
+
         return bid
 
     def ask(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Ask]:
         """
         Submit a new buy order to the book.
         """
-        fee = self.ask_fee_fn(quantity)
+        fee = self._ask_fee_(price, quantity)
 
-        if agent.__dict__[self.base] - agent.__dict__["used_"+self.base] < quantity + fee:
+        # Fail if the value of the order exceeds the agent's available supply
+        if agent.__getattribute__(f"available_{self.base}") < quantity + fee:
             return None
 
-        ask = Ask(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity),
-                  HavvenManager.round_decimal(fee), agent, self)
+        ask = Ask(price, quantity, fee, agent, self)
+
+        # Attempt to trde the ask immediately if desired.
         if self.match_on_order:
             self.match()
+
         return ask
 
     def buy(self, quantity: Dec, agent: "ag.MarketPlayer", premium: Dec = Dec('0.0')) -> Bid:
@@ -231,7 +299,7 @@ class OrderBook:
         Buy a quantity of the sale token at the best available price.
         Optionally buy at a premium a certain fraction above the market price.
         """
-        price = self.price_to_buy_quantity(quantity) * (Dec(1) + premium)
+        price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity) * (Dec(1) + premium))
         return self.bid(price, quantity, agent)
 
     def sell(self, quantity: Dec, agent: "ag.MarketPlayer", discount: Dec = Dec('0.0')) -> Ask:
@@ -239,20 +307,20 @@ class OrderBook:
         Sell a quantity of the sale token at the best available price.
         Optionally sell at a discount a certain fraction below the market price.
         """
-        price = self.price_to_sell_quantity(quantity) * (Dec(1) - discount)
+        price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity) * (Dec(1) - discount))
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """
         The bid price to buy a certain quantity, ignoring fees.
         Note that this is an instantaneous metric which may be
-          invalidated if intervening trades are made.
-        TODO: handle the null case properly, not just use self.price
+        invalidated if intervening trades are made.
         """
+        # TODO: handle the null case properly, not just use self.price
         cumulative = Dec(0)
         price = self.price
-        for key in self.ask_quants:
-            price = key
+        for _price in self.ask_quants:
+            price = _price
             cumulative += self.ask_quants[price]
             if cumulative >= quantity:
                 break
@@ -262,162 +330,264 @@ class OrderBook:
         """
         The ask price to sell a certain quantity, ignoring fees.
         Note that this is an instantaneous metric which may be
-          invalidated if intervening trades are made.
-        TODO: handle the null case properly, not just use self.price
+        invalidated if intervening trades are made.
         """
+        # TODO: handle the null case properly, not just use self.price
         cumulative = Dec(0)
         price = self.price
-        for key in self.bid_quants:
-            price = key
+        for _price in self.bid_quants:
+            price = _price
             cumulative += self.bid_quants[price]
             if cumulative >= quantity:
                 break
         return price
 
     def bids_higher_or_equal(self, price: Dec) -> Iterable[Bid]:
-        """Return an iterator of bids whose prices are no lower than the given price."""
+        """
+        Return an iterator of bids whose prices are no lower than the given price.
+        """
         return takewhile(lambda bid: bid.price >= price, self.bids)
 
     def highest_bid_price(self) -> Dec:
-        """Return the highest available buy price."""
+        """
+        Return the highest available buy price.
+        """
         return self.bids[0].price if (len(self.bids) > 0) else self.price
 
     def highest_bids(self) -> Iterable[Bid]:
-        """Return the list of highest-priced bids. May be empty if there are none."""
+        """
+        Return the list of highest-priced bids. May be empty if there are none.
+        """
         return self.bids_higher_or_equal(self.highest_bid_price())
 
     def asks_lower_or_equal(self, price: Dec) -> Iterable[Bid]:
-        """Return an iterator of asks whose prices are no higher than the given price."""
+        """
+        Return an iterator of asks whose prices are no higher than the given price.
+        """
         return takewhile(lambda ask: ask.price <= price, self.asks)
 
     def lowest_ask_price(self) -> Dec:
-        """Return the lowest available sell price."""
+        """
+        Return the lowest available sell price.
+        """
         return self.asks[0].price if (len(self.asks) > 0) else self.price
 
     def lowest_asks(self) -> Iterable[Bid]:
-        """Return the list of lowest-priced asks. May be empty if there are none."""
+        """
+        Return the list of lowest-priced asks. May be empty if there are none.
+        """
         return self.asks_lower_or_equal(self.lowest_ask_price())
 
     def spread(self) -> Dec:
-        """Return the gap between best buy and sell prices."""
+        """
+        Return the gap between best buy and sell prices.
+        """
         return self.lowest_ask_price() - self.highest_bid_price()
 
-    def add_new_bid(self, bid):
-        """add a new bid. Bid price/quantity are set in super().__init__(...)"""
-        bid.issuer.__dict__["used_" + self.quote] += bid.quantity + bid.fee
+    def _add_new_bid_(self, bid: Bid) -> None:
+        """
+        Add a new Bid. This should be called only in the Bid constructor.
+        Price, quantity, and issuer are assumed already to have been set
+        in the LimitOrder super constructor.
+        """
 
+        # Do not add the Bid if it is inactive.
+        # (e.g. if it was instantiated with 0 capacity)
+        if not bid.active:
+            return
+
+        # Update the issuer's used quote value.
+        bid.issuer.__dict__[f"used_{self.quote}"] += bid.quantity + bid.fee
+
+        # Add to the issuer and book's records
         bid.issuer.orders.add(bid)
         self.bids.add(bid)
-        if bid.price in self.bid_quants:
-            self.bid_quants[bid.price] += bid.quantity
-        else:
-            self.bid_quants[bid.price] = bid.quantity
+
+        # Update the cumulative price totals with the new quantity.
+        self._bid_bucket_add_(bid.price, bid.quantity)
+
+        # Advance time
         self.step()
 
-    def update_bid(self, bid, new_price, new_quantity, new_fee):
+    def update_bid(self, bid: Bid, new_price: Dec, new_quantity: Dec,
+                   fee: Optional[Dec] = None) -> None:
         """
-        Update cached bid quantity if price or quantity change
-        This won't work for new bid/ask
+        Update a Bid's details in the book, recomputing fees and cached quantities.
+        If fee is not None, then update the fee directly, rather than recomputing it.
         """
-        bid.issuer.__dict__["used_" + self.quote] -= bid.quantity + bid.fee
-        bid.issuer.__dict__["used_" + self.quote] += new_quantity + new_fee
+        # Do nothing if the order is inactive.
+        if not bid.active:
+            return
+
+        # Do nothing if the price and quantity would remain unchanged.
+        if bid.price == new_price and bid.quantity == new_quantity:
+            return
+
+        # If the bid is updated with a non-positive quantity, it is cancelled.
+        if new_quantity <= 0:
+            self.cancel_bid(bid)
+            return
+
+        # Compute the new fee.
+        new_fee = fee
+        if fee is None:
+            new_fee = self._bid_fee_(new_price, new_quantity)
+
+        # Update the used quantities for this bid,
+        # deducting the old and crediting the new.
+        bid.issuer.__dict__[f"used_{self.quote}"] -= bid.quantity + bid.fee
+        bid.issuer.__dict__[f"used_{self.quote}"] += new_quantity + new_fee
 
         if bid.price == new_price:
-            if new_price in self.bid_quants:
-                self.bid_quants[new_price] += (new_quantity - bid.quantity)
-            else:
-                self.bid_quants[new_price] = new_quantity
-            # price remains the same, so position doesn't need to update
-            bid.price = new_price
+            # We may assume the current price is already recorded,
+            # so no need to call _bid_bucket_add_ which checks before
+            # inserting. Something is wrong if the key is not found.
+            self.bid_quants[new_price] += (new_quantity - bid.quantity)
+
+            # As the price is unchanged, order book position need not be
+            # updated, just set the quantity and fee.
             bid.quantity = new_quantity
             bid.fee = new_fee
         else:
-            if self.bid_quants[bid.price] == bid.quantity:
-                self.bid_quants.pop(bid.price)
-            else:
-                self.bid_quants[bid.price] -= bid.quantity
-            self.bid_quants[new_price] = new_quantity
+            # Deduct the old quantity from its price bucket,
+            # and add the new quantity into the appropriate bucket.
+            self._bid_bucket_deduct_(bid.price, bid.quantity)
+            self._bid_bucket_add_(new_price, new_quantity)
 
-            # update bid position in list
+            # Since the price changed, update the bid's position
+            # in the book.
             self.bids.pop(bid)
             bid.price = new_price
             bid.quantity = new_quantity
             bid.fee = new_fee
             self.bids.add(bid)
 
-            # only update the bid time if the price changed
-            bid.time = self.time
+        # Set and advance timestep.
+        bid.time = self.time
         self.step()
 
-    def remove_from_bids(self, bid):
-        """Remove a bid from the bid list, and update cached quantity"""
-        bid.issuer.__dict__["used_" + self.quote] -= bid.quantity + bid.fee
+    def cancel_bid(self, bid: Bid) -> None:
+        """
+        Remove a bid from the bid list, and update cached quantity.
+        """
+        # We should avoid trying to cancel a bid which is already inactive.
+        if not bid.active:
+            return
+
+        # Free up tokens occupied by this bid.
+        bid.issuer.__dict__[f"used_{self.quote}"] -= bid.quantity + bid.fee
+
+        # Remove this order's remaining quantity from its price bucket
+        self._bid_bucket_deduct_(bid.price, bid.quantity)
+
+        # Delete the order from the ask list and issuer.
         self.bids.remove(bid)
-        if self.bid_quants[bid.price] == bid.quantity:
-            self.bid_quants.pop(bid.price)
-        else:
-            self.bid_quants[bid.price] -= bid.quantity
-        self.step()
         bid.issuer.orders.remove(bid)
+        bid.active = False
+        self.step()
         bid.issuer.notify_cancelled(bid)
 
-    def add_new_ask(self, ask):
-        """add a new ask. Ask price/quantity are set in super().__init__(...)"""
-        ask.issuer.__dict__["used_" + self.base] += ask.quantity + ask.fee
+    def _add_new_ask_(self, ask: Ask) -> None:
+        """
+        Add a new Ask. This should be called only in the Ask constructor.
+        Price, quantity, and issuer are assumed already to have been set
+        in the LimitOrder super constructor.
+        """
 
+        # Do not add the Ask if it is inactive.
+        # (e.g. if it was instantiated with 0 capacity)
+        if not ask.active:
+            return
+
+        # Update the issuer's used base value.
+        ask.issuer.__dict__[f"used_{self.base}"] += ask.quantity + ask.fee
+
+        # Add to the issuer and book's records.
         ask.issuer.orders.add(ask)
         self.asks.add(ask)
-        if ask.price in self.ask_quants:
-            self.ask_quants[ask.price] += ask.quantity
-        else:
-            self.ask_quants[ask.price] = ask.quantity
+
+        # Update the cumulative price totals with the new quantity.
+        self._ask_bucket_add_(ask.price, ask.quantity)
+
+        # Advance time.
         self.step()
 
-    def update_ask(self, ask, new_price, new_quantity, new_fee):
+    def update_ask(self, ask: Ask, new_price: Dec, new_quantity: Dec,
+                   fee: Optional[Dec] = None) -> None:
         """
-        Update cached ask quantity if price or quantity change
-        This won't work for new ask/ask
+        Update an Ask's details in the book, recomputing fees and cached quantities.
+        if fee is not None, then update the fee directly, rather than recomputing it.
         """
-        ask.issuer.__dict__["used_" + self.base] -= ask.quantity + ask.fee
-        ask.issuer.__dict__["used_" + self.base] += new_quantity + new_fee
+        # Do nothing if the order is inactive.
+        if not ask.active:
+            return
+
+        # Do nothing if the price and quantity would remain unchanged.
+        if ask.price == new_price and ask.quantity == new_quantity:
+            return
+
+        # If the ask is updated with a non-positive quantity, it is cancelled.
+        if new_quantity <= 0:
+            self.cancel_ask(ask)
+            return
+
+        # Compute the new fee
+        new_fee = fee
+        if fee is None:
+            new_fee = self._ask_fee_(new_price, new_quantity)
+
+        # Update the used quantities for this ask,
+        # deducting the old and crediting the new.
+        ask.issuer.__dict__[f"used_{self.base}"] -= ask.quantity + ask.fee
+        ask.issuer.__dict__[f"used_{self.base}"] += new_quantity + new_fee
+
         if ask.price == new_price:
-            if new_price in self.ask_quants:
-                self.ask_quants[new_price] += (new_quantity - ask.quantity)
-            else:
-                self.ask_quants[new_price] = new_quantity
-            # price remains the same, so position doesn't need to update
-            ask.price = new_price
+            # We may assume the current price is already recorded,
+            # so no need to call _ask_bucket_add_ which checks before
+            # inserting. Something is wrong if the key is not found.
+            self.ask_quants[new_price] += (new_quantity - ask.quantity)
+
+            # As the price is unchanged, order book position need not be
+            # updated, just set the quantity and fee.
             ask.quantity = new_quantity
             ask.fee = new_fee
         else:
-            if self.ask_quants[ask.price] == ask.quantity:
-                self.ask_quants.pop(ask.price)
-            else:
-                self.ask_quants[ask.price] -= ask.quantity
-            self.ask_quants[new_price] = new_quantity
+            # Deduct the old quantity from its price bucket,
+            # and add the new quantity into the appropriate bucket.
+            self._ask_bucket_deduct_(ask.price, ask.quantity)
+            self._ask_bucket_add_(new_price, new_quantity)
 
-            # update ask position in list
+            # Since the price changed, update the ask's position
+            # in the book.
             self.asks.pop(ask)
             ask.price = new_price
             ask.quantity = new_quantity
             ask.fee = new_fee
             self.asks.add(ask)
 
-            # only update the ask time if the price changed
-            ask.time = self.time
+        # Set and advance timestep.
+        ask.time = self.time
         self.step()
 
-    def remove_from_asks(self, ask):
-        """Remove an ask from the ask list, and update cached quantity"""
-        ask.issuer.__dict__["used_" + self.base] -= ask.quantity + ask.fee
+    def cancel_ask(self, ask):
+        """
+        Remove an ask from the ask list, and update cached quantity.
+        """
+        # We should avoid trying to cancel an ask which is already inactive.
+        if not ask.active:
+            return
+
+        # Free up tokens occupied by this bid.
+        ask.issuer.__dict__[f"used_{self.base}"] -= ask.quantity + ask.fee
+
+        # Remove this order's remaining quantity from its price bucket.
+        self._ask_bucket_deduct_(ask.price, ask.quantity)
+
+        # Delete order from the ask list and issuer.
         self.asks.remove(ask)
-
-        if self.ask_quants[ask.price] == ask.quantity:
-            self.ask_quants.pop(ask.price)
-        else:
-            self.ask_quants[ask.price] -= ask.quantity
-        self.step()
         ask.issuer.orders.remove(ask)
+        ask.active = False
+        self.step()
         ask.issuer.notify_cancelled(ask)
 
     def match(self) -> None:
