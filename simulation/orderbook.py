@@ -251,7 +251,8 @@ class OrderBook:
         """
         cumulative = Dec(0)
         price = self.price
-        for price in self.ask_quants:
+        for key in self.ask_quants:
+            price = key
             cumulative += self.ask_quants[price]
             if cumulative >= quantity:
                 break
@@ -266,7 +267,8 @@ class OrderBook:
         """
         cumulative = Dec(0)
         price = self.price
-        for price in self.bid_quants:
+        for key in self.bid_quants:
+            price = key
             cumulative += self.bid_quants[price]
             if cumulative >= quantity:
                 break
@@ -301,7 +303,9 @@ class OrderBook:
         return self.lowest_ask_price() - self.highest_bid_price()
 
     def add_new_bid(self, bid):
-        """add a new bid"""
+        """add a new bid. Bid price/quantity are set in super().__init__(...)"""
+        bid.issuer.__dict__["used_" + self.quote] += bid.quantity + bid.fee
+
         bid.issuer.orders.add(bid)
         self.bids.add(bid)
         if bid.price in self.bid_quants:
@@ -315,6 +319,9 @@ class OrderBook:
         Update cached bid quantity if price or quantity change
         This won't work for new bid/ask
         """
+        bid.issuer.__dict__["used_" + self.quote] -= bid.quantity + bid.fee
+        bid.issuer.__dict__["used_" + self.quote] += new_quantity + new_fee
+
         if bid.price == new_price:
             if new_price in self.bid_quants:
                 self.bid_quants[new_price] += (new_quantity - bid.quantity)
@@ -344,6 +351,7 @@ class OrderBook:
 
     def remove_from_bids(self, bid):
         """Remove a bid from the bid list, and update cached quantity"""
+        bid.issuer.__dict__["used_" + self.quote] -= bid.quantity + bid.fee
         self.bids.remove(bid)
         if self.bid_quants[bid.price] == bid.quantity:
             self.bid_quants.pop(bid.price)
@@ -354,7 +362,9 @@ class OrderBook:
         bid.issuer.notify_cancelled(bid)
 
     def add_new_ask(self, ask):
-        """add a new ask"""
+        """add a new ask. Ask price/quantity are set in super().__init__(...)"""
+        ask.issuer.__dict__["used_" + self.base] += ask.quantity + ask.fee
+
         ask.issuer.orders.add(ask)
         self.asks.add(ask)
         if ask.price in self.ask_quants:
@@ -368,6 +378,8 @@ class OrderBook:
         Update cached ask quantity if price or quantity change
         This won't work for new ask/ask
         """
+        ask.issuer.__dict__["used_" + self.base] -= ask.quantity + ask.fee
+        ask.issuer.__dict__["used_" + self.base] += new_quantity + new_fee
         if ask.price == new_price:
             if new_price in self.ask_quants:
                 self.ask_quants[new_price] += (new_quantity - ask.quantity)
@@ -397,6 +409,7 @@ class OrderBook:
 
     def remove_from_asks(self, ask):
         """Remove an ask from the ask list, and update cached quantity"""
+        ask.issuer.__dict__["used_" + self.base] -= ask.quantity + ask.fee
         self.asks.remove(ask)
 
         if self.ask_quants[ask.price] == ask.quantity:

@@ -75,7 +75,6 @@ class MarketManager:
         buy_val = HavvenManager.round_decimal(quantity * price)
 
         # Only perform the actual transfer if it would be successful.
-        # Assuming that used_currency is correct
         # Cancel any orders that would not succeed.
         fail = False
         if not bid_success(bid.issuer, buy_val, bid_fee):
