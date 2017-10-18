@@ -1,5 +1,5 @@
 from typing import List, Tuple, Dict
-from decimal import Decimal
+from decimal import Decimal as Dec
 
 from mesa.datacollection import DataCollector
 from mesa.visualization.ModularVisualization import VisualizationElement
@@ -42,8 +42,8 @@ class OrderBookModule(VisualizationElement):
             model, self.data_collector_name
         )
 
-        bids: List[Tuple["Decimal", "Decimal"]] = []
-        asks: List[Tuple["Decimal", "Decimal"]] = []
+        bids: List[Tuple[Dec, Dec]] = []
+        asks: List[Tuple[Dec, Dec]] = []
 
         for s in self.series:  # TODO: not use series, as it should only really be one graph
             name: str = s['Label']
