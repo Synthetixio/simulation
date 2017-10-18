@@ -34,21 +34,10 @@ class LimitOrder:
 
     def update_quantity(self, quantity: Dec, fee: Dec) -> None:
         """Update the quantity of this order, cancelling it if the quantity is not positive."""
-        self.update_orderbook(self.price, quantity, fee, False)
-        if quantity > 0:
-            self.quantity = quantity
-            self.fee = fee
-        else:
-            self.quantity = Dec('0.0')
-            self.fee = Dec('0.0')
-            self.cancel()
-
-    def update_orderbook(self, new_price: "Decimal", new_quantity: "Decimal",
-                         new_fee: "Decimal", remove: bool=True):
         pass
 
     def __str__(self) -> str:
-        return f"{self.quantity}@{self.price} + {self.fee} " \
+        return f"{self.quantity}@{self.price} f:{self.fee} " \
                f"({self.book.name if self.book else None}) " \
                f"t:{self.time} by {self.issuer}"
 
@@ -61,10 +50,7 @@ class Bid(LimitOrder):
         if quantity <= 0:
             self.active = False  # bid will not be added to the orderbook
         else:
-            issuer.orders.add(self)
-            self.book.bids.add(self)
-            self.update_orderbook(self.price, self.quantity, self.fee, False)
-            book.step()
+            self.book.add_new_bid(self)
 
     @classmethod
     def comparator(cls, bid: "Bid"):
@@ -74,40 +60,20 @@ class Bid(LimitOrder):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.remove_from_orderbook()
-            self.book.step()
-            self.issuer.orders.remove(self)
-            self.issuer.notify_cancelled(self)
+            self.book.remove_from_bids(self)
+        self.quantity = Dec('0.0')
+        self.fee = Dec('0.0')
 
-    def update_price(self, price: Dec, fee: Dec,) -> None:
+    def update_price(self, price: Dec, fee: Dec) -> None:
         if self.active:
-            self.update_orderbook(price, self.quantity, fee, False)
-            self.price = price
-            self.fee = fee
+            self.book.update_bid(self, price, self.quantity, fee)
             self.time = self.book.time
-            self.book.bids.add(self)
-            self.book.step()
 
-    def update_orderbook(self, new_price: "Decimal", new_quantity: "Decimal",
-                         new_fee: "Decimal", remove: bool = True) -> None:
-        if remove:
-            self.remove_from_orderbook()
-        try:
-            self.book.bid_quants[new_price] = self.book.bid_quants[self.price] + new_quantity
-            self.book.bid_fees[new_price] = self.book.bid_fees[self.price] + new_fee
-        except KeyError:
-            self.book.bid_quants[new_price] = new_quantity
-            self.book.bid_fees[new_price] = new_fee
-
-    def remove_from_orderbook(self) -> None:
-        self.book.bids.remove(self)
-
-        self.book.bid_quants[self.price] -= self.quantity
-        self.book.bid_fees[self.price] -= self.fee
-
-        if self.book.bid_quants[self.price] == 0:
-            self.book.bid_quants.pop(self.price)
-            self.book.bid_fees.pop(self.price)
+    def update_quantity(self, quantity: Dec, fee: Dec):
+        if quantity > 0:
+            self.book.update_bid(self, self.price, quantity, fee)
+        else:
+            self.cancel()
 
     def __str__(self) -> str:
         return "Bid: " + super().__str__()
@@ -121,10 +87,7 @@ class Ask(LimitOrder):
         if quantity <= 0:
             self.active = False  # ask will not be added to the orderbook
         else:
-            issuer.orders.add(self)
-            self.book.asks.add(self)
-            self.update_orderbook(self.price, self.quantity, self.fee, False)
-            book.step()
+            self.book.add_new_ask(self)
 
     @classmethod
     def comparator(cls, ask: "Ask"):
@@ -134,41 +97,20 @@ class Ask(LimitOrder):
     def cancel(self) -> None:
         if self.active:
             self.active = False
-            self.remove_from_orderbook()
-            self.book.step()
-            self.issuer.orders.remove(self)
-            self.issuer.notify_cancelled(self)
+            self.book.remove_from_asks(self)
+        self.quantity = Dec('0.0')
+        self.fee = Dec('0.0')
 
     def update_price(self, price: Dec, fee: Dec) -> None:
         if self.active:
-            self.update_orderbook(price, self.quantity, fee)
-
-            self.price = price
-            self.fee = fee
+            self.book.update_ask(self, price, self.quantity, fee)
             self.time = self.book.time
-            self.book.asks.add(self)
-            self.book.step()
 
-    def update_orderbook(self, new_price: "Decimal", new_quantity: "Decimal",
-                         new_fee: "Decimal", remove: bool = True):
-        if remove:
-            self.remove_from_orderbook()
-        try:
-            self.book.ask_quants[new_price] = self.book.ask_quants[self.price] + new_quantity
-            self.book.ask_fees[new_price] = self.book.ask_fees[self.price] + new_fee
-        except KeyError:
-            self.book.ask_quants[new_price] = new_quantity
-            self.book.ask_fees[new_price] = new_fee
-
-    def remove_from_orderbook(self):
-        self.book.asks.remove(self)
-
-        self.book.ask_quants[self.price] -= self.quantity
-        self.book.ask_fees[self.price] -= self.fee
-
-        if self.book.ask_quants[self.price] == 0:
-            self.book.ask_quants.pop(self.price)
-            self.book.ask_fees.pop(self.price)
+    def update_quantity(self, quantity: Dec, fee: Dec):
+        if quantity > 0:
+            self.book.update_ask(self, self.price, quantity, fee)
+        else:
+            self.cancel()
 
     def __str__(self) -> str:
         return "Ask: " + super().__str__()
@@ -218,9 +160,7 @@ class OrderBook:
         self.asks: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
 
         self.bid_quants: SortedDict = SortedDict(lambda x: -x)
-        self.bid_fees: SortedDict = SortedDict(lambda x: -x)
         self.ask_quants: SortedDict = SortedDict(lambda x: x)
-        self.ask_fees: SortedDict = SortedDict(lambda x: x)
 
         self.price: "Dec" = Dec('1.0')
 
@@ -359,6 +299,113 @@ class OrderBook:
     def spread(self) -> Dec:
         """Return the gap between best buy and sell prices."""
         return self.lowest_ask_price() - self.highest_bid_price()
+
+    def add_new_bid(self, bid):
+        """add a new bid"""
+        bid.issuer.orders.add(bid)
+        self.bids.add(bid)
+        if bid.price in self.bid_quants:
+            self.bid_quants[bid.price] += bid.quantity
+        else:
+            self.bid_quants[bid.price] = bid.quantity
+        self.step()
+
+    def update_bid(self, bid, new_price, new_quantity, new_fee):
+        """
+        Update cached bid quantity if price or quantity change
+        This won't work for new bid/ask
+        """
+        if bid.price == new_price:
+            if new_price in self.bid_quants:
+                self.bid_quants[new_price] += (new_quantity - bid.quantity)
+            else:
+                self.bid_quants[new_price] = new_quantity
+            # price remains the same, so position doesn't need to update
+            bid.price = new_price
+            bid.quantity = new_quantity
+            bid.fee = new_fee
+        else:
+            if self.bid_quants[bid.price] == bid.quantity:
+                self.bid_quants.pop(bid.price)
+            else:
+                self.bid_quants[bid.price] -= bid.quantity
+            self.bid_quants[new_price] = new_quantity
+
+            # update bid position in list
+            self.bids.pop(bid)
+            bid.price = new_price
+            bid.quantity = new_quantity
+            bid.fee = new_fee
+            self.bids.add(bid)
+
+            # only update the bid time if the price changed
+            bid.time = self.time
+        self.step()
+
+    def remove_from_bids(self, bid):
+        """Remove a bid from the bid list, and update cached quantity"""
+        self.bids.remove(bid)
+        if self.bid_quants[bid.price] == bid.quantity:
+            self.bid_quants.pop(bid.price)
+        else:
+            self.bid_quants[bid.price] -= bid.quantity
+        self.step()
+        bid.issuer.orders.remove(bid)
+        bid.issuer.notify_cancelled(bid)
+
+    def add_new_ask(self, ask):
+        """add a new ask"""
+        ask.issuer.orders.add(ask)
+        self.asks.add(ask)
+        if ask.price in self.ask_quants:
+            self.ask_quants[ask.price] += ask.quantity
+        else:
+            self.ask_quants[ask.price] = ask.quantity
+        self.step()
+
+    def update_ask(self, ask, new_price, new_quantity, new_fee):
+        """
+        Update cached ask quantity if price or quantity change
+        This won't work for new ask/ask
+        """
+        if ask.price == new_price:
+            if new_price in self.ask_quants:
+                self.ask_quants[new_price] += (new_quantity - ask.quantity)
+            else:
+                self.ask_quants[new_price] = new_quantity
+            # price remains the same, so position doesn't need to update
+            ask.price = new_price
+            ask.quantity = new_quantity
+            ask.fee = new_fee
+        else:
+            if self.ask_quants[ask.price] == ask.quantity:
+                self.ask_quants.pop(ask.price)
+            else:
+                self.ask_quants[ask.price] -= ask.quantity
+            self.ask_quants[new_price] = new_quantity
+
+            # update ask position in list
+            self.asks.pop(ask)
+            ask.price = new_price
+            ask.quantity = new_quantity
+            ask.fee = new_fee
+            self.asks.add(ask)
+
+            # only update the ask time if the price changed
+            ask.time = self.time
+        self.step()
+
+    def remove_from_asks(self, ask):
+        """Remove an ask from the ask list, and update cached quantity"""
+        self.asks.remove(ask)
+
+        if self.ask_quants[ask.price] == ask.quantity:
+            self.ask_quants.pop(ask.price)
+        else:
+            self.ask_quants[ask.price] -= ask.quantity
+        self.step()
+        ask.issuer.orders.remove(ask)
+        ask.issuer.notify_cancelled(ask)
 
     def match(self) -> None:
         """Match bids with asks and perform any trades that can be made."""
