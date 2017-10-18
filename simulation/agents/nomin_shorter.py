@@ -30,22 +30,27 @@ class NominShorter(MarketPlayer):
 
     def step(self) -> None:
         # get rid of curits, as that isn't the point of this player
-        if self.curits:
-            self.sell_curits_for_nomins(self.curits)
+        if self.available_curits:
+            self.sell_curits_for_nomins(self.available_curits)
 
-        if self.nomins > 0:
+        if self.available_nomins > 0:
             trade = self._find_best_nom_fiat_trade()
-            count = 10  # to avoid long loops of smaller and smaller trades
-            while count > 0 and trade is not None and self.nomins > 0:
-                count -= 1
+            last_price = 0
+            while trade is not None and self.available_nomins > 0:
+                if last_price == trade[0]:
+                    print("nom", self.unique_id, trade, self.portfolio())
+                last_price = trade[0]
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
 
-        if self.fiat > 0:
+        if self.available_fiat > 0:
             trade = self._find_best_fiat_nom_trade()
-            count = 10  # to avoid long loops of smaller and smaller trades
-            while count > 0 and trade is not None and self.fiat > 0:
-                count -= 1
+            last_price = 0
+            while trade is not None and self.available_fiat > 0:
+                # rarely, the entire order doesn't get filled, still trying to debug...
+                if last_price == trade[0]:
+                    break
+                last_price = trade[0]
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
 
@@ -63,9 +68,9 @@ class NominShorter(MarketPlayer):
     def _make_nom_fiat_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Ask":
         fee = self.model.fee_manager.transferred_nomins_fee(trade_price_quant[1])
         # if not enough nomins to cover whole ask
-        if self.nomins < trade_price_quant[1] + fee:
-            return self.sell_nomins_for_fiat_with_fee(self.nomins)
-        return self.sell_nomins_for_fiat(trade_price_quant[1])
+        if self.available_nomins < trade_price_quant[1] + fee:
+            return self.sell_nomins_for_fiat_with_fee(self.available_nomins)
+        return self.place_nomin_fiat_ask(trade_price_quant[1], trade_price_quant[0])
 
     def _find_best_fiat_nom_trade(self) -> Optional[Tuple[Dec, Dec]]:
         trade_price_quant = None
@@ -80,10 +85,10 @@ class NominShorter(MarketPlayer):
 
     def _make_fiat_nom_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Bid":
         fee = self.model.fee_manager.transferred_fiat_fee(trade_price_quant[1])
-        # if not enough fiat to cover whole ask
-        if self.fiat < trade_price_quant[1] + fee:
-            return self.sell_fiat_for_nomins_with_fee(self.fiat)
-        return self.sell_fiat_for_nomins(trade_price_quant[1])
+        # if not enough fiat to cover whole bid
+        if self.available_fiat < trade_price_quant[1] + fee:
+            return self.sell_fiat_for_nomins_with_fee(self.available_fiat)
+        return self.place_nomin_fiat_bid(trade_price_quant[1], trade_price_quant[0])
 
 
 class CuritEscrowNominShorter(NominShorter):
@@ -102,32 +107,36 @@ class CuritEscrowNominShorter(NominShorter):
     """
     def step(self) -> None:
         # keep all curits escrowed to make issuing nomins easier
-        if self.curits > 0:
-            self.escrow_curits(self.curits)
+        if self.available_curits > 0:
+            self.escrow_curits(self.available_curits)
 
-        nomins = self.nomins + self.remaining_issuance_rights()
+        nomins = self.available_nomins + self.remaining_issuance_rights()
 
         if nomins > 0:
-            count = 10  # to avoid long loops of smaller and smaller trades
             trade = self._find_best_nom_fiat_trade()
-            while count > 0 and trade is not None and HavvenManager.round_decimal(nomins) > 0:
-                count -= 1
+            last_price = 0
+            while trade is not None and HavvenManager.round_decimal(nomins) > 0:
+                if last_price == trade[0]:
+                    break
+                last_price = trade[0]
                 self._issue_nomins_up_to(trade[1])
                 ask = self._make_nom_fiat_trade(trade)
                 trade = self._find_best_nom_fiat_trade()
-                nomins = self.nomins + self.remaining_issuance_rights()
+                nomins = self.available_nomins + self.remaining_issuance_rights()
 
-        if self.fiat > 0:
-            count = 10  # to avoid long loops of smaller and smaller trades
+        if self.available_fiat > 0:
             trade = self._find_best_fiat_nom_trade()
-            while count > 0 and trade is not None and HavvenManager.round_decimal(self.fiat) > 0:
-                count -= 1
+            last_price = 0
+            while trade is not None and HavvenManager.round_decimal(self.available_fiat) > 0:
+                if last_price == trade[0]:
+                    break
+                last_price = trade[0]
                 bid = self._make_fiat_nom_trade(trade)
                 trade = self._find_best_fiat_nom_trade()
 
         if self.issued_nomins:
-            if self.nomins < self.issued_nomins:
-                self.burn_nomins(self.nomins)
+            if self.available_nomins < self.issued_nomins:
+                self.burn_nomins(self.available_nomins)
             else:
                 self.burn_nomins(self.issued_nomins)
 
@@ -140,10 +149,10 @@ class CuritEscrowNominShorter(NominShorter):
         fee = HavvenManager.round_decimal(self.model.fee_manager.transferred_nomins_fee(quantity))
 
         # if there are enough nomins, return
-        if self.nomins > fee + quantity:
+        if self.available_nomins > fee + quantity:
             return True
 
-        nomins_needed = fee + quantity - self.nomins
+        nomins_needed = fee + quantity - self.available_nomins
 
         if self.remaining_issuance_rights() > nomins_needed:
             return self.issue_nomins(nomins_needed)
