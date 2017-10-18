@@ -2,12 +2,11 @@
 
 from typing import List
 
-from mesa.visualization.modules import ChartModule
-from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
+from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule
+from visualization.UserParam import UserSettableParameter
+from visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization import OrderBookModule, WealthModule, PortfolioModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,

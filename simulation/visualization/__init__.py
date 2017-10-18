@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
 """
-Addons to the mesa visualization system to allow for different graphs and the
-viewing of agent variables in a graph format
-"""
+Mesa Visualization Module
+-------------------------
 
-from .bargraph import BarGraphModule
-from .wealth import WealthModule, PortfolioModule
-from .orderbookdepth import OrderBookModule
+TextVisualization: Base class for writing ASCII visualizations of model state.
+
+TextServer: Class which takes a TextVisualization child class as an input, and
+renders it in-browser, along with an interface.
+
+"""
