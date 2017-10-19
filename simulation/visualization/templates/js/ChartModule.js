@@ -9,8 +9,8 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 	//$("body").append(canvas);
 	$("#elements").append(canvas);
 	// Create the context and the drawing controller:
+	canvas.height = 200;
 	var context = canvas.getContext("2d");
-	context.lineWidth = 1;
 
 	// Prep the chart properties and series:
 	var datasets = [];
@@ -33,7 +33,9 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 	};
 
 	var options = {
-		responsive: false,
+		responsive: true,
+		maintainAspectRatio: true,
+
 		tooltips: {
 			mode: 'index',
 			intersect: false,
