@@ -175,6 +175,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.last_step = -1
 
     def open(self):
         if self.application.verbose:
@@ -205,7 +206,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 self.write_message({"type": "end"})
             else:
                 self.application.model_handler.step()
-                self.write_message(self.viz_state_message)
+                message = self.viz_state_message
+                if message["step"] != self.last_step+1:
+                    print("Skipped:", self.last_step+1)
+                self.last_step = message["step"]
+                self.write_message(message)
 
         elif msg["type"] == "reset":
             self.application.reset_model()
@@ -267,17 +272,16 @@ class ModelHandler:
             self.model = self.model_cls(**model_params)
 
     def render_model(self):
-        with self.lock:
-            visualization_state = []
-            for element in self.visualization_elements:
-                element_state = element.render(self.model)
-                visualization_state.append(element_state)
-            self.data_queue.put((self.time, visualization_state))
+        visualization_state = []
+        for element in self.visualization_elements:
+            element_state = element.render(self.model)
+            visualization_state.append(element_state)
+        print(self.time)
+        self.data_queue.put((self.time, visualization_state))
 
     def step(self):
-        with self.lock:
-            self.model.step()
-            self.time += 1
+        self.model.step()
+        self.time += 1
 
 
 class ModularServer(tornado.web.Application):
@@ -285,7 +289,6 @@ class ModularServer(tornado.web.Application):
     verbose = True
 
     port = 8521  # Default port to listen on
-    max_steps = 100000
 
     # Handlers and other globals:
     page_handler = (r'/', PageHandler)
@@ -364,11 +367,13 @@ class ModularServer(tornado.web.Application):
         while True:
             # slow it down if the data isn't being used
             # higher value causes lag when the page is first created
-            if model_handler.data_queue.qsize() > 100:
-                time.sleep(0.2)
+            if model_handler.data_queue.qsize() > 50:
+                time.sleep(0.5)
             start = time.time()
-            model_handler.step()
-            model_handler.render_model()
+            with model_handler.lock:
+                model_handler.step()
+            with model_handler.lock:
+                model_handler.render_model()
             end = time.time()
             if end - start < 0.03:  # if calculated too fast, slow down
                 time.sleep(end-start)

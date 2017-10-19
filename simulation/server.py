@@ -20,67 +20,79 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     """
     charts: List[VisualizationElement] = [
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Nomin Price", "Color": "deepskyblue"},
             {"Label": "Nomin Ask", "Color": "deepskyblue"},
-            {"Label": "Nomin Bid", "Color": "deepskyblue"}]),
+            {"Label": "Nomin Bid", "Color": "deepskyblue"},
+            {"Label": "1", "Color": "grey"}]),
 
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Curit Price", "Color": "red"},
             {"Label": "Curit Ask", "Color": "red"},
-            {"Label": "Curit Bid", "Color": "red"}]),
+            {"Label": "Curit Bid", "Color": "red"},
+            {"Label": "1", "Color": "grey"},
+        ]),
 
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Curit/Nomin Price", "Color": "darkorchid"},
             {"Label": "Curit/Nomin Ask", "Color": "darkorchid"},
-            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"}]),
+            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"},
+            {"Label": "1", "Color": "grey"},
+        ]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "deepskyblue"},
             {"Label": "Havven Curits", "Color": "red"},
-            {"Label": "Havven Fiat", "Color": "darkgreen"}]),
+            {"Label": "Havven Fiat", "Color": "darkgreen"},
+        ]),
 
         ChartModule([
+            {"Label": "Gini", "Color": "navy"},
             {"Label": "0", "Color": "grey"},
-            {"Label": "Gini", "Color": "navy"}]),
+        ]),
 
         ChartModule([
             {"Label": "Max Wealth", "Color": "purple"},
-            {"Label": "Min Wealth", "Color": "orange"}]),
+            {"Label": "Min Wealth", "Color": "orange"},
+        ]),
 
         ChartModule([
-            {"Label": "0", "Color": "grey"},
             {"Label": "Avg Profit %", "Color": "grey"},
             {"Label": "Bank Profit %", "Color": "blue"},
             {"Label": "Arb Profit %", "Color": "red"},
             {"Label": "Rand Profit %", "Color": "green"},
-            {"Label": "NomShort Profit %", "Color": "orchid"}]),
+            {"Label": "NomShort Profit %", "Color": "orchid"},
+            {"Label": "0", "Color": "grey"},
+        ]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
-            {"Label": "Escrowed Curits", "Color": "darkred"}]),
+            {"Label": "Escrowed Curits", "Color": "darkred"},
+        ]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
-            {"Label": "Curit Supply", "Color": "orange"}]),
+            {"Label": "Curit Supply", "Color": "orange"},
+        ]),
 
         ChartModule([
             {"Label": "Nomin Demand", "Color": "deepskyblue"},
-            {"Label": "Nomin Supply", "Color": "purple"}]),
+            {"Label": "Nomin Supply", "Color": "purple"},
+        ]),
 
         ChartModule([
             {"Label": "Fiat Demand", "Color": "darkgreen"},
-            {"Label": "Fiat Supply", "Color": "lightgreen"}]),
+            {"Label": "Fiat Supply", "Color": "lightgreen"},
+        ]),
 
         ChartModule([
+            {"Label": "Fee Pool", "Color": "blue"},
             {"Label": "0", "Color": "grey"},
-            {"Label": "Fee Pool", "Color": "blue"}]),
+        ]),
 
         ChartModule([
+            {"Label": "Fees Distributed", "Color": "blue"},
             {"Label": "0", "Color": "grey"},
-            {"Label": "Fees Distributed", "Color": "blue"}]),
+        ]),
 
         PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
 

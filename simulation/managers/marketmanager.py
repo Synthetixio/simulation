@@ -64,16 +64,20 @@ class MarketManager:
         #   they may do better.
         price = HavvenManager.round_decimal(ask.price if ask.time < bid.time else bid.price)
         quantity = HavvenManager.round_decimal(min(ask.quantity, bid.quantity))
-
-        # only charge a fraction of the fee
-        if quantity == ask.quantity:
-            ask_fee = HavvenManager.round_decimal(ask.fee)
-            bid_fee = HavvenManager.round_decimal(quantity/bid.quantity * bid.fee)
-        else:
-            bid_fee = HavvenManager.round_decimal(bid.fee)
-            ask_fee = HavvenManager.round_decimal(quantity/ask.quantity * ask.fee)
-        buy_val = HavvenManager.round_decimal(quantity * price)
-
+        try:
+            # only charge a fraction of the fee
+            if quantity == ask.quantity:
+                ask_fee = HavvenManager.round_decimal(ask.fee)
+                bid_fee = HavvenManager.round_decimal(quantity/bid.quantity * bid.fee)
+            else:
+                bid_fee = HavvenManager.round_decimal(bid.fee)
+                ask_fee = HavvenManager.round_decimal(quantity/ask.quantity * ask.fee)
+            buy_val = HavvenManager.round_decimal(quantity * price)
+        except Exception as e:
+            print(bid, ask)
+            print(e)
+            import time
+            time.sleep(100)
         # Only perform the actual transfer if it would be successful.
         # Cancel any orders that would not succeed.
         fail = False

@@ -10,12 +10,20 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 	$("#elements").append(canvas);
 	// Create the context and the drawing controller:
 	var context = canvas.getContext("2d");
+	context.lineWidth = 1;
 
 	// Prep the chart properties and series:
-	var datasets = []
+	var datasets = [];
 	for (var i in series) {
 		var s = series[i];
-		var new_series = {label: s.Label, strokeColor: s.Color, data: []};
+		var new_series = {
+			label: s.Label,
+			backgroundColor: s.Color,
+			borderColor: s.Color,
+			fill: false,
+			pointRadius: 0,
+			data: []
+		};
 		datasets.push(new_series);
 	}
 
@@ -43,7 +51,7 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 				}
 			}],
 			yAxes: [{
-				display: false
+				display: true
 			}]
 		},
 		elements: {
