@@ -14,11 +14,8 @@ class OrderBookModule(VisualizationElement):
     Display a depth graph for order books to show the quantity
       of buy/sell orders for the given market
     """
-    package_includes: List[str] = []
-    local_includes: List[str] = [
-        "visualization/js/chartist.min.js",
-        "visualization/js/DepthGraphModule.js"
-    ]
+    package_includes: List[str] = ["chartist.min.js", "DepthGraphModule.js"]
+    local_includes: List[str] = []
 
     def __init__(
             self, series: List[Dict[str, str]], height: int = 300,
@@ -38,26 +35,27 @@ class OrderBookModule(VisualizationElement):
         """
         return the data to be sent to the websocket to be rendered on the page
         """
-        data_collector: "DataCollector" = getattr(
-            model, self.data_collector_name
-        )
+        with model.lock:
+            data_collector: "DataCollector" = getattr(
+                model, self.data_collector_name
+            )
 
-        bids: List[Tuple[Dec, Dec]] = []
-        asks: List[Tuple[Dec, Dec]] = []
+            bids: List[Tuple[Dec, Dec]] = []
+            asks: List[Tuple[Dec, Dec]] = []
 
-        for s in self.series:  # TODO: not use series, as it should only really be one graph
-            name: str = s['Label']
+            for s in self.series:  # TODO: not use series, as it should only really be one graph
+                name: str = s['Label']
 
-            # get the buy and sell orders of the named market and add together
-            # the quantities or orders with the same rates
+                # get the buy and sell orders of the named market and add together
+                # the quantities or orders with the same rates
 
-            try:
-                order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
-                bids = order_book.bid_quants.items()
-                asks = order_book.ask_quants.items()
-            except Exception:
-                bids = []
-                asks = []
+                try:
+                    order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
+                    bids = order_book.bid_quants.items()
+                    asks = order_book.ask_quants.items()
+                except Exception:
+                    bids = []
+                    asks = []
 
         # convert decimals to floats
         return [[(float(i[0]), float(i[1])) for i in bids], [(float(i[0]), float(i[1])) for i in asks]]

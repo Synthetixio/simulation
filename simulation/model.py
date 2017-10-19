@@ -10,6 +10,7 @@ from mesa.datacollection import DataCollector
 import stats
 import agents as ag
 from managers import HavvenManager, MarketManager, FeeManager, Mint
+from threading import Lock
 
 
 class Havven(Model):
@@ -79,6 +80,8 @@ class Havven(Model):
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
 
+        self.lock = Lock()
+
         # Create the market players
 
         fractions = {"banks": 0.2,
@@ -146,19 +149,20 @@ class Havven(Model):
     def step(self) -> None:
         """Advance the model by one step."""
         # Agents submit trades
-        self.schedule.step()
+        with self.lock:
+            self.schedule.step()
 
-        # Resolve outstanding trades
-        if not self.manager.match_on_order:
-            self.market_manager.curit_nomin_market.match()
-            self.market_manager.curit_fiat_market.match()
-            self.market_manager.nomin_fiat_market.match()
+            # Resolve outstanding trades
+            if not self.manager.match_on_order:
+                self.market_manager.curit_nomin_market.match()
+                self.market_manager.curit_fiat_market.match()
+                self.market_manager.nomin_fiat_market.match()
 
-        # Distribute fees periodically.
-        if (self.time % self.fee_manager.fee_period) == 0:
-            self.fee_manager.distribute_fees(self.schedule.agents)
+            # Distribute fees periodically.
+            if (self.time % self.fee_manager.fee_period) == 0:
+                self.fee_manager.distribute_fees(self.schedule.agents)
 
-        # Collect data
-        self.datacollector.collect(self)
+            # Collect data
+            self.datacollector.collect(self)
 
         self.time += 1

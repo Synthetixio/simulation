@@ -12,11 +12,8 @@ class BarGraphModule(VisualizationElement):
     """
     Displays a simple bar graph of the selected attributes of the agents
     """
-    package_includes: List[str] = []
-    local_includes: List[str] = [
-        "visualization/js/chartist.min.js",
-        "visualization/js/BarGraphModule.js"
-    ]
+    package_includes: List[str] = ["chartist.min.js", "BarGraphModule.js"]
+    local_includes: List[str] = []
 
     def __init__(self, series: List[Dict[str, str]], height: int = 200,
                  width: int = 500, data_collector_name: str = "datacollector") -> None:

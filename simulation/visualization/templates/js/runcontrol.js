@@ -231,7 +231,8 @@ var send = function(message) {
 };
 
 /** Reset the model, and rest the appropriate local variables. */
-var reset = function() {
+var reset = function($e) {
+    $e.preventDefault();
     control.tick = 0;
     send({"type": "reset"});
 
@@ -242,6 +243,7 @@ var reset = function() {
     control.done = false;
     if (!control.running)
         $(playPauseButton.children()[0]).text("Start");
+    return false;
 };
 
 /** Send a message to the server get the next visualization state. */
@@ -251,13 +253,16 @@ var single_step = function() {
 };
 
 /** Step the model forward. */
-var step = function() {
+var step = function($e) {
+    $e.preventDefault();
     if (!control.running & !control.done) {single_step()}
     else if (!control.done) {run()};
+    return false;
 };
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
-var run = function() {
+var run = function($e) {
+    $e.preventDefault();
     var anchor = $(playPauseButton.children()[0]);
     if (control.running) {
         control.running = false;
@@ -272,14 +277,17 @@ var run = function() {
         player = setInterval(single_step, 1000/control.fps);
         anchor.text("Stop");
     }
+    return false;
 };
 
-var updateFPS = function() {
+var updateFPS = function($e) {
+    $e.preventDefault();
     control.fps = Number(fpsControl.val());
     if (control.running) {
         run();
         run();
     }
+    return false;
 };
 
 // Initilaize buttons on top bar

@@ -186,6 +186,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
+        with self.application.model_handler.data_queue.mutex:
+            print([i[0] for i in self.application.model_handler.data_queue.queue])
         data = self.application.model_handler.data_queue.get(block=True)
         return {
             "type": "viz_state",
@@ -276,11 +278,10 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        self.data_queue.put((self.time, visualization_state))
+        self.data_queue.put((self.model.time, visualization_state))
 
     def step(self):
         self.model.step()
-        self.time += 1
 
 
 class ModularServer(tornado.web.Application):
@@ -371,7 +372,6 @@ class ModularServer(tornado.web.Application):
             start = time.time()
             with model_handler.lock:
                 model_handler.step()
-            with model_handler.lock:
                 model_handler.render_model()
             end = time.time()
             if end - start < 0.03:  # if calculated too fast, slow down
