@@ -104,6 +104,9 @@ import tornado.websocket
 import tornado.escape
 import tornado.gen
 import webbrowser
+import threading
+import queue
+import time
 
 from visualization.UserParam import UserSettableParameter
 
@@ -161,8 +164,8 @@ class PageHandler(tornado.web.RequestHandler):
         for i, element in enumerate(elements):
             element.index = i
         self.render("modular_template.html", port=self.application.port,
-                    model_name=self.application.model_name,
-                    description=self.application.description,
+                    model_name=self.application.model_handler.model_name,
+                    description=self.application.model_handler.description,
                     package_includes=self.application.package_includes,
                     local_includes=self.application.local_includes,
                     scripts=self.application.js_code)
@@ -170,6 +173,9 @@ class PageHandler(tornado.web.RequestHandler):
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def open(self):
         if self.application.verbose:
             print("Socket opened!")
@@ -179,24 +185,25 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
+        data = self.application.model_handler.data_queue.get(block=True)
         return {
             "type": "viz_state",
-            "data": self.application.render_model()
+            "data": data
         }
 
     def on_message(self, message):
-        """ Receiving a message from the websocket, parse, and act accordingly.
-
+        """
+        Receiving a message from the websocket, parse, and act accordingly.
         """
         if self.application.verbose:
             print(message)
         msg = tornado.escape.json_decode(message)
 
         if msg["type"] == "get_step":
-            if not self.application.model.running:
+            if not self.application.model_handler.running:
                 self.write_message({"type": "end"})
             else:
-                self.application.model.step()
+                self.application.model_handler.step()
                 self.write_message(self.viz_state_message)
 
         elif msg["type"] == "reset":
@@ -209,10 +216,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
             # Is the param editable?
             if param in self.application.user_params:
-                if isinstance(self.application.model_kwargs[param], UserSettableParameter):
-                    self.application.model_kwargs[param].value = value
-                else:
-                    self.application.model_kwargs[param] = value
+                self.application.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
             self.write_message({
@@ -223,6 +227,54 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         else:
             if self.application.verbose:
                 print("Unexpected message!")
+
+
+class ModelHandler:
+    def __init__(self, name, model_cls, model_params, visualization_elements):
+        self.model_name = name
+        self.model_cls = model_cls
+        self.description = 'No description available'
+        self.visualization_elements = visualization_elements
+        if hasattr(model_cls, 'description'):
+            self.description = model_cls.description
+        elif model_cls.__doc__ is not None:
+            self.description = model_cls.__doc__
+        self.model_kwargs = model_params
+
+        self.running = True
+        self.data_queue = queue.Queue()
+        self.lock = threading.Lock()
+
+    def reset_model(self):
+        with self.lock:
+            model_params = {}
+            for key, val in self.model_kwargs.items():
+                if isinstance(val, UserSettableParameter):
+                    if val.param_type == 'static_text':  # static_text is never used for setting params
+                        continue
+                    model_params[key] = val.value
+                else:
+                    model_params[key] = val
+
+            # clear the data queue
+            with self.data_queue.mutex:
+                self.data_queue.queue.clear()
+                self.data_queue.all_tasks_done.notify_all()
+                self.data_queue.unfinished_tasks = 0
+
+            self.model = self.model_cls(**model_params)
+
+    def render_model(self):
+        with self.lock:
+            visualization_state = []
+            for element in self.visualization_elements:
+                element_state = element.render(self.model)
+                visualization_state.append(element_state)
+            self.data_queue.put(visualization_state)
+
+    def step(self):
+        with self.lock:
+            self.model.step()
 
 
 class ModularServer(tornado.web.Application):
@@ -264,16 +316,10 @@ class ModularServer(tornado.web.Application):
             self.js_code.append(element.js_code)
 
         # Initializing the model
-        self.model_name = name
-        self.model_cls = model_cls
-        self.description = 'No description available'
-        if hasattr(model_cls, 'description'):
-            self.description = model_cls.description
-        elif model_cls.__doc__ is not None:
-            self.description = model_cls.__doc__
-
-        self.model_kwargs = model_params
+        self.model_handler = ModelHandler(name, model_cls, model_params, visualization_elements)
         self.reset_model()
+
+        threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
 
         # Initializing the application itself:
         super().__init__(self.handlers, **self.settings)
@@ -281,36 +327,20 @@ class ModularServer(tornado.web.Application):
     @property
     def user_params(self):
         result = {}
-        for param, val in self.model_kwargs.items():
+        for param, val in self.model_handler.model_kwargs.items():
             if isinstance(val, UserSettableParameter):
                 result[param] = val.json
-
         return result
 
     def reset_model(self):
         """ Reinstantiate the model object, using the current parameters. """
+        self.model_handler.reset_model()
 
-        model_params = {}
-        for key, val in self.model_kwargs.items():
-            if isinstance(val, UserSettableParameter):
-                if val.param_type == 'static_text':    # static_text is never used for setting params
-                    continue
-                model_params[key] = val.value
-            else:
-                model_params[key] = val
-
-        self.model = self.model_cls(**model_params)
-
-    def render_model(self):
-        """ Turn the current state of the model into a dictionary of
-        visualizations
-
-        """
-        visualization_state = []
-        for element in self.visualization_elements:
-            element_state = element.render(self.model)
-            visualization_state.append(element_state)
-        return visualization_state
+    def set_model_params(self, param, value):
+        if isinstance(self.model_handler.model_kwargs[param], UserSettableParameter):
+            self.model_handler.model_kwargs[param].value = value
+        else:
+            self.model_handler.model_kwargs[param] = value
 
     def launch(self, port=None):
         """ Run the app. """
@@ -324,3 +354,13 @@ class ModularServer(tornado.web.Application):
         tornado.autoreload.start()
         if startLoop:
             tornado.ioloop.IOLoop.instance().start()
+
+    @staticmethod
+    def run_model(model_handler):
+
+        while True:
+            # slow it down if the data isn't being used
+            if model_handler.data_queue.qsize() > 30:
+                time.sleep(0.1)
+            model_handler.step()
+            model_handler.render_model()
