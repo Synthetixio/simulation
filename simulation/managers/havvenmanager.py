@@ -26,7 +26,7 @@ class HavvenManager:
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: Dec = Dec('1e10')
+        self.curit_supply: Dec = Dec('1e9')
         self.nomin_supply: Dec = Dec(0)
         self.escrowed_curits: Dec = Dec(0)
 
