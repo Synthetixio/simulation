@@ -276,7 +276,6 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        print(self.time)
         self.data_queue.put((self.time, visualization_state))
 
     def step(self):
