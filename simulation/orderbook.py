@@ -282,7 +282,7 @@ class OrderBook:
         if agent.__getattribute__(f"available_{self.quote}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
-        bid = Bid(price, quantity, fee, agent, self)
+        bid = Bid(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity), HavvenManager.round_decimal(fee), agent, self)
 
         # Attempt to trde the bid immediately if desired.
         if self.match_on_order:
@@ -300,7 +300,7 @@ class OrderBook:
         if agent.__getattribute__(f"available_{self.base}") < quantity + fee:
             return None
 
-        ask = Ask(price, quantity, fee, agent, self)
+        ask = Ask(HavvenManager.round_decimal(price), HavvenManager.round_decimal(quantity), HavvenManager.round_decimal(fee), agent, self)
 
         # Attempt to trde the ask immediately if desired.
         if self.match_on_order:
@@ -423,7 +423,9 @@ class OrderBook:
         # Advance time
         self.step()
 
-    def update_bid(self, bid: Bid, new_price: Dec, new_quantity: Dec,
+    def update_bid(self, bid: Bid,
+                   new_price: Dec,
+                   new_quantity: Dec,
                    fee: Optional[Dec] = None) -> None:
         """
         Update a Bid's details in the book, recomputing fees, cached quantities,
@@ -504,9 +506,13 @@ class OrderBook:
         self._bid_bucket_deduct_(bid.price, bid.quantity)
 
         # Delete the order from the ask list and issuer.
-        self.bids.remove(bid)
-        bid.issuer.orders.remove(bid)
         bid.active = False
+        bid.quantity = 0
+        self.bids.discard(bid)
+        if len(self.bids) and self.bids[0] == bid:
+            self.bids.pop(0)
+        bid.issuer.orders.remove(bid)
+
         self.step()
         bid.issuer.notify_cancelled(bid)
 
@@ -535,7 +541,9 @@ class OrderBook:
         # Advance time.
         self.step()
 
-    def update_ask(self, ask: Ask, new_price: Dec, new_quantity: Dec,
+    def update_ask(self, ask: Ask,
+                   new_price: Dec,
+                   new_quantity: Dec,
                    fee: Optional[Dec] = None) -> None:
         """
         Update an Ask's details in the book, recomputing fees, cached quantities,
@@ -616,9 +624,12 @@ class OrderBook:
         self._ask_bucket_deduct_(ask.price, ask.quantity)
 
         # Delete order from the ask list and issuer.
-        self.asks.remove(ask)
-        ask.issuer.orders.remove(ask)
         ask.active = False
+        ask.quantity = 0
+        self.asks.discard(ask)
+        if len(self.asks) and self.asks[0] == ask:
+            self.asks.pop(0)
+        ask.issuer.orders.remove(ask)
         self.step()
         ask.issuer.notify_cancelled(ask)
 
@@ -632,10 +643,14 @@ class OrderBook:
         while spread <= 0 and len(self.bids) and len(self.asks):
             if prev_bid == self.bids[0] and prev_ask == self.asks[0]:
                 raise Exception("Orders didn't fill even though spread <= 0")
-
+            if self.bids[0].quantity <= 0:
+                self.bids.pop(0)
+                continue
+            if self.asks[0].quantity <= 0:
+                self.asks.pop(0)
+                continue
             # Attempt to match the highest bid with the lowest ask.
             prev_bid, prev_ask = self.bids[0], self.asks[0]
-
             trade = self.matcher(prev_bid, prev_ask)
 
             # If a trade was made, then save it in the history.
