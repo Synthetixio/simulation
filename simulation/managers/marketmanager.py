@@ -90,12 +90,9 @@ class MarketManager:
         ask_transfer(ask.issuer, bid.issuer, quantity, ask_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
+        # This will remove the amount that was transferred from issuers' used value.
         bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
-        ask.update_quantity(ask.quantity - quantity, bid.fee - ask_fee)
-
-        # Remove the amount that was transferred from issuers' used value.
-        bid.issuer.__dict__[f"used_{bid.book.quote}"] -= quantity + bid_fee
-        ask.issuer.__dict__[f"used_{ask.book.base}"] -= quantity + ask_fee
+        ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
 
         return ob.TradeRecord(bid.issuer, ask.issuer,
                               price, quantity, bid_fee, ask_fee)
