@@ -1,89 +1,6 @@
-\documentclass{article}
-\usepackage[utf8]{inputenc}
-\usepackage{amssymb}
-\usepackage{mathtools}
-\usepackage{svg}
-\usepackage{cite}
-
-
-\usepackage{draftwatermark}
-\SetWatermarkText{DRAFT}
-\SetWatermarkScale{3}
-
-\begin{document}
-
-% Macros
-\newcommand{\CUR}{\textsc{cur}}
-\newcommand{\NOM}{\textsc{nom}}
-
-
-\title{Havven - A Stablecoin \\ v0.1}
-\author{Anton Jurisevic, Samuel Brooks, Kain Warwick}
-\date{October 2017}
-
-
-\begin{figure}
-    \centering
-    \includesvg[width=0.33\textwidth]{block8logo}
-\end{figure}
-\maketitle
-
-\section{Introduction}
-
-Introduction. \\
-
-\subsection{What is money?}
-
-They key requirement of money is for it to hold a known value over an arbitrary period of time, such that rational actors are able to make economic plans. \\
-
-\noindent Under the gold standard system of money, it was found that in times of economic crises this method of representing value caused exacerbations in poor economic conditions due to the tendency of rational actors to cut spending and 'hoard' cash. \\
-
-\noindent Fiat currency was introduced to relieve this problem. Fiat has no intrinsic value or representative value, instead, it derives its (community market) value from the trust that is placed in the government which issues it. That is, fiat money is only worth what people think it's worth. This is just the same as with Bitcoin, however with Fiat, there is a central authority that has some globally known reputation, rather than a program (the Bitcoin protocol). Fiat then is not 'backed', but it is underpinned by the reputation of the issuing agency.
-
-\subsection{Why stablecoins}
-
-\noindent For cryptocurrencies, stability continues to be the most valuable and yet the most elusive characteristic. \\
-
-\noindent Outline the current issues around why stablecoin (particularly the centralisation risks that Kain called out). \\
-
-Use cases
-
-- Kain to add.
-
-\noindent While cryptocurrencies coexist with traditional fiat, there will continue to be an economic need for Havven's stable peg to fiat currencies. \\
-
-\subsection{Havven, a stablecoin}
-
-\noindent We would like to design a stablecoin; any currency which seeks to be a viable medium of exchange must have a sufficiently stable price relative to some acceptable denomination. \\
-
-\noindent  In his discussion of Hayek money, Ametrano correctly makes the point that Bitcoin serves the purpose of crypto-gold much better than it does crypto-unit-of-account, due to its volatility and constrained supply.~\cite{ametrano2016hayek} By contrast, governments, who mint their own currencies, can and do execute discretionary stabilisation policies to manipulate the circulating supply. This kind of powerful lever is not available to Bitcoin and other supply-constrained currencies of its type, but a similar system whose monetary policy is algorithmically countercyclical rather than deflationary could inherit the desirable characteristics of both. \\
-
-\noindent It should be possible however, by automatic means, to incentivise the issuance and destruction of tokens according to demand. In this way, users of this such a currency would be allowed to capitalise it while the system automatically seeks to expand and contract the money supply as its backing reserve fluctuates in value. By this mechanism we might produce a more perfect currency where supply floats with necessity, but which is not prone to debasement by selfish or misguided actors, or other issues commonly associated with deflationary forms of money. We should also seek to ideally remove some of the distortions created by traditional monetary policy, which, when it is expansionary, shrinks the purchasing power in every account which is not a direct beneficiary of that policy. \\
-
-\noindent Hence, we propose a system of two intertwined currencies which serve very different purposes as a part of the Havven stablecoin system:
-
-\paragraph{Curit} The reserve token. Users buy Curits to obtain a part share in the entire system. The holders of this token are providing collateral for the system, and in so doing, assuming some level of risk. To compensate this risk, Curit-holders will be rewarded with fees the system levies automatically as part of its normal operation. The capitalisation of the reserve market reflects the system's aggregate value.
-
-\paragraph{Nomin} The exchange token. Philosophically, we would like the Nomin to be a utilon, a constant unit of utility, and so the system should stabilise its price in terms of some external, relatively-stable currency or commodity basket, in order to insulate the Nomin price from the volatility of its 
-underpinning reserve. Each holder of Curits is granted the right to issue their own Nomins, in proportion to the value of the Curits they hold and are willing to escrow. If the user wishes to redeem their escrowed Curits, they must present the system with Nomins, in order to freely trade them again. Other than just price stability, the system should also encourage some adequate level of liquidity for Nomins to act as a useful medium of exchange. \\
-
-\noindent Clearly, the introduction of a new cryptocurrency, in isolation, offers no additional value given the existing and established alternatives, such as Bitcoin and Ether. Havven then seeks to derive value from the addition of \textbf{stability} to its inherited properties as a modern cryptocurrency. \\
-
-\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible "Nomin" tokens of the Havven system represent some value held in reserve. We define the Curit to be the token of backing value as this is both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability to develop stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value as we define Curits as carrying the functional value associated with being able to derive a stable medium of exchange. It's representative money because Curits represent the tokenised ownership of the system that supports the functionality. If this relies on some implicit assumption that a group of actors think it has value, this is also valuable, given the friction/stickiness associated with an actor changing out their value store to some other form of money. \\
-
-\noindent However, Havven is not representative money as we have traditionally known it. Historical instantiations, such as the gold standard which allowed anyone to claim against the reserve, caused exacerbations in times of economic turmoil. Havven instead provides an ability for Nomins to be pegged against some external form of value by regulating supply with clever market incentives.
-
-\noindent The Havven system is designed such that the stable currency that is issued (Nomins) is both denominated and pegged against an external store of value. Throughout this paper we use USD as a the reference example, however this could be any external and appropriately fungible asset, such as a commodity or state currency (note, denominations in other cryptocurrencies are not necessary as these already benefit from the features Havven is implementing for the external denominator). \\
-
-\noindent Nomins in the early stages of the system are anticipated to be used as a means to hedge against cryptocurrency volatility and as a settlement layer. For example, centralised cryptocurrency exchanges may use the Havven system to settle between themselves, expressing the value of the settled funds/assets in USD (for Nomins denominated in USD). Later, with greater maturity and scalability of Ethereum, Havven may be extended for more general purpose use. \\
-
-\noindent More information can be found on havven.io or by reading the position paper.
-
-
-\pagebreak
 \section{Functional description}
 
-Havven works by providing a set of market incentives that support a stable peg.
+Havven works by providing a set of market incentives that support the mapping of Nomin value to an external asset.
 
 \subsection{Stability design considerations}
 
@@ -96,13 +13,13 @@ Fundamentally, we wish to configure the system such that it incentivises the des
 This paper focuses on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free.
 
 
-Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, "How can we \textbf{control the value} of the cryptocurrency such that one unit of the pegged currency matches one unit of value of the denominating currency?" This is a challenging scenario because there are multiple related forces at work on the value of each currency. We consider these as two independent groups: "market forces" and "control forces". \\
+Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, "How can we \textbf{control the value} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?" This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: "market forces" and "control forces". \\
 
 \noindent \textbf{Market} forces represent supply and demand. These are necessarily different for both currencies, otherwise the value of both currencies would move in unison. \\
 
-\noindent \textbf{Control} forces then are the controls one is able to apply over a currency to control its value, such as an inflation rate or a buy-back scheme. \\
+\noindent \textbf{Control} forces then are the controls one is able to apply over a currency to affect its value, such as an inflation rate or a buy-back scheme. \\
 
-\noindent Our peg then should seek to tune the control forces such that one unit of a control currency equals one unit of the denominating currency. We assume that the forces for one currency are independent of the forces for another. \\
+\noindent Our price mapping then should seek to tune the control forces such that one unit of a control currency equals one unit of the denominating currency. We assume that the forces for one currency are independent of the forces for another. \\
 
 \noindent So what are the mechanisms we can apply to control the value of a currency? We consider:
 
@@ -113,7 +30,7 @@ Let us consider the various ways in which one can maintain a stable value relati
 	\item \textit{Others?}
 \end{itemize}
 
-\noindent Unilateral balance control, such as that as described in Amentrano's paper on Hyak Money, is discounted on the basis that individual's balances being directly modified would be unpalatable to the general population. \\
+\noindent Unilateral balance control, such as that as described in Amentrano's paper on Hayek Money, is discounted on the basis that individual's balances being directly modified would be unpalatable to the general population. \\
 
 This leaves us with simply the forces relating to modifying supply...
 
@@ -385,177 +302,3 @@ This quantity is proportional with the actual utilisation ratio \(U\). The more 
 \end{enumerate}
 
 \pagebreak
-\section{Qualitative Scenario Analysis}
-
-1. Ratio moves favourably
-2. Ratio moves unfavourably
-   1. accumulate curits
-      1. few curits available: what happens?
-      2. no curits available: what happens?
-   2. accumulate nomis
-      1. few nomins available: what happens?
-      2. no nomins available: what happens?
-3. Creation of new curits with new funds (not currently an option as the number of curits is fixed.)
-
-
-\pagebreak
-\section{Quantitative System Analysis}
-
-1. System Dynamics Modelling (sensitivity analysis, etc)
-   1. method
-   2. results
-
-
-
-\hfill
-\subsection{System variables}
-\noindent What follows are the main variables of the system. 
-Under each heading, each row will correspond to a single quantity of interest.
-Each row will have three columns. Leftmost, a mathematical definition of the variable; in the middle, the dimension of the quantity (which units it is measured in); and on the rightmost, a short English summary of the variable.\\
-
-\noindent Certain abbreviations will be used.
-For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for curits and nomins considered as units of measurement. \\
-
-\paragraph{Prices}
-\begin{align*}
-    P_c & \ && &(\frac{\text{\$}}{\CUR{}}) && &\text{: curit price.} \\
-    P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{: nomin price.} \\
-    \pi &:= \frac{P_c}{P_n} \ && &(\frac{\NOM{}}{\CUR{}}) && &\text{: curit to nomin conversion factor.} \\
-    P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{: curit price rate of change.}
-    \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
-\end{align*}
-\\
-
-
-\paragraph{Money Supply}
-\begin{align*}
-    &C \ && &(\CUR{}) && &\text{: Quantity of curits, which is constant.} \\
-    &C_e \ && &(\CUR{}) && &\text{: Quantity of escrowed curits.} \\
-    &N = C_N \cdot \pi \ && &(\NOM{}) && &\text{: Quantity of nomins. This can float.} \\
-    &C_N = \frac{N}{\pi} \ && &(\CUR{}) && &\text{: Curit value of issued nomins.}
-    \intertext{Ideally, \(C_N \leq C_e\).}
-\end{align*}
-\\
-
-\paragraph{Utilisation Ratios}
-\begin{align*}
-    &U = \frac{C_N}{C} \ && &\text{(dimensionless)} && &\text{: Empirical issuance ratio. } \\
-    &U_{max} \ && &\text{(dimensionless)} && &\text{: Targeted issuance ratio ceiling.}
-    \intertext{Ideally, \(0 \leq U \leq U_{max} \leq 1\), but we need to work out a good level for \(U_{max}\).}
-\end{align*}
-\\
-
-\paragraph{Microeconomic Variables} These should be defined as functions of \(P_n, \ P_c, \ \text{fees, etc.}\)
-\begin{align*}
-S_n \ && (\frac{1}{\text{sec}}) && &\text{: average nomin spend rate} \\
-S_i \ && (\frac{1}{\text{sec}}) && &\text{: average issuance rate} \\
-S_r \ && (\frac{1}{\text{sec}}) && &\text{: average redemption rate}
-\end{align*}
-\\
-
-\paragraph{Money Movement}
-\begin{align*}
-    V_n &= S_n \cdot N \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{: nomin transfer rate.} \\
-    V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin} \leftrightarrow \text{curit conversion rate.} \\
-    V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin issuance rate.} \\
-    V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: curit redemption rate.} \\
-    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.
-               Actually perhaps it should grow with the number of escrowed curits with
-               no nomins issued against them.}
-    \intertext{\(V_r\), by contrast, is taken to grow proportionally with the number of escrowed curits.}
-\end{align*}
-\\
-
-\paragraph{Fees}
-\begin{align*}
-\intertext{The following fees are ratios, for example 0.1\%, levied on each transaction.}
-&F_{nx} & \ && &\text{(dimensionless)} && &\text{: nomin transfer fee} \\
-&F_{cx} & \ && &\text{(dimensionless)} && &\text{: curit transfer fee} \\
-&F_i & \ && &\text{(dimensionless)} && &\text{: nomin issuance fee} \\
-&F_r & \ && &\text{(dimensionless)} && &\text{: curit redemption fee} \\
-\intertext{These quantities are the aggregated fees accrued by the system per unit time.}
-&Ag_{nx} &:= V_n \cdot F_{nx} \ && &(\frac{\NOM{}}{\text{sec}}) && &\text{: fees taken from nomin transfers.}
-\end{align*}
-
-\pagebreak
-\section{Alternative approaches}
-
-Outline the research to date done by Kain and why certain approaches were discarded.
-
-
-
-\subsection{Basecoin}
-
-\paragraph{Description of system}
-
-The Basecoin team appear to have mounted a somewhat a credible attempt to design a stablecoin, however we consider there to be a number of fatal issues that are discussed below. \\
-
-\noindent The whitepaper at the time of writing is still in draft, with much of it actually dedicated to explaining why a stable cryptocurrency would be useful. Only a high level description exists of how the stablisation mechanism operates. Basecoin is described as operating similarly to Havven in that there is separation between a backing token and a transactional token, however Basecoin also separates out a specific bond token. The peg to an arbitrary external asset is maintained by using an oracle service to discover the price on an external market, before regulating the supply of "basecoins" through actively increasing supply (issuing new basecoin), and decreasing supply (auctioning of bonds), effectively acting like an autonomous central bank. \\
-
-\noindent In the abstract, the paper indicates that Basecoin is  "a cryptocurrency whose tokens can be robustly pegged to arbitrary assets or baskets of goods while remaining completely decentralized." While the system it might run on a decentralised computing architecture, it is inherently centralised due to the use of an oracle price-finding mechanism. We feel that this is a key weakness in the approach. This weakness is also implicitly recognised by the team in their discussion on how to implement an Oracle system in a decentralised fashion; whilst some discussion exists around various options for creating a pseudo-decentralised oracle, none are selected due to the fact that Oracles by nature are fundamentally centralised information bridges. \\
-
-\noindent Basecoin is intended to operate "as a decentralized, protocol-enforced algorithm, without the need for direct human judgment. For this reason, Basecoin can be understood as implementing an algorithmic central bank." Whilst not without merit, this approach was discarded by Havven due to the high amount of complexity required to be anticipated up-front in order to ensure the stabilisation mechanism is effective. The paper claims that Monte Carlo simulations have been run which indicate stability under a range of scenarios, however details are yet to be released by the team. Havven's model by contrast is far simpler in that the system is designed with open market arbitrage incentives to encourage the peg. In this way, a set of rational participating actors can discover the price of the stablecoin rather than a single set of smart contracts that attempt to develop complex algorithms for processes that are today managed by a combination humans and markets. \\
-
-\noindent Some of the criticisms levelled at alternatives seem to be unneccesarily hypocritical. For example "The only reason BitShares are worth 1 USD is because everyone believes it’ll be worth 1 USD." We would like to see the Basecoin team  reexamine their understanding and/or clarify their description here relating to the fundamental nature of money, as this is the very thing that makes all money work: everyone believes it has value. Further, while a significant devaluation of Bitcoin (relative to say, USD) is a possibility, we feel that comparisons that imply that Bitcoin may experience structural and cyclical devaluation are unhelpful. The USD is inherently inflationary, and so some level of inflation just in order to maintain a peg is not just neccessary, but actuallly desirable. The problem with using an appreciating asset to back a currency is that it acts to damp economic activity in times of economic stress, causing exaccerbations of economic problems. This is precisely why the gold standard was abandoned in favour of fiat last century. \\
-
-\noindent Critically, the removal of Basecoin from the system to ensure the stable peg is predicated on the significant assumption that participants will take positions the ongoing bond auctions in order to remove basecoin from the system and support the peg. This assumption remains untested. \\
-
-\noindent Of note, the whitepaper also does not provide any implementation or performance considerations, including whether the system is intended to run on Ethereum or on a custom blockchain platform. Further, this precipitates the question regarding how the decentralised system is paid for as no mention is made within the whitepaper regarding levying fees or making use of fees to provide peg-supporting incentives. \\
-
-
-
-\paragraph{Key issues}
-
-\paragraph{Current state}
-
-
-\subsection{Tether}
-
-\paragraph{Description of system}
-
-Tethers accepts fiat deposits into the Hong Kong-based Tether Limited bank account and issues "USDT" (USD Tether) over Bitcoin via the Omni Layer protocol. Tethers are an asset-backed digital token, representing a claim on the cash held in reserve.
-
-The stability of the USDT 'coin' effectively relies on the force of external market arbitrage to ensure the peg holds over time.
-
-\paragraph{Key issues}
-
-Despite the whitepaper claiming that the "goal of any successful cryptocurrency is to completely eliminate the requirement for trust," and that each Tether is "fully redeemable/exchangeable any time for the underlying fiat currency," the company's terms of service quite clearly state that "there is no contractual right or other right or legal claim against us to redeem or exchange your Tethers for money."
-
-Tether clearly relies on a manual, centralised proof of existence for the backing asset, and so suffers from the very issue that the Tether whitepaper decries. Indeed the same issue is encountered with tokenised gold, or similarly any other 'real-world' asset where some Oracle bridge is required to interface into a distributed ledger.
-
-\paragraph{Current state}
-
-Recently, Tether announced support for issuing ERC-20 compatible tokens on Ethereum as opposed to releasing "tethers" on the Bitcoin blockchain using the Omni Layer protocol.
-
-At the time of writing, the market capitalisation for USDT was approximately \$440m, and the discrepancy regarding their terms of service remains unresolved.
-
-
-\subsection{MakerDAO}
-
-\paragraph{Description of system}
-
-MakerDao has been around for a relatively long time in the pursuit of a stablecoin.
-
-Complex system.
-
-\paragraph{Key issues}
-
-\paragraph{Current state}
-
-Recently abandoned the Auction price-finding mechanism and are pursuing a 
-
-
-\subsection{Nubits}
-
-\paragraph{Description of system}
-
-\paragraph{Key issues}
-
-\paragraph{Current state}
-
-
-
-\pagebreak
-\bibliography{citations.bib}
-\bibliographystyle{plain}
-\end{document}

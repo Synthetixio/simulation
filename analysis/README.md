@@ -3,7 +3,7 @@
 This is where analytical discussion of the system lives.
 In order to build the document, you will need a distribution of TeX installed, and then run:
 
-```pdflatex analysis.tex```
+```pdflatex whitepaper.tex```
 
 ## TODO
 
