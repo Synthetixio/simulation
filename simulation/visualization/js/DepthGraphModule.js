@@ -42,7 +42,7 @@ var DepthGraphModule = function (graph_id, width, height) {
     // Create the chart object
     let chart = new Chartist.Line('#' + graph_id, data, options);
 
-    this.render = function (new_data) {
+    this.render = function (step, new_data) {
 
         this.reset();
         let price_range = parseFloat($("#price_range" + graph_id)[0].value);

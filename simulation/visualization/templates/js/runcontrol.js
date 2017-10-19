@@ -200,8 +200,9 @@ ws.onmessage = function(message) {
     switch (msg["type"]) {
         case "viz_state":
             var data = msg["data"];
+            var step = msg["step"];
             for (var i in elements) {
-                elements[i].render(data[i]);
+                elements[i].render(step, data[i]);
             }
             break;
         case "end":

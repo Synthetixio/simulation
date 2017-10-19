@@ -30,7 +30,7 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
     // Create the chart object
     var chart = new Chartist.Bar('#' + graph_id, data, options);
 
-    this.render = function (new_data) {
+    this.render = function (step, new_data) {
         // data should be in the form:
         // [data_labels, bar_labels, dataset1, ...]
 

@@ -33,8 +33,8 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 
 	var chart = new Chart(context).Line(data, options);
 
-	this.render = function(data) {
-		chart.addData(data, control.tick);
+	this.render = function(step, data) {
+		chart.addData(data, step);
 	};
 
 	this.reset = function() {
