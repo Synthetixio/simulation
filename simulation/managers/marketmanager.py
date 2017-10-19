@@ -189,30 +189,30 @@ class MarketManager:
 
     def curits_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of curits to its equivalent quantity in nomins."""
-        return quantity * self.curit_nomin_market.price
+        return HavvenManager.round_decimal(quantity * self.curit_nomin_market.price)
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.curit_fiat_market.price) / self.nomin_fiat_market.price
 
     def curits_to_fiat(self, quantity: Dec) -> Dec:
         """Convert a quantity of curits to its equivalent quantity in fiat."""
-        return quantity * self.curit_fiat_market.price
+        return HavvenManager.round_decimal(quantity * self.curit_fiat_market.price)
 
     def nomins_to_curits(self, quantity: Dec) -> Dec:
         """Convert a quantity of nomins to its equivalent quantity in curits."""
-        return quantity / self.curit_nomin_market.price
+        return HavvenManager.round_decimal(quantity / self.curit_nomin_market.price)
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.nomin_fiat_market.price) / self.curit_fiat_market.price
 
     def nomins_to_fiat(self, quantity: Dec) -> Dec:
         """Convert a quantity of nomins to its equivalent quantity in fiat."""
-        return quantity * self.nomin_fiat_market.price
+        return HavvenManager.round_decimal(quantity * self.nomin_fiat_market.price)
 
     def fiat_to_curits(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in curits."""
-        return quantity / self.curit_fiat_market.price
+        return HavvenManager.round_decimal(quantity / self.curit_fiat_market.price)
 
     def fiat_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
-        return quantity / self.nomin_fiat_market.price
+        return HavvenManager.round_decimal(quantity / self.nomin_fiat_market.price)

@@ -11,18 +11,32 @@ import agents as ag
 
 from managers import HavvenManager
 
-
 class LimitOrder:
-    """A single limit order, including price, quantity, the issuer, and orderbook it belongs to."""
+    """
+    A single limit order, including price, quantity, the issuer, and orderbook it belongs to.
+    """
     def __init__(self, price: Dec, time: int, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
-        self.price = price
-        self.fee = fee
+        self.price = HavvenManager.round_decimal(price)
+        """Quoted currency per unit of base currency."""
+
+        self.fee = HavvenManager.round_decimal(fee)
+        """An extra fee charged on top of the face value of the order."""
+
         self.time = time
-        self.quantity = quantity
+        """The time this order was created, or last modified."""
+
+        self.quantity = HavvenManager.round_decimal(quantity)
+        """Denominated in the base currency."""
+
         self.issuer = issuer
+        """The player which issued this order."""
+
         self.book = book
-        self.active = quantity > 0
+        """The order book this order is listed on."""
+
+        self.active = self.quantity > 0
+        """Whether the order is actively listed or not."""
 
     def cancel(self) -> None:
         """Remove this order from the issuer and the order book if it's active."""
@@ -412,16 +426,23 @@ class OrderBook:
     def update_bid(self, bid: Bid, new_price: Dec, new_quantity: Dec,
                    fee: Optional[Dec] = None) -> None:
         """
-        Update a Bid's details in the book, recomputing fees and cached quantities.
+        Update a Bid's details in the book, recomputing fees, cached quantities,
+        and the user's used currency total.
         If fee is not None, then update the fee directly, rather than recomputing it.
         """
         # Do nothing if the order is inactive.
         if not bid.active:
             return
 
+        new_price = HavvenManager.round_decimal(new_price)
+        new_quantity = HavvenManager.round_decimal(new_quantity)
+        if fee is not None:
+            fee = HavvenManager.round_decimal(fee)
+
         # Do nothing if the price and quantity would remain unchanged.
         if bid.price == new_price and bid.quantity == new_quantity:
-            return
+            if fee is None or fee == bid.fee:
+                return
 
         # If the bid is updated with a non-positive quantity, it is cancelled.
         if new_quantity <= 0:
@@ -435,14 +456,15 @@ class OrderBook:
 
         # Update the used quantities for this bid,
         # deducting the old and crediting the new.
-        bid.issuer.__dict__[f"used_{self.quote}"] -= bid.quantity + bid.fee
-        bid.issuer.__dict__[f"used_{self.quote}"] += new_quantity + new_fee
+        bid.issuer.__dict__[f"used_{self.quote}"] += (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
+                                                     (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
 
         if bid.price == new_price:
             # We may assume the current price is already recorded,
             # so no need to call _bid_bucket_add_ which checks before
             # inserting. Something is wrong if the key is not found.
-            self.bid_quants[new_price] += (new_quantity - bid.quantity)
+            #self.bid_quants[new_price] += (new_quantity - bid.quantity)
+            self._bid_bucket_add_(new_price, (new_quantity - bid.quantity))
 
             # As the price is unchanged, order book position need not be
             # updated, just set the quantity and fee.
@@ -456,14 +478,15 @@ class OrderBook:
 
             # Since the price changed, update the bid's position
             # in the book.
-            self.bids.pop(bid)
+            self.bids.remove(bid)
             bid.price = new_price
             bid.quantity = new_quantity
             bid.fee = new_fee
+            # Only set the time if the price was updated.
+            bid.time = self.time
             self.bids.add(bid)
 
-        # Set and advance timestep.
-        bid.time = self.time
+        # Advance time.
         self.step()
 
     def cancel_bid(self, bid: Bid) -> None:
@@ -515,16 +538,23 @@ class OrderBook:
     def update_ask(self, ask: Ask, new_price: Dec, new_quantity: Dec,
                    fee: Optional[Dec] = None) -> None:
         """
-        Update an Ask's details in the book, recomputing fees and cached quantities.
-        if fee is not None, then update the fee directly, rather than recomputing it.
+        Update an Ask's details in the book, recomputing fees, cached quantities,
+        and the user's used currency totals.
+        If fee is not None, then update the fee directly, rather than recomputing it.
         """
         # Do nothing if the order is inactive.
         if not ask.active:
             return
 
+        new_price = HavvenManager.round_decimal(new_price)
+        new_quantity = HavvenManager.round_decimal(new_quantity)
+        if fee is not None:
+            fee = HavvenManager.round_decimal(fee)
+
         # Do nothing if the price and quantity would remain unchanged.
         if ask.price == new_price and ask.quantity == new_quantity:
-            return
+            if fee is None or fee == ask.fee:
+                return
 
         # If the ask is updated with a non-positive quantity, it is cancelled.
         if new_quantity <= 0:
@@ -538,14 +568,15 @@ class OrderBook:
 
         # Update the used quantities for this ask,
         # deducting the old and crediting the new.
-        ask.issuer.__dict__[f"used_{self.base}"] -= ask.quantity + ask.fee
-        ask.issuer.__dict__[f"used_{self.base}"] += new_quantity + new_fee
+        ask.issuer.__dict__[f"used_{self.base}"] += (new_quantity + new_fee) - \
+                                                    (ask.quantity + ask.fee)
 
         if ask.price == new_price:
             # We may assume the current price is already recorded,
             # so no need to call _ask_bucket_add_ which checks before
             # inserting. Something is wrong if the key is not found.
-            self.ask_quants[new_price] += (new_quantity - ask.quantity)
+            #self.ask_quants[new_price] += (new_quantity - ask.quantity)
+            self._ask_bucket_add_(new_price, (new_quantity - ask.quantity))
 
             # As the price is unchanged, order book position need not be
             # updated, just set the quantity and fee.
@@ -559,14 +590,15 @@ class OrderBook:
 
             # Since the price changed, update the ask's position
             # in the book.
-            self.asks.pop(ask)
+            self.asks.remove(ask)
             ask.price = new_price
             ask.quantity = new_quantity
             ask.fee = new_fee
+            # Only set the timestep if the price was updated.
+            ask.time = self.time
             self.asks.add(ask)
 
-        # Set and advance timestep.
-        ask.time = self.time
+        # Advance time.
         self.step()
 
     def cancel_ask(self, ask):
@@ -612,4 +644,4 @@ class OrderBook:
 
             spread = self.spread()
 
-        self.price = (self.lowest_ask_price() + self.highest_bid_price()) / 2
+        self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))
