@@ -73,7 +73,7 @@ class Arbitrageur(MarketPlayer):
         elif self._reverse_multiple_() > 1:
             # Trade in the reverse direction
             # cur -> nom -> fiat -> cur
-            fc_price = Dec('1.0') / self.model.market_manager.curit_fiat_market.lowest_ask_price()
+            fc_price = hm.round_decimal(Dec('1.0') / self.model.market_manager.curit_fiat_market.lowest_ask_price())
 
             # These seemingly-redundant Dec constructors are necessary because if these lists are empty,
             # the sum returns 0 as an integer.

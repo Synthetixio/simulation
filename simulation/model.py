@@ -113,11 +113,11 @@ class Havven(Model):
             self.schedule.add(arb)
             i += 1
         for _ in range(nomin_shorters):
-            nomin_shorter = ag.NominShorter(i, self, nomins=init_value_d*Dec(2))
+            nomin_shorter = ag.NominShorter(i, self, nomins=HavvenManager.round_decimal(init_value_d*Dec(2)))
             self.schedule.add(nomin_shorter)
             i += 1
         for _ in range(escrow_nomin_shorters):
-            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=init_value_d*Dec(2))
+            escrow_nomin_shorter = ag.CuritEscrowNominShorter(i, self, curits=HavvenManager.round_decimal(init_value_d*Dec(2)))
             self.schedule.add(escrow_nomin_shorter)
             i += 1
 

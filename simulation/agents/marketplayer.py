@@ -15,10 +15,10 @@ Portfolio = namedtuple(
 class MarketPlayer(Agent):
     """
     A generic agent with a fixed initial wealth in fiat,
-      with which it must buy into the market.
+    with which it must buy into the market.
     The agent may escrow curits in order to issue nomins,
-      and use various strategies in order to trade in the marketplace.
-      Its aim is to increase its own wealth.
+    and use various strategies in order to trade in the marketplace.
+    Its aim is to increase its own wealth.
     """
 
     def __init__(self, unique_id: int, havven: "model.Havven",
@@ -45,7 +45,9 @@ class MarketPlayer(Agent):
 
     @property
     def name(self) -> str:
-        """Return the name of this object; its type and its unique id."""
+        """
+        The name of this object; its type and its unique id.
+        """
         return f"{self.__class__.__name__} {self.unique_id}"
 
     def _fraction_(self, qty: Dec, divisor: Dec = Dec(3),
@@ -64,7 +66,9 @@ class MarketPlayer(Agent):
             order.cancel()
 
     def wealth(self) -> Dec:
-        """Return the total wealth of this agent at current fiat prices."""
+        """
+        Return the total wealth of this agent at current fiat prices.
+        """
         return self.model.fiat_value(curits=(self.curits + self.escrowed_curits),
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=self.fiat)
@@ -93,7 +97,9 @@ class MarketPlayer(Agent):
                          nomins=nomins, issued_nomins=issued_nomins)
 
     def reset_initial_wealth(self) -> Dec:
-        """Reset this agent's initial wealth to the current wealth, returning the old value."""
+        """
+        Reset this agent's initial wealth to the current wealth, returning the old value.
+        """
         old = self.initial_wealth
         self.initial_wealth = self.wealth()
         return old
@@ -163,7 +169,7 @@ class MarketPlayer(Agent):
     def unavailable_escrowed_curits(self) -> Dec:
         """
         Return the quantity of locked escrowed curits,
-          having had nomins issued against it.
+        having had nomins issued against it.
         May be greater than total escrowed curits.
         """
         return self.model.mint.unavailable_escrowed_curits(self)
@@ -177,14 +183,14 @@ class MarketPlayer(Agent):
     def remaining_issuance_rights(self) -> Dec:
         """
         Return the remaining quantity of tokens this agent can issued on the back of their
-          escrowed curits. May be negative.
+        escrowed curits. May be negative.
         """
         return self.model.mint.remaining_issuance_rights(self)
 
     def issue_nomins(self, value: Dec) -> bool:
         """
         Issue a positive value of nomins against currently escrowed curits,
-          up to the utilisation ratio maximum.
+        up to the utilisation ratio maximum.
         """
         return self.model.mint.issue_nomins(self, value)
 
@@ -262,7 +268,7 @@ class MarketPlayer(Agent):
                                premium: Dec = Dec('0')) -> "ob.Bid":
         """
         Sell a quantity of the quoted currency into the given market, including the
-          fee, as calculated by the provided function.
+        fee, as calculated by the provided function.
         """
         price = book.lowest_ask_price()
         return book.buy(received_qty_fn(hm.round_decimal(quantity/price)), self, premium)
@@ -272,7 +278,7 @@ class MarketPlayer(Agent):
                              discount: Dec = Dec('0')) -> "ob.Ask":
         """
         Sell a quantity of the base currency into the given market, including the
-          fee, as calculated by the provided function.
+        fee, as calculated by the provided function.
         """
         return book.sell(received_qty_fn(quantity), self, discount)
 
@@ -416,14 +422,23 @@ class MarketPlayer(Agent):
 
     @property
     def available_fiat(self) -> Dec:
+        """
+        This agent's quantity of fiat not tied up in orders.
+        """
         return self.fiat - self.used_fiat
 
     @property
     def available_curits(self) -> Dec:
+        """
+        This agent's quantity of curits not being tied up in orders.
+        """
         return self.curits - self.used_curits
 
     @property
     def available_nomins(self) -> Dec:
+        """
+        This agent's quantity of nomins not being tied up in orders.
+        """
         return self.nomins - self.used_nomins
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
