@@ -63,7 +63,7 @@ class MarketManager:
         #   while the later poster transacts at a price no worse than posted;
         #   they may do better.
         price = ask.price if ask.time < bid.time else bid.price
-        quantity = min(ask.quantity, bid.quantity)
+        quantity = HavvenManager.round_decimal(min(ask.quantity, bid.quantity))
 
         # Only charge a fraction of the fee if an order was not entirely filled.
         bid_fee = HavvenManager.round_decimal((quantity/bid.quantity) * bid.fee)
@@ -83,7 +83,6 @@ class MarketManager:
             fail = True
         if fail:
             return None
-
         # Perform the actual transfers.
         # We have already checked above if these would succeed.
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
@@ -93,7 +92,6 @@ class MarketManager:
         # This will remove the amount that was transferred from issuers' used value.
         bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
         ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
-
         return ob.TradeRecord(bid.issuer, ask.issuer,
                               price, quantity, bid_fee, ask_fee)
 
