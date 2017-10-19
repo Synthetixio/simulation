@@ -364,8 +364,8 @@ class ModularServer(tornado.web.Application):
         while True:
             # slow it down if the data isn't being used
             # higher value causes lag when the page is first created
-            # if model_handler.data_queue.qsize() > 50:
-            #     time.sleep(0.1)
+            if model_handler.data_queue.qsize() > 100:
+                time.sleep(0.2)
             start = time.time()
             model_handler.step()
             model_handler.render_model()

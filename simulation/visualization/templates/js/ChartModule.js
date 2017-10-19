@@ -25,21 +25,48 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 	};
 
 	var options = {
-		animation: false,
-		datasetFill: false,
-		pointDot: false,
-		bezierCurve : false
+		responsive: false,
+		tooltips: {
+			mode: 'index',
+			intersect: false,
+		},
+		hover: {
+			mode: 'nearest',
+			intersect: true
+		},
+		scales: {
+			xAxes: [{
+				display: true,
+				scaleLabel: {
+					display: true,
+					labelString: 'Tick'
+				}
+			}],
+			yAxes: [{
+				display: false
+			}]
+		},
+		elements: {
+            line: {
+                tension: 0, // disables bezier curves
+            }
+        },
+		animation: false
 	};
 
-	var chart = new Chart(context).Line(data, options);
+	var chart = new Chart(context, {type: 'line', data: data, options: options});
 
 	this.render = function(step, data) {
-		chart.addData(data, step);
+		chart.data.labels.push(step);
+		for (let i=0; i<data.length; i++) {
+			chart.data.datasets[i].data.push(data[i]);
+		}
+		chart.update();
 	};
 
 	this.reset = function() {
 		chart.destroy();
 		data.labels = [];
-		chart = new Chart(context).Line(data, options);
+		chart = new Chart(context, {type: 'line', data: data, options: options});
 	};
 };
