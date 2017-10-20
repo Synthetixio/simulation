@@ -23,19 +23,19 @@ class MarketManager:
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
         self.curit_nomin_market = ob.OrderBook(
-            model_manager, "CUR", "NOM", self.curit_nomin_match,
+            model_manager, "curits", "nomins", self.curit_nomin_match,
             self.fee_manager.transferred_nomins_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.curit_fiat_market = ob.OrderBook(
-            model_manager, "CUR", "FIAT", self.curit_fiat_match,
+            model_manager, "curits", "fiat", self.curit_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_curits_fee,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
-            model_manager, "NOM", "FIAT", self.nomin_fiat_match,
+            model_manager, "nomins", "fiat", self.nomin_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_nomins_fee,
             self.model_manager.match_on_order
@@ -62,16 +62,14 @@ class MarketManager:
         # The earlier poster trades at their posted price,
         #   while the later poster transacts at a price no worse than posted;
         #   they may do better.
-        price = HavvenManager.round_decimal(ask.price if ask.time < bid.time else bid.price)
+        price = ask.price if ask.time < bid.time else bid.price
         quantity = HavvenManager.round_decimal(min(ask.quantity, bid.quantity))
 
-        # only charge a fraction of the fee
-        if quantity == ask.quantity:
-            ask_fee = HavvenManager.round_decimal(ask.fee)
-            bid_fee = HavvenManager.round_decimal(quantity/bid.quantity * bid.fee)
-        else:
-            bid_fee = HavvenManager.round_decimal(bid.fee)
-            ask_fee = HavvenManager.round_decimal(quantity/ask.quantity * ask.fee)
+        # Only charge a fraction of the fee if an order was not entirely filled.
+        bid_fee = HavvenManager.round_decimal((quantity/bid.quantity) * bid.fee)
+        ask_fee = HavvenManager.round_decimal((quantity/ask.quantity) * ask.fee)
+
+        # Compute the buy value. The sell value is just the quantity itself.
         buy_val = HavvenManager.round_decimal(quantity * price)
 
         # Only perform the actual transfer if it would be successful.
@@ -85,18 +83,15 @@ class MarketManager:
             fail = True
         if fail:
             return None
-
         # Perform the actual transfers.
         # We have already checked above if these would succeed.
-        ask_transfer(ask.issuer, bid.issuer, quantity, ask_fee)
         bid_transfer(bid.issuer, ask.issuer, buy_val, bid_fee)
+        ask_transfer(ask.issuer, bid.issuer, quantity, ask_fee)
 
         # Update the orders, cancelling any with 0 remaining quantity.
-        ask.update_quantity(HavvenManager.round_decimal(ask.quantity - quantity),
-                            HavvenManager.round_decimal(ask_fee))
-        bid.update_quantity(HavvenManager.round_decimal(bid.quantity - quantity),
-                            HavvenManager.round_decimal(bid_fee))
-
+        # This will remove the amount that was transferred from issuers' used value.
+        bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
+        ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
         return ob.TradeRecord(bid.issuer, ask.issuer,
                               price, quantity, bid_fee, ask_fee)
 
@@ -192,30 +187,30 @@ class MarketManager:
 
     def curits_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of curits to its equivalent quantity in nomins."""
-        return quantity * self.curit_nomin_market.price
+        return HavvenManager.round_decimal(quantity * self.curit_nomin_market.price)
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.curit_fiat_market.price) / self.nomin_fiat_market.price
 
     def curits_to_fiat(self, quantity: Dec) -> Dec:
         """Convert a quantity of curits to its equivalent quantity in fiat."""
-        return quantity * self.curit_fiat_market.price
+        return HavvenManager.round_decimal(quantity * self.curit_fiat_market.price)
 
     def nomins_to_curits(self, quantity: Dec) -> Dec:
         """Convert a quantity of nomins to its equivalent quantity in curits."""
-        return quantity / self.curit_nomin_market.price
+        return HavvenManager.round_decimal(quantity / self.curit_nomin_market.price)
         # The following fixes an interesting feedback loop related to nomin issuance rights
         # Hopefully unbreaking arbitrage will fix that, however.
         # return (quantity * self.nomin_fiat_market.price) / self.curit_fiat_market.price
 
     def nomins_to_fiat(self, quantity: Dec) -> Dec:
         """Convert a quantity of nomins to its equivalent quantity in fiat."""
-        return quantity * self.nomin_fiat_market.price
+        return HavvenManager.round_decimal(quantity * self.nomin_fiat_market.price)
 
     def fiat_to_curits(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in curits."""
-        return quantity / self.curit_fiat_market.price
+        return HavvenManager.round_decimal(quantity / self.curit_fiat_market.price)
 
     def fiat_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
-        return quantity / self.nomin_fiat_market.price
+        return HavvenManager.round_decimal(quantity / self.nomin_fiat_market.price)

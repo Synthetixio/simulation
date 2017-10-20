@@ -7,7 +7,7 @@ class HavvenManager:
     Class to hold Havven's model variables
     """
 
-    currency_precision = 18
+    currency_precision = 8
     """
     Number of decimal places for currency precision.
     The decimal context precision should be significantly higher than this.
@@ -26,9 +26,9 @@ class HavvenManager:
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: Dec = Dec('10.0e9')
-        self.nomin_supply: Dec = Dec('0.0')
-        self.escrowed_curits: Dec = Dec('0.0')
+        self.curit_supply: Dec = Dec('1e9')
+        self.nomin_supply: Dec = Dec(0)
+        self.escrowed_curits: Dec = Dec(0)
 
         # Havven's own capital supplies
         self.curits: Dec = self.curit_supply
@@ -45,7 +45,7 @@ class HavvenManager:
         # This check for numbers which are smaller than the precision allows will
         # be commented out for now as it seems to kill economic activity.
         # if value < 1E-8:
-            # return Dec('0')
+        #     return Dec(0)
         return round(Dec(value), cls.currency_precision)
 
     @classmethod
@@ -54,9 +54,10 @@ class HavvenManager:
         Round a Decimal to the number of decimal places specified by
         the precision setting.
         Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
+        This function really only need be used for products and quotients.
         """
         # This check for numbers which are smaller than the precision allows will
         # be commented out for now as it seems to kill economic activity.
         # if value < Dec('1E-8'):
-            # return Dec('0')
+        #     return Dec(0)
         return round(value, cls.currency_precision)

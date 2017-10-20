@@ -22,7 +22,7 @@ class Mint:
         Escrow a positive value of curits in order to be able to issue
         nomins against them.
         """
-        if agent.curits >= value >= 0:
+        if agent.available_curits >= value >= 0:
             agent.curits -= value
             agent.escrowed_curits += value
             self.havven_manager.escrowed_curits += value
@@ -92,7 +92,7 @@ class Mint:
         """
         Burn a positive value of issued nomins, which frees up curits.
         """
-        if 0 <= value <= agent.nomins and value <= agent.issued_nomins:
+        if 0 <= value <= agent.available_nomins and value <= agent.issued_nomins:
             agent.nomins -= value
             agent.issued_nomins -= value
             self.havven_manager.nomin_supply -= value
