@@ -123,7 +123,7 @@ class Havven(Model):
             i += 1
 
         central_bank = ag.CentralBank(
-            i, self, fiat=Dec(num_agents * init_value_d), curit_target=Dec('1.0')
+            i, self, fiat=Dec(num_agents * init_value_d), nomin_target=Dec('1.0')
         )
         self.endow_curits(central_bank, Dec(num_agents * init_value_d))
         self.schedule.add(central_bank)
