@@ -26,7 +26,7 @@ class HavvenManager:
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: Dec = Dec('1e10')
+        self.curit_supply: Dec = Dec('1e9')
         self.nomin_supply: Dec = Dec(0)
         self.escrowed_curits: Dec = Dec(0)
 
@@ -54,6 +54,7 @@ class HavvenManager:
         Round a Decimal to the number of decimal places specified by
         the precision setting.
         Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
+        This function really only need be used for products and quotients.
         """
         # This check for numbers which are smaller than the precision allows will
         # be commented out for now as it seems to kill economic activity.
