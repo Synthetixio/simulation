@@ -14,7 +14,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     """
     Set up the simulation/visualisation server and return it.
 
-    "Label": "" is a workaround to show the graph label where there is only one label
+    "Label": "0"/"1" is a workaround to show the graph label where there is only one label
       (the graphs with only one label wont show the label value, and also show multiple
       values at the same time)
     """
