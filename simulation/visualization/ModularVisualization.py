@@ -188,7 +188,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def viz_state_message(self):
         with self.application.model_handler.data_queue.mutex:
             print([i[0] for i in self.application.model_handler.data_queue.queue])
-        data = self.application.model_handler.data_queue.get(block=True)
+        try:
+            data = self.application.model_handler.data_queue.get()
+        except:
+            return {"type": "viz_state", "step": 0}
         return {
             "type": "viz_state",
             "step": data[0],
@@ -224,7 +227,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
             # Is the param editable?
             if param in self.application.user_params:
-                self.application.set_model_kwargs(param, value)
+                self.application.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
             self.write_message({
@@ -278,10 +281,13 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        self.data_queue.put((self.model.time, visualization_state))
+        self.data_queue.put((self.model.time-1, visualization_state))
 
     def step(self):
         self.model.step()
+
+    def set_model_kwargs(self, key, val):
+        self.model_kwargs[key] = val
 
 
 class ModularServer(tornado.web.Application):

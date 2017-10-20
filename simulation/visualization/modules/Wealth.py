@@ -46,7 +46,7 @@ class PortfolioModule(BarGraphModule):
       escrowed_curits, unescrowed_curits, nomins, fiat
     """
 
-    def __init__(self, series: List[Dict[str, str]], height: int = 200,
+    def __init__(self, series: List[Dict[str, str]], height: int = 150,
                  width: int = 500, data_collector_name: str = "datacollector",
                  fiat_values: bool = False) -> None:
         super().__init__(series, height, width, data_collector_name)

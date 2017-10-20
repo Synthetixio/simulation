@@ -15,7 +15,7 @@ class BarGraphModule(VisualizationElement):
     package_includes: List[str] = ["BarGraphModule.js"]
     local_includes: List[str] = []
 
-    def __init__(self, series: List[Dict[str, str]], height: int = 300,
+    def __init__(self, series: List[Dict[str, str]], height: int = 150,
                  width: int = 500, data_collector_name: str = "datacollector") -> None:
         self.series = series
         self.height = height

@@ -49,10 +49,6 @@ var ChartModule = function(series, width, height) {
 		scales: {
 			xAxes: [{
 				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Tick'
-				}
 			}],
 			yAxes: [{
 				display: true

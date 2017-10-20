@@ -18,7 +18,7 @@ class OrderBookModule(VisualizationElement):
     local_includes: List[str] = []
 
     def __init__(
-            self, series: List[Dict[str, str]], height: int = 300,
+            self, series: List[Dict[str, str]], height: int = 150,
             width: int = 500, data_collector_name: str = "datacollector") -> None:
 
         self.series = series
