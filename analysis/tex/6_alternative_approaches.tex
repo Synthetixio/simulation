@@ -1,0 +1,76 @@
+\section{Alternative approaches}
+
+Outline the research to date done by Kain and why certain approaches were discarded.
+
+
+
+\subsection{Basecoin}
+
+\paragraph{Description of system}
+
+The Basecoin team appear to have mounted a somewhat a credible attempt to design a stablecoin, however we consider there to be a number of fatal issues that are discussed below. \\
+
+\noindent The whitepaper at the time of writing is still in draft, with much of it actually dedicated to explaining why a stable cryptocurrency would be useful. Only a high level description exists of how the stablisation mechanism operates. Basecoin is described as operating similarly to Havven in that there is separation between a backing token and a transactional token, however Basecoin also separates out a specific bond token. The peg to an arbitrary external asset is maintained by using an oracle service to discover the price on an external market, before regulating the supply of "basecoins" through actively increasing supply (issuing new basecoin), and decreasing supply (auctioning of bonds), effectively acting like an autonomous central bank. \\
+
+\noindent In the abstract, the paper indicates that Basecoin is  "a cryptocurrency whose tokens can be robustly pegged to arbitrary assets or baskets of goods while remaining completely decentralized." While the system it might run on a decentralised computing architecture, it is inherently centralised due to the use of an oracle price-finding mechanism. We feel that this is a key weakness in the approach. This weakness is also implicitly recognised by the team in their discussion on how to implement an Oracle system in a decentralised fashion; whilst some discussion exists around various options for creating a pseudo-decentralised oracle, none are selected due to the fact that Oracles by nature are fundamentally centralised information bridges. \\
+
+\noindent Basecoin is intended to operate "as a decentralized, protocol-enforced algorithm, without the need for direct human judgment. For this reason, Basecoin can be understood as implementing an algorithmic central bank." Whilst not without merit, this approach was discarded by Havven due to the high amount of complexity required to be anticipated up-front in order to ensure the stabilisation mechanism is effective. The paper claims that Monte Carlo simulations have been run which indicate stability under a range of scenarios, however details are yet to be released by the team. Havven's model by contrast is far simpler in that the system is designed with open market arbitrage incentives to encourage the peg. In this way, a set of rational participating actors can discover the price of the stablecoin rather than a single set of smart contracts that attempt to develop complex algorithms for processes that are today managed by a combination humans and markets. \\
+
+\noindent Some of the criticisms levelled at alternatives seem to be unneccesarily hypocritical. For example "The only reason BitShares are worth 1 USD is because everyone believes it’ll be worth 1 USD." We would like to see the Basecoin team  reexamine their understanding and/or clarify their description here relating to the fundamental nature of money, as this is the very thing that makes all money work: everyone believes it has value. Further, while a significant devaluation of Bitcoin (relative to say, USD) is a possibility, we feel that comparisons that imply that Bitcoin may experience structural and cyclical devaluation are unhelpful. The USD is inherently inflationary, and so some level of inflation just in order to maintain a peg is not just neccessary, but actuallly desirable. The problem with using an appreciating asset to back a currency is that it acts to damp economic activity in times of economic stress, causing exaccerbations of economic problems. This is precisely why the gold standard was abandoned in favour of fiat last century. \\
+
+\noindent Critically, the removal of Basecoin from the system to ensure the stable peg is predicated on the significant assumption that participants will take positions the ongoing bond auctions in order to remove basecoin from the system and support the peg. This assumption remains untested. \\
+
+\noindent Of note, the whitepaper also does not provide any implementation or performance considerations, including whether the system is intended to run on Ethereum or on a custom blockchain platform. Further, this precipitates the question regarding how the decentralised system is paid for as no mention is made within the whitepaper regarding levying fees or making use of fees to provide peg-supporting incentives. \\
+
+
+
+\paragraph{Key issues}
+
+\paragraph{Current state}
+
+
+\subsection{Tether}
+
+\paragraph{Description of system}
+
+Tethers accepts fiat deposits into the Hong Kong-based Tether Limited bank account and issues "USDT" (USD Tether) over Bitcoin via the Omni Layer protocol. Tethers are an asset-backed digital token, representing a claim on the cash held in reserve.
+
+The stability of the USDT 'coin' effectively relies on the force of external market arbitrage to ensure the peg holds over time.
+
+\paragraph{Key issues}
+
+Despite the whitepaper claiming that the "goal of any successful cryptocurrency is to completely eliminate the requirement for trust," and that each Tether is "fully redeemable/exchangeable any time for the underlying fiat currency," the company's terms of service quite clearly state that "there is no contractual right or other right or legal claim against us to redeem or exchange your Tethers for money."
+
+Tether clearly relies on a manual, centralised proof of existence for the backing asset, and so suffers from the very issue that the Tether whitepaper decries. Indeed the same issue is encountered with tokenised gold, or similarly any other 'real-world' asset where some Oracle bridge is required to interface into a distributed ledger.
+
+\paragraph{Current state}
+
+Recently, Tether announced support for issuing ERC-20 compatible tokens on Ethereum as opposed to releasing "tethers" on the Bitcoin blockchain using the Omni Layer protocol.
+
+At the time of writing, the market capitalisation for USDT was approximately \$440m, and the discrepancy regarding their terms of service remains unresolved.
+
+
+\subsection{MakerDAO}
+
+\paragraph{Description of system}
+
+MakerDao has been around for a relatively long time in the pursuit of a stablecoin.
+
+Complex system.
+
+\paragraph{Key issues}
+
+\paragraph{Current state}
+
+Recently abandoned the Auction price-finding mechanism and are pursuing a 
+
+
+\subsection{Nubits}
+
+\paragraph{Description of system}
+
+\paragraph{Key issues}
+
+\paragraph{Current state}
+
+\pagebreak

@@ -15,6 +15,7 @@ __pycache__
 *.bbl
 *.blg
 block8logo_svg*
+svg-inkscape
 
 # IDE, editor, and OS caches
 # (these should probably be in ./git/info/exclude)
