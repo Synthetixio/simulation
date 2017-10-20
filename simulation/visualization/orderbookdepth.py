@@ -53,8 +53,8 @@ class OrderBookModule(VisualizationElement):
 
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
-                bids = order_book.bid_quants.items()
-                asks = order_book.ask_quants.items()
+                bids = order_book.bid_price_buckets.items()
+                asks = order_book.ask_price_buckets.items()
             except Exception:
                 bids = []
                 asks = []
