@@ -181,8 +181,9 @@ class OrderBook:
         # Asks are ordered lowest-first
         self.asks: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
 
-        self.bid_quants: SortedDict = SortedDict(lambda x: -x)
-        self.ask_quants: SortedDict = SortedDict(lambda x: x)
+        # These dicts store the quantities demanded or supplied at each price.
+        self.bid_price_buckets: SortedDict = SortedDict(lambda x: -x)
+        self.ask_price_buckets: SortedDict = SortedDict(lambda x: x)
 
         self.price: Dec = Dec('1.0')
 
@@ -223,40 +224,40 @@ class OrderBook:
         Add a quantity to the bid bucket for a price,
         adding a new bucket if none exists.
         """
-        if price in self.bid_quants:
-            self.bid_quants[price] += quantity
+        if price in self.bid_price_buckets:
+            self.bid_price_buckets[price] += quantity
         else:
-            self.bid_quants[price] = quantity
+            self.bid_price_buckets[price] = quantity
 
     def _bid_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
         """
         Deduct a quantity from the bid bucket for a price,
         removing the bucket if it is emptied.
         """
-        if self.bid_quants[price] == quantity:
-            self.bid_quants.pop(price)
+        if self.bid_price_buckets[price] == quantity:
+            self.bid_price_buckets.pop(price)
         else:
-            self.bid_quants[price] -= quantity
+            self.bid_price_buckets[price] -= quantity
 
     def _ask_bucket_add_(self, price: Dec, quantity: Dec) -> None:
         """
         Add a quantity to the ask bucket for a price,
         adding a new bucket if none exists.
         """
-        if price in self.ask_quants:
-            self.ask_quants[price] += quantity
+        if price in self.ask_price_buckets:
+            self.ask_price_buckets[price] += quantity
         else:
-            self.ask_quants[price] = quantity
+            self.ask_price_buckets[price] = quantity
 
     def _ask_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
         """
         Deduct a quantity from the ask bucket for a price,
         removing the bucket if it is emptied.
         """
-        if self.ask_quants[price] == quantity:
-            self.ask_quants.pop(price)
+        if self.ask_price_buckets[price] == quantity:
+            self.ask_price_buckets.pop(price)
         else:
-            self.ask_quants[price] -= quantity
+            self.ask_price_buckets[price] -= quantity
 
     def _bid_fee_(self, price: Dec, quantity: Dec) -> Dec:
         """
@@ -333,9 +334,9 @@ class OrderBook:
         # TODO: handle the null case properly, not just use self.price
         cumulative = Dec(0)
         price = self.price
-        for _price in self.ask_quants:
+        for _price in self.ask_price_buckets:
             price = _price
-            cumulative += self.ask_quants[price]
+            cumulative += self.ask_price_buckets[price]
             if cumulative >= quantity:
                 break
         return price
@@ -349,9 +350,9 @@ class OrderBook:
         # TODO: handle the null case properly, not just use self.price
         cumulative = Dec(0)
         price = self.price
-        for _price in self.bid_quants:
+        for _price in self.bid_price_buckets:
             price = _price
-            cumulative += self.bid_quants[price]
+            cumulative += self.bid_price_buckets[price]
             if cumulative >= quantity:
                 break
         return price
@@ -465,7 +466,7 @@ class OrderBook:
             # We may assume the current price is already recorded,
             # so no need to call _bid_bucket_add_ which checks before
             # inserting. Something is wrong if the key is not found.
-            self.bid_quants[new_price] += (new_quantity - bid.quantity)
+            self.bid_price_buckets[new_price] += (new_quantity - bid.quantity)
 
             # As the price is unchanged, order book position need not be
             # updated, just set the quantity and fee.
@@ -578,7 +579,7 @@ class OrderBook:
             # We may assume the current price is already recorded,
             # so no need to call _ask_bucket_add_ which checks before
             # inserting. Something is wrong if the key is not found.
-            self.ask_quants[new_price] += (new_quantity - ask.quantity)
+            self.ask_price_buckets[new_price] += (new_quantity - ask.quantity)
 
             # As the price is unchanged, order book position need not be
             # updated, just set the quantity and fee.
