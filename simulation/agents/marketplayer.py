@@ -32,9 +32,9 @@ class MarketPlayer(Agent):
         self.issued_nomins: Dec = Dec(0)
 
         # values that are currently used in orders
-        self.used_fiat: Dec = Dec(0)
-        self.used_curits: Dec = Dec(0)
-        self.used_nomins: Dec = Dec(0)
+        self.unavailable_fiat: Dec = Dec(0)
+        self.unavailable_curits: Dec = Dec(0)
+        self.unavailable_nomins: Dec = Dec(0)
 
         self.initial_wealth: Dec = self.wealth()
 
@@ -425,21 +425,21 @@ class MarketPlayer(Agent):
         """
         This agent's quantity of fiat not tied up in orders.
         """
-        return self.fiat - self.used_fiat
+        return self.fiat - self.unavailable_fiat
 
     @property
     def available_curits(self) -> Dec:
         """
         This agent's quantity of curits not being tied up in orders.
         """
-        return self.curits - self.used_curits
+        return self.curits - self.unavailable_curits
 
     @property
     def available_nomins(self) -> Dec:
         """
         This agent's quantity of nomins not being tied up in orders.
         """
-        return self.nomins - self.used_nomins
+        return self.nomins - self.unavailable_nomins
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """

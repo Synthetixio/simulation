@@ -411,8 +411,8 @@ class OrderBook:
         if not bid.active:
             return
 
-        # Update the issuer's used quote value.
-        bid.issuer.__dict__[f"used_{self.quote}"] += bid.quantity + bid.fee
+        # Update the issuer's unavailable quote value.
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity + bid.fee
 
         # Add to the issuer and book's records
         bid.issuer.orders.add(bid)
@@ -430,7 +430,7 @@ class OrderBook:
                    fee: Optional[Dec] = None) -> None:
         """
         Update a Bid's details in the book, recomputing fees, cached quantities,
-        and the user's used currency total.
+        and the user's unavailable currency total.
         If fee is not None, then update the fee directly, rather than recomputing it.
         """
         # Do nothing if the order is inactive.
@@ -457,9 +457,9 @@ class OrderBook:
         if fee is None:
             new_fee = self._bid_fee_(new_price, new_quantity)
 
-        # Update the used quantities for this bid,
+        # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
-        bid.issuer.__dict__[f"used_{self.quote}"] += (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
                                                      (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
 
         if bid.price == new_price:
@@ -500,7 +500,7 @@ class OrderBook:
             return
 
         # Free up tokens occupied by this bid.
-        bid.issuer.__dict__[f"used_{self.quote}"] -= bid.quantity + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity + bid.fee
 
         # Remove this order's remaining quantity from its price bucket
         self._bid_bucket_deduct_(bid.price, bid.quantity)
@@ -524,8 +524,8 @@ class OrderBook:
         if not ask.active:
             return
 
-        # Update the issuer's used base value.
-        ask.issuer.__dict__[f"used_{self.base}"] += ask.quantity + ask.fee
+        # Update the issuer's unavailable base value.
+        ask.issuer.__dict__[f"unavailable_{self.base}"] += ask.quantity + ask.fee
 
         # Add to the issuer and book's records.
         ask.issuer.orders.add(ask)
@@ -543,7 +543,7 @@ class OrderBook:
                    fee: Optional[Dec] = None) -> None:
         """
         Update an Ask's details in the book, recomputing fees, cached quantities,
-        and the user's used currency totals.
+        and the user's unavailable currency totals.
         If fee is not None, then update the fee directly, rather than recomputing it.
         """
         # Do nothing if the order is inactive.
@@ -570,9 +570,9 @@ class OrderBook:
         if fee is None:
             new_fee = self._ask_fee_(new_price, new_quantity)
 
-        # Update the used quantities for this ask,
+        # Update the unavailable quantities for this ask,
         # deducting the old and crediting the new.
-        ask.issuer.__dict__[f"used_{self.base}"] += (new_quantity + new_fee) - \
+        ask.issuer.__dict__[f"unavailable_{self.base}"] += (new_quantity + new_fee) - \
                                                     (ask.quantity + ask.fee)
 
         if ask.price == new_price:
@@ -613,7 +613,7 @@ class OrderBook:
             return
 
         # Free up tokens occupied by this bid.
-        ask.issuer.__dict__[f"used_{self.base}"] -= ask.quantity + ask.fee
+        ask.issuer.__dict__[f"unavailable_{self.base}"] -= ask.quantity + ask.fee
 
         # Remove this order's remaining quantity from its price bucket.
         self._ask_bucket_deduct_(ask.price, ask.quantity)
