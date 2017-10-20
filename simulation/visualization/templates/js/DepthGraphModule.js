@@ -53,10 +53,6 @@ var DepthGraphModule = function (graph_id, width, height) {
 		scales: {
 			xAxes: [{
 				display: true,
-				scaleLabel: {
-					display: true,
-					labelString: 'Price'
-				},
 				type: 'linear',
                 position: 'bottom'
 			}],

@@ -175,7 +175,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.last_step = -1
+        self.step = 0
 
     def open(self):
         if self.application.verbose:
@@ -186,15 +186,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        with self.application.model_handler.data_queue.mutex:
-            print([i[0] for i in self.application.model_handler.data_queue.queue])
-        try:
-            data = self.application.model_handler.data_queue.get()
-        except:
-            return {"type": "viz_state", "step": 0}
+        data = self.application.model_handler.data_queue.get(block=True)
+
         return {
             "type": "viz_state",
-            "step": data[0],
+            "step": self.step,
             "data": data[1]
         }
 
@@ -210,16 +206,16 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if not self.application.model_handler.running:
                 self.write_message({"type": "end"})
             else:
-                self.application.model_handler.step()
+                # self.application.model_handler.step()
                 message = self.viz_state_message
-                if message["step"] != self.last_step+1:
-                    print("Skipped:", self.last_step+1)
-                self.last_step = message["step"]
                 self.write_message(message)
+                self.step += 1
 
         elif msg["type"] == "reset":
+            self.step = 1
             self.application.reset_model()
             self.write_message(self.viz_state_message)
+            self.step += 1
 
         elif msg["type"] == "submit_params":
             param = msg["param"]
@@ -255,7 +251,6 @@ class ModelHandler:
         self.running = True
         self.data_queue = queue.Queue()
         self.lock = threading.Lock()
-        self.time = 0
 
     def reset_model(self):
         with self.lock:
@@ -268,13 +263,12 @@ class ModelHandler:
                 else:
                     model_params[key] = val
 
+            self.model = self.model_cls(**model_params)
             # clear the data queue
             with self.data_queue.mutex:
                 self.data_queue.queue.clear()
                 self.data_queue.all_tasks_done.notify_all()
                 self.data_queue.unfinished_tasks = 0
-            self.time = 0
-            self.model = self.model_cls(**model_params)
 
     def render_model(self):
         visualization_state = []
