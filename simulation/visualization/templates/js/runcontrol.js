@@ -263,7 +263,8 @@ var step = function($e) {
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
 var run = function($e) {
-    $e.preventDefault();
+    if ($e !== undefined)
+        $e.preventDefault();
     var anchor = $(playPauseButton.children()[0]);
     if (control.running) {
         control.running = false;

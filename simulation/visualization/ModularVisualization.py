@@ -206,6 +206,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if not self.application.model_handler.running:
                 self.write_message({"type": "end"})
             else:
+                while self.application.model_handler.resetting:
+                    time.sleep(0.05)
                 # self.application.model_handler.step()
                 message = self.viz_state_message
                 self.write_message(message)
@@ -247,12 +249,14 @@ class ModelHandler:
         elif model_cls.__doc__ is not None:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
+        self.resetting = False
 
         self.running = True
         self.data_queue = queue.Queue()
         self.lock = threading.Lock()
 
     def reset_model(self):
+        self.resetting = True
         with self.lock:
             model_params = {}
             for key, val in self.model_kwargs.items():
@@ -269,6 +273,7 @@ class ModelHandler:
                 self.data_queue.queue.clear()
                 self.data_queue.all_tasks_done.notify_all()
                 self.data_queue.unfinished_tasks = 0
+        self.resetting = False
 
     def render_model(self):
         visualization_state = []
@@ -363,8 +368,10 @@ class ModularServer(tornado.web.Application):
 
     @staticmethod
     def run_model(model_handler):
-
         while True:
+            if model_handler.resetting:
+                time.sleep(0.05)
+                continue
             # slow it down if the data isn't being used
             # higher value causes lag when the page is first created
             if model_handler.data_queue.qsize() > 50:
