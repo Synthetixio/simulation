@@ -232,7 +232,8 @@ var send = function(message) {
 
 /** Reset the model, and rest the appropriate local variables. */
 var reset = function($e) {
-    $e.preventDefault();
+    if ($e !== undefined)
+        $e.preventDefault();
     control.tick = 0;
     send({"type": "reset"});
 

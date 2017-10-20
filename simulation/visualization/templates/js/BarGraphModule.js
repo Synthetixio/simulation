@@ -2,70 +2,95 @@
 
 var BarGraphModule = function (graph_id, num_agents, width, height) {
 
-    // Create the elements
-    // Create the tag:
-    let div_tag = "<div id='" + graph_id + "' class='ct-chart'></div>";
-    // Append it to body:
-    let div = $(div_tag)[0];
-    $("body").append(div);
+	// Create the tag:
+	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
+	canvas_tag += "style='border:1px dotted'></canvas>";
+	// Append it to body:
+	var canvas = $(canvas_tag)[0];
+	//$("body").append(canvas);
+	$("#elements").append(canvas);
+	// Create the context and the drawing controller:
+	var context = canvas.getContext("2d");
 
-    // Prep the chart properties and series:
-    let data = {
-        labels: [],
-        series: [[]]
-    };
+	var data = {
+		labels: [],
+		datasets: []
+	};
 
-    let options = {
-        stackBars: true,
-        fullWidth: true,
-        height: height + 'px',
-        chartPadding: {
-            right: 40
+	var options = {
+		responsive: true,
+		maintainAspectRatio: true,
+
+		tooltips: {
+			mode: 'index',
+			intersect: false,
+		},
+		hover: {
+			mode: 'nearest',
+			intersect: true
+		},
+		scales: {
+			xAxes: [{
+				display: false,
+				stacked: true
+			}],
+			yAxes: [{
+				display: true,
+                stacked: true
+			}]
+		},
+		elements: {
+            line: {
+                tension: 0, // disables bezier curves
+            }
         },
-        plugins: [Chartist.plugins.tooltip()],
-        classNames: {
-            series: 'ct-bar-series'
-        }
-    };
+		animation: false
+	};
     // Create the chart object
-    var chart = new Chartist.Bar('#' + graph_id, data, options);
+	var chart = new Chart(context, {type: 'bar', data: data, options: options});
 
     this.render = function (step, new_data) {
         // data should be in the form:
-        // [data_labels, bar_labels, dataset1, ...]
+        // [data_labels, bar_labels, data_colors, dataset1, ...]
 
         this.reset();
 
-        if (new_data.length >= 2) {
+        if (new_data.length >= 3) {
             let data_labels = new_data[0];
-            let bar_labels = new_data[1];
+            let data_colors = new_data[1];
+            let bar_labels = new_data[2];
 
-            for (let i = 2; i < new_data.length; i++) {
-                chart.data.series.push([]);
+            for (let i in bar_labels) {
+                chart.data.labels[i] = bar_labels[i];
+            }
+
+            for (let i = 3; i < new_data.length; i++) {
+                chart.data.datasets.push({
+                    label: data_labels[i-3],
+                    backgroundColor: data_colors[i-3],
+                    borderColor: data_colors[i-3],
+                    fill: true,
+                    pointRadius: 0,
+                    data: []
+                });
             }
 
             // meta is the "label" that shows up when hovering
-            for (let i = 2; i < new_data.length; i++) {
+            for (let i = 3; i < new_data.length; i++) {
                 for (let j = 0; j < new_data[i].length; j++) {
-                    if (data_labels.length > 0) {
-                        chart.data.series[i - 2][j] = {meta: data_labels[i - 2], value: this.round(new_data[i][j])};
-                    } else {
-                        chart.data.series[i - 2][j] = {meta: bar_labels[j], value: this.round(new_data[i][j])};
-                    }
+                    chart.data.datasets[i - 3].data.push(this.round(new_data[i][j]));
                 }
             }
 
-            for (let i in bar_labels) {
-                chart.data.labels[i] = i;
-            }
-
         }
+        console.log(new_data);
+        console.log(chart);
 
         chart.update();
     };
 
     this.reset = function () {
-        chart.data.series = [];
+        chart.data.datasets = [];
         chart.data.labels = [];
     };
 
