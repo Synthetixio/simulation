@@ -14,7 +14,7 @@ class OrderBookModule(VisualizationElement):
     Display a depth graph for order books to show the quantity
       of buy/sell orders for the given market
     """
-    package_includes: List[str] = ["chartist.min.js", "DepthGraphModule.js"]
+    package_includes: List[str] = ["DepthGraphModule.js"]
     local_includes: List[str] = []
 
     def __init__(

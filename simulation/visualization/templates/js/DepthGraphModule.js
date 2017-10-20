@@ -1,51 +1,84 @@
 // DepthGraphModule.js
 
-
 var DepthGraphModule = function (graph_id, width, height) {
-    // Create the elements
-    // Create the tags:
-    let div_tag = `<div class="row" style="padding-left: 30px; margin:0">
-          <p>` + graph_id + `</p>
-          <p style="float:left; padding-right: 5px;">Price range(1%-100%): </p>
-          <input type="range" id="price_range` + graph_id + `" value="0.25" min="0" max="1" step="0.01" style="width: 80%"/>
-          <div id='` + graph_id + `' class='ct-chart'></div>
-          </div>`;
-    // Append it to body:
-    let div = $(div_tag)[0];
-    $("body").append(div);
-    // Prep the chart properties and series:
+	// Create the elements
 
-    let data = {
-        series: [[], []],
-        labels: []
+	// Create the tag:
+    var text_tag = "<p>"+graph_id+"</p>";
+    var div = $("<div height='"+height+"px'></div>");
+
+	// Create the tag:
+	var canvas_tag = "<canvas style='border:1px dotted'></canvas>";
+	// Append it to body:
+	var canvas = $(canvas_tag)[0];
+	div.append(canvas);
+
+    $("#elements").append($(text_tag)[0]);
+	$("#elements").append(div);
+
+	var context = canvas.getContext("2d");
+
+    let data = {
+        datasets: [{
+                label: 'Bids',
+                data: [],
+                backgroundColor: "RGBA(255,0,0,0.2)",
+                borderColor: "red",
+                fill: true,
+                pointRadius: 0,
+            },
+            {
+                label: 'Asks',
+                data: [],
+                backgroundColor: "RGBA(0,255,0,0.2)",
+                borderColor: "RGBA(0,255,0,1)",
+                fill: true,
+                pointRadius: 0,
+            }
+        ]
     };
 
     let options = {
-        axisX: {
-            // hide every 2nd x-axis label to avoid clutter
-            labelInterpolationFnc: function (value, index) {
-                return index % 2 === 0 ? value : null;
-            },
-            type: Chartist.AutoScaleAxis
+        responsive: true,
+		maintainAspectRatio: false,
+
+		tooltips: {
+			mode: 'index',
+			intersect: false,
+		},
+		hover: {
+			mode: 'nearest',
+			intersect: true
+		},
+		scales: {
+			xAxes: [{
+				display: true,
+				scaleLabel: {
+					display: true,
+					labelString: 'Price'
+				},
+				type: 'linear',
+                position: 'bottom'
+			}],
+			yAxes: [{
+				display: true
+			}]
+		},
+		elements: {
+            line: {
+                tension: 0, // disables bezier curves
+            }
         },
-        fullWidth: true,
-        height: height + 'px',
-        chartPadding: {
-            right: 30,
-            left: -10
-        },
-        showArea: true,
-        showPoint: true,
-        plugins: [Chartist.plugins.tooltip()]
+		animation: false
     };
 
-    // Create the chart object
-    let chart = new Chartist.Line('#' + graph_id, data, options);
+	var chart = new Chart(context, {type: 'line', data: data, options: options});
+
 
     this.render = function (step, new_data) {
 
         this.reset();
-        let price_range = parseFloat($("#price_range" + graph_id)[0].value);
+        let price_range = 1.0;
         let bids = new_data[0];
         let asks = new_data[1];
 
@@ -70,24 +103,24 @@ var DepthGraphModule = function (graph_id, width, height) {
             cumulative_quant += bids[i][1];
             // meta is the "label" that shows up on the tooltip
             // for some reason the x axis is the default value, so show the quant
-            chart.data.series[0].unshift(
+            chart.data.datasets[0].data.unshift(
                 {x: this.round(price), y: this.round(cumulative_quant), meta: 'Quant: ' + this.round(cumulative_quant)}
             );
-            chart.data.series[1].unshift(undefined);
-            chart.data.labels.unshift(bids[i][0])
+            chart.data.datasets[1].data.unshift(undefined);
+            // chart.data.labels.unshift(bids[i][0])
         }
         if (added_bid) {
-            chart.data.series[0].unshift(
-                {x:this.round(avg_price * (1 - price_range)), y:chart.data.series[0][0].y,
-                 meta: 'Quant: ' + chart.data.series[0][0].y}
+            chart.data.datasets[0].data.unshift(
+                {x:this.round(avg_price * (1 - price_range)), y:chart.data.datasets[0].data[0].y,
+                 meta: 'Quant: ' + chart.data.datasets[0].data[0].y}
             );
-            chart.data.series[1].unshift(undefined);
+            chart.data.datasets[1].data.unshift(undefined);
         } else {
-            chart.data.series[0].unshift(
+            chart.data.datasets[0].data.unshift(
                 {x:this.round(avg_price * (1 - price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
-            chart.data.series[1].unshift(undefined);
+            chart.data.datasets[1].data.unshift(undefined);
         }
 
         cumulative_quant = 0;
@@ -99,38 +132,52 @@ var DepthGraphModule = function (graph_id, width, height) {
             if (price > avg_price * (1 + price_range)) break;
             added_ask = true;
             cumulative_quant += asks[i][1];
-            chart.data.series[0].push(undefined);
+            chart.data.datasets[0].data.push(undefined);
             // meta is the "label" that shows up on the tooltip
             // for some reason the x axis is the default value, so show the quant
-            chart.data.series[1].push(
+            chart.data.datasets[1].data.push(
                 {x: this.round(price), y: this.round(cumulative_quant), meta: 'Quant: ' + this.round(cumulative_quant)}
             );
-            chart.data.labels.push(price)
+            // chart.data.labels.push(price)
         }
 
         if (added_ask) {
-            chart.data.series[1].push(
-                {x:this.round(avg_price * (1 + price_range)), y:chart.data.series[1][chart.data.series[1].length-1].y,
-                 meta: 'Quant: ' + chart.data.series[1][chart.data.series[1].length-1].y}
+            chart.data.datasets[1].data.push(
+                {x:this.round(avg_price * (1 + price_range)),
+                    y:chart.data.datasets[1].data[chart.data.datasets[1].data.length-1].y,
+                 meta: 'Quant: ' + chart.data.datasets[1].data[chart.data.datasets[1].data.length-1].y}
             );
-            chart.data.series[0].push(undefined);
+            chart.data.datasets[0].data.push(undefined);
         } else {
-            chart.data.series[1].push(
+            chart.data.datasets[1].data.push(
                 {x:this.round(avg_price * (1 + price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
-            chart.data.series[0].push(undefined);
+            chart.data.datasets[0].data.push(undefined);
         }
 
         chart.update();
     };
 
     this.reset = function () {
-        for (let i in chart.data.series[0]) {
-            chart.data.series[0] = [];
-            chart.data.series[1] = [];
-            chart.data.labels = [];
-        }
+        chart.data = {datasets: [{
+                label: 'Bids',
+                data: [],
+                backgroundColor: "RGBA(255,0,0,0.2)",
+                borderColor: "red",
+                fill: true,
+                pointRadius: 0,
+            },
+            {
+                label: 'Asks',
+                data: [],
+                backgroundColor: "RGBA(0,255,0,0.2)",
+                borderColor: "RGBA(0,255,0,1)",
+                fill: true,
+                pointRadius: 0,
+            }
+        ]};
+        chart.data.labels = [];
     };
 
     this.round = function (value) {

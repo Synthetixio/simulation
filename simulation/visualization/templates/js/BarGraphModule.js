@@ -1,14 +1,17 @@
 // BarGraphModule.js
 
-var BarGraphModule = function (graph_id, num_agents, width, height) {
+var BarGraphModule = function (graph_id, width, height) {
+
+    var div = $("<div height='"+height+"px'></div>");
 
 	// Create the tag:
 	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
 	canvas_tag += "style='border:1px dotted'></canvas>";
 	// Append it to body:
 	var canvas = $(canvas_tag)[0];
+	div.append(canvas);
 	//$("body").append(canvas);
-	$("#elements").append(canvas);
+	$("#elements").append(div);
 	// Create the context and the drawing controller:
 	var context = canvas.getContext("2d");
 
@@ -19,7 +22,7 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
 
 	var options = {
 		responsive: true,
-		maintainAspectRatio: true,
+		maintainAspectRatio: false,
 
 		tooltips: {
 			mode: 'index',
@@ -83,8 +86,6 @@ var BarGraphModule = function (graph_id, num_agents, width, height) {
             }
 
         }
-        console.log(new_data);
-        console.log(chart);
 
         chart.update();
     };

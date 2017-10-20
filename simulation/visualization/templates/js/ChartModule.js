@@ -1,15 +1,16 @@
-var ChartModule = function(series, canvas_width, canvas_height) {
+var ChartModule = function(series, width, height) {
 	// Create the elements
-	
+    var div = $("<div height='"+height+"px'></div>");
+
 	// Create the tag:
-	var canvas_tag = "<canvas width='" + canvas_width + "' height='" + canvas_height + "' ";
+	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
 	canvas_tag += "style='border:1px dotted'></canvas>";
 	// Append it to body:
 	var canvas = $(canvas_tag)[0];
+	div.append(canvas);
 	//$("body").append(canvas);
-	$("#elements").append(canvas);
+	$("#elements").append(div);
 	// Create the context and the drawing controller:
-	canvas.height = 200;
 	var context = canvas.getContext("2d");
 
 	// Prep the chart properties and series:
@@ -34,11 +35,12 @@ var ChartModule = function(series, canvas_width, canvas_height) {
 
 	var options = {
 		responsive: true,
-		maintainAspectRatio: true,
+		maintainAspectRatio: false,
 
 		tooltips: {
 			mode: 'index',
 			intersect: false,
+			position: "nearest"
 		},
 		hover: {
 			mode: 'nearest',

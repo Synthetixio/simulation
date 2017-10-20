@@ -40,7 +40,7 @@ var fpsControl = $('#fps').slider({
 });
 
 // Sidebar dom access
-var sidebar = $("#sidebar");
+var sidebar = $("#settings_body");
 
 // WebSocket Stuff
 var ws = new WebSocket("ws://127.0.0.1:" + port + "/ws"); // Open the websocket connection

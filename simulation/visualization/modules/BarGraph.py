@@ -12,10 +12,10 @@ class BarGraphModule(VisualizationElement):
     """
     Displays a simple bar graph of the selected attributes of the agents
     """
-    package_includes: List[str] = ["chartist.min.js", "BarGraphModule.js"]
+    package_includes: List[str] = ["BarGraphModule.js"]
     local_includes: List[str] = []
 
-    def __init__(self, series: List[Dict[str, str]], height: int = 200,
+    def __init__(self, series: List[Dict[str, str]], height: int = 300,
                  width: int = 500, data_collector_name: str = "datacollector") -> None:
         self.series = series
         self.height = height
@@ -25,7 +25,7 @@ class BarGraphModule(VisualizationElement):
 
         # the code to be rendered on the page, last bool is whether it will be a stack graph
         self.js_code: str = f"""elements.push(new BarGraphModule(
-            \"{series[0]['Label']}\",0,{width},{height},false));"""
+            \"{series[0]['Label']}\",{width},{height}));"""
 
     def render(self, model: Havven) -> List[Tuple[str, float]]:
         """

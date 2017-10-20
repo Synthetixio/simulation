@@ -58,6 +58,8 @@ class PortfolioModule(BarGraphModule):
         )
 
         # short list for names of types, list of actor names, and lists for the wealth breakdowns
+        # TODO: Passing in a bit of extra info (the names of the currencies and the colours every time
+        # todo:   this should be fixed to only render the datasets once
         vals: PortfolioTuple = (["Fiat", "Escrowed Curits", "Curits", "Nomins", "Issued Nomins"],
                                 ["darkgreen", "darkred", "red", "deepskyblue", "blue"],
                                 [], [], [], [], [], [])
@@ -72,6 +74,7 @@ class PortfolioModule(BarGraphModule):
                 vals[2].append(item[1].name)
                 breakdown = item[1].portfolio(self.fiat_values)
                 for i in range(len(breakdown)):
+                    # assume that issued nomins are last
                     if i+1 == len(breakdown):
                         vals[i + 3].append(-float(breakdown[i]))
                     else:
