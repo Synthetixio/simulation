@@ -286,9 +286,94 @@ This quantity is proportional with the actual utilisation ratio \(U\). The more 
 
 \pagebreak
 \subsection{Failure modes}
+
+We must try to identify ways Havven can produce undesirable results ahead of time
+so that they can be simulated and, if they turn out to be real issues, patched.
+In what follows we try to identify ways the system can fail, and explain why
+they are, or are not, likely or reasonable.
+
+\subsubsection{Hyper-inflation}
+
+Although it's true that the system limits the total value of nomins relative to the
+total value of curits, if the price of each individual nomin falls, then more of them may
+be printed. If they are, then supply increases, further decreasing the price.
+Is this a vector for hyperinflation? Is it rational for individual agents to engage
+in behaviour which would encourage this?
+We would like to avoid a Weimar-style devaluation of the currency, so we hope that is not
+the case. \\
+
+Consider an agent which wants only to issue as many nomins as possible, in order to accrue fees on them.
+The most obvious way of doing this is to buy some curits, and then perform the following steps repeatedly:
+
+\begin{enumerate}
+    \item escrow all available curits;
+    \item issue as many nomins as possible against escrowed curits;
+    \item sell the nomins to buy more curits;
+    \item goto 1.
+\end{enumerate}
+
+\noindent What quantity of escrowed curits can be accumulated in this fashion?
+Let's say an agent starts with \(\$c\) worth of curits, and the max utilisation ratio is \(U_{max}\).
+Further assume that this agent is acting in isolation, with access to infinitely deep currency markets,
+and so can't change market prices by its actions.
+Then, on the first iteration, the agent obtains \(U_{max} \cdot \$c\) additional value of curits, against which
+a further \(U_{max}^2 \cdot \$c\) worth of nomins can be issued on the second iteration,
+and so on. In a frictionless market, this cycle is also perfectly reversible. \\
+
+This geometric sum implies that after iterating as long as possible, the agent's wallet
+contains approximately \(\sum_{k=0}^{\infty} {U_{max}^k \cdot \$c}\ = \frac{\$c}{1  - U_{max}}\)
+worth of escrowed curits and \(\frac{\$c \cdot U_{max}}{1  - U_{max}}\) issued nomins.\\
+So, for example, if \(U_{max} = 0.2\), then the agent can cycle until their
+wallet contains \(\$1.25c\) worth of escrowed curits and \(\$0.25c\) worth of issued nomins.
+That is, they have been able to issue \(25\%\) more nomins than they naively should
+have been able to, and so will also collect \(25\%\) more fees.
+Note the agent assumes no extra risk if the market is sufficienly liquid,
+as they can still recover their original \(\$c\) of curits by unrolling the cycle. \\
+
+These effects become more pronounced as \(U_{max}\) grows; at \(U_{max} = 0.5\),
+an agent can issue twice as the face value of its initial curit supply.
+If \(U_{max} = 1\), then the sum diverges, and agents can issue an infinite
+quantity of nomins. Given transaction fees, this is never actually the case,
+but it is still extreme enough if a multiplier of tens or hundreds is in play. \\
+
+Of course, the reader may easily object that these situations are impossible both
+because the market is frictionless, and because as more agents try to exploit
+these cycles, curits will become progressively more expensive, and nomins
+progressively cheaper, so the cycles will become less advantageous.
+Well, this implies that agents with escrowed curits will now immediately be
+able to issue more nomins and continue the cycle. \\
+The question now to answer is: is this a runaway feedback loop? If it is,
+then Havven might be vulnerable to hyperinflationary events.
+It's a little difficult to characterise the situation from here, since it depends upon the
+elasticities in the market, which we do not know, but we will hand wave a little to try to
+get some feeling for how it \textit{might} behave. \\
+
+Let's assume the pool of agents following our strategy initially holds a fraction
+\(\theta\) of the total supply of curits, value \(\$C\). We will fudge a bit, and also assume linear
+demand, supply, elasticity curves. 
+Then, by selling \(\$ U_{max} \theta C\) worth of nomins and buying the same value of
+curits, the price of nomins will drop by a factor of around \(\theta\), 
+while the price of curits will increase by about \(U_{max} \theta\).
+Hence, our pool's issuance rights will increase to \(\frac{1 + U{max} \theta}{1 - \theta}\)
+of its previous value.\\
+
+\textsc{TODO:} Characterise the result of these assumptions w.r.t the value of
+held curits, issued nomins, and work out a formula for, given these price
+updates, how many curits, nomins and their value after \(n\) iterations of
+traversing the cycle \\
+
+In effect, they can issue \(\frac{\$ (1 + U{max} \theta) U_{max} \theta C}{1 - \theta}\)
+after the first iteration.
+
+
+
+
+
+
 \subsubsection{Liquidity Trap}
 \subsubsection{Trapped Currency}
 
+\pagebreak
 \subsection{Assumptions}
 
 \begin{enumerate}
