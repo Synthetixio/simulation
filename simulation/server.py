@@ -19,24 +19,26 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
       (the graphs with only one label wont show the label value, and also show multiple
       values at the same time)
     """
+    ref_colour = "lightgrey"
+
     charts: List[VisualizationElement] = [
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Nomin Price", "Color": "deepskyblue"},
             {"Label": "Nomin Ask", "Color": "deepskyblue"},
-            {"Label": "Nomin Bid", "Color": "deepskyblue"}]),
+            {"Label": "Nomin Bid", "Color": "deepskyblue"},
+            {"Label": "1", "Color": ref_colour}]),
 
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Curit Price", "Color": "red"},
             {"Label": "Curit Ask", "Color": "red"},
-            {"Label": "Curit Bid", "Color": "red"}]),
+            {"Label": "Curit Bid", "Color": "red"},
+            {"Label": "1", "Color": ref_colour}]),
 
         ChartModule([
-            {"Label": "1", "Color": "grey"},
             {"Label": "Curit/Nomin Price", "Color": "darkorchid"},
             {"Label": "Curit/Nomin Ask", "Color": "darkorchid"},
-            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"}]),
+            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"},
+            {"Label": "1", "Color": ref_colour}]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "deepskyblue"},
@@ -44,21 +46,21 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Havven Fiat", "Color": "darkgreen"}]),
 
         ChartModule([
-            {"Label": "0", "Color": "grey"},
-            {"Label": "Gini", "Color": "navy"}]),
+            {"Label": "Gini", "Color": "navy"},
+            {"Label": "0", "Color": ref_colour}]),
 
         ChartModule([
             {"Label": "Max Wealth", "Color": "purple"},
             {"Label": "Min Wealth", "Color": "orange"}]),
 
         ChartModule([
-            {"Label": "0", "Color": "grey"},
             {"Label": "Avg Profit %", "Color": "grey"},
             {"Label": "Bank Profit %", "Color": "blue"},
             {"Label": "Arb Profit %", "Color": "red"},
             {"Label": "Rand Profit %", "Color": "green"},
             {"Label": "NomShort Profit %", "Color": "orchid"},
-            {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"}]),
+            {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
+            {"Label": "0", "Color": ref_colour}]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
@@ -77,12 +79,12 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Fiat Supply", "Color": "lightgreen"}]),
 
         ChartModule([
-            {"Label": "0", "Color": "grey"},
-            {"Label": "Fee Pool", "Color": "blue"}]),
+            {"Label": "Fee Pool", "Color": "blue"},
+            {"Label": "0", "Color": ref_colour}]),
 
         ChartModule([
-            {"Label": "0", "Color": "grey"},
-            {"Label": "Fees Distributed", "Color": "blue"}]),
+            {"Label": "Fees Distributed", "Color": "blue"},
+            {"Label": "0", "Color": ref_colour}]),
 
         PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
 
