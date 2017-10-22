@@ -5,17 +5,17 @@ Havven works by providing a set of market incentives that support the mapping of
 \subsection{Stability design considerations}
 
 Fundamentally, we wish to configure the system such that it incentivises the desired properties of a stablecoin. These are:
-\begin{itemize}
-    \item 1. Value stablisiation
-    \item 2. Value transfer
-\end{itemize}
+\begin{enumerate}
+    \item Value stabilisation
+    \item Value transfer
+\end{enumerate}
 
 This paper focuses on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free.
 
+Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, ``How can we \textbf{control the value} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?''
+This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: ``market forces'' and ``control forces''. \\
 
-Let us consider the various ways in which one can maintain a stable value relative to a fiat currency? The question we wish to answer is, "How can we \textbf{control the value} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?" This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: "market forces" and "control forces". \\
-
-\noindent \textbf{Market} forces represent supply and demand. These are necessarily different for both currencies, otherwise the value of both currencies would move in unison. \\
+\noindent \textbf{Market} forces represent supply and demand. These are necessarily different for each currency, otherwise they would move strictly in unison. \\
 
 \noindent \textbf{Control} forces then are the controls one is able to apply over a currency to affect its value, such as an inflation rate or a buy-back scheme. \\
 
@@ -24,15 +24,15 @@ Let us consider the various ways in which one can maintain a stable value relati
 \noindent So what are the mechanisms we can apply to control the value of a currency? We consider:
 
 \begin{itemize}
-	\item Issuing new currency to increase supply (inflation)
-	\item Buying back existing currency to decrease supply (deflation)
-	\item Unilateral balance control (changing account balances to maintain a stable buying power)
-	\item \textit{Others?}
+    \item Issuing new currency to increase supply (inflation)
+    \item Buying back existing currency to decrease supply (deflation)
+    \item Unilateral balance control (changing account balances to maintain a stable buying power)
+    \item \textit{Others?}
 \end{itemize}
 
 \noindent Unilateral balance control, such as that as described in Amentrano's paper on Hayek Money, is discounted on the basis that individual's balances being directly modified would be unpalatable to the general population. \\
 
-This leaves us with simply the forces relating to modifying supply...
+This leaves us with simply the forces relating to modifying supply\ldots
 
 We review the key incentive drivers in the design of an economically stable cryptocurrency. \\
 
@@ -51,7 +51,6 @@ We review the key incentive drivers in the design of an economically stable cryp
     \item Should fees only be given to those who have actually issued Nomins?
     \item Are transfer fees charged in only Nomins? Would actors not then just try to convert to Curits and exchange there?
     \item How do we select a utilisation ratio? What is its curve?
-    \item \textit{@anton What is this one?} Utilisation ratio needs to have distinct parts. Number of escrowed Curits is not quite the same as the number of issued nomins.
     \item Should we allow the system to maintain a pool of Curits/Nomins that it itself can buy/sell?
     \item What if the system didn't burn the Nomins that were handed back when Curits were redeemed?
     \item Should Nomins, or Curits, be serialised?
@@ -60,14 +59,15 @@ We review the key incentive drivers in the design of an economically stable cryp
 
 \subsection{Description of mechanism}
 
-Curit holders have an ongoing option to commit to an escrow of their collateral token in return for an amount of Nomins valued at some fraction of the value of the Curits, denominated in USD. We call this fraction the Utilisation Ratio, (or later more formally, the Issuance Ratio), $ U $. \\
+Curit holders have an ongoing option to commit to an escrow of their collateral token in return for an amount of Nomins valued at some fraction of the value of the Curits, denominated in USD.
+We call this fraction the Utilisation Ratio, (or later more formally, the Issuance Ratio), \(U\). \\
 
 \noindent The Curit holder can then sell their Nomins for ETH for any price (or we can force a sale at the correct ETH price), and retain the ETH.
 
 
 \subsection{Alternative approaches}
 
-\noindent An autonomous system which mimics the actions of a central-bank, wherein reserves of cryptocurrency are held for the purposes of currency buy-back was also considered. This approach involves a complex system of managing bonds and Nomin issuance as coupons to bond-holders (similar to Basecoin), whilst also acting as a buyer of last resort for all Nomins sold under the peg beyond some threshold. This approach was discounted due to the need to anticipate complex market counter-algorithms to support the peg. \\
+\noindent An autonomous system which mimics the actions of a central bank, wherein reserves of cryptocurrency are held for the purposes of currency buy-back was also considered. This approach involves a complex system of managing bonds and Nomin issuance as coupons to bond-holders (similar to Basecoin), whilst also acting as a buyer of last resort for all Nomins sold under the peg beyond some threshold. This approach was discounted due to the need to anticipate complex market counter-algorithms to support the peg. \\
 
 \noindent The Havven mechanism is a novel and simpler approach which uses only open market incentives for economically rational participants to bring stability to the exchange token. \\
 
@@ -75,7 +75,7 @@ Curit holders have an ongoing option to commit to an escrow of their collateral 
 
 \subsection{Price discovery}
 
-One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted "Oracle" service in order to gain knowledge of the external world and build a causal link. \cite{brooks2017blog}.\\
+One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted ``Oracle'' service in order to gain knowledge of the external world and build a causal link. \cite{brooks2017blog}.\\
 
 \noindent Havven achieves this causal bridge to USD through market arbitrage; on the Havven decentralised exchange (hosted on Ethereum), both Curits and Nomins are denominated in ETH. Ether, in turn, is assumed to have some instantaneous value in USD on one or more external markets. In this way, we can avoid a trusted bridge and instead reduce our price-finding requirement to the minimum viable assumption that there will always be some external market for ETH in USD (or some other chosen denomination) and that market actors will seek profit through arbitrage. \\
 
@@ -97,7 +97,7 @@ Central to the design of the Havven money system is how the currency is backed b
 
 \noindent Finally, in backing by a real-world (external) asset, such as gold or a state currency, we encounter centralisation risks once again, including an inability to prove the existence of the backing asset (fraud risk). \\
 
-\noindent Fundamentally, whenever you want to denominate a stablecoin in something from the real world (such as USD), then you will always need a bridge between the 'real-world' and the walled garden of the blockchain. \\
+\noindent Fundamentally, whenever you want to denominate a stablecoin in something from the real world (such as USD), then you will always need a bridge between the real world and the walled garden of the blockchain. \\
 
 \noindent To this end, our design incorporates a special exchange (bridge) between fiat and Ether. This exchange is run as a not-for-profit by the Havven benevolent dictatorship. The price of Ether is then taken from this exchange and injected into the DEX (again, assuming scalability issues aside). The DEX then has an authoritive Ether/USD value  \\
 
@@ -107,7 +107,7 @@ Central to the design of the Havven money system is how the currency is backed b
 
 \paragraph{Raised funds}
 
-What happens with accumulated ICO funds beyond what is required to build and market the platform? Currently these do not "back" the platform; if the value of the fund moves, the value of Curits is insulated from this. Assuming that the value of funds raised far exceeds the funds required to build. \\
+What happens with accumulated ICO funds beyond what is required to build and market the platform? Currently these do not ``back'' the platform; if the value of the fund moves, the value of Curits is insulated from this. Assuming that the value of funds raised far exceeds the funds required to build. \\
 
 \noindent \textit{SGB: Perhaps these raised funds can be used to help stabilise the system in the same way that Basecoin does it. I.e. issue a small buyer of last resort function that perhaps takes a very small fee clip that adds to the collateral in reserve so that the system becomes more stable over time given the increasing reserves.}
 
@@ -116,13 +116,13 @@ What happens with accumulated ICO funds beyond what is required to build and mar
 \begin{itemize}
 	\item Functionality of Curits and Nomins
 	\item Initial Pricing of the value of the system:
-		\subitem  1. market-found (likely to be undervalued and grow into your value)
-		\subitem     2. pre-determined (\$5b)
-		\subitem     3. Hybrid (capped ICO of a portion of the Curits at a value Haven specifies)
+		\subitem{1. market-priced (likely to be undervalued and grow into your value)}
+		\subitem{2. pre-determined (\$5b)}
+		\subitem{3. Hybrid (capped ICO of a portion of the Curits at a value Haven specifies)}
 	\item 3. Ongoing pricing:
-		\subitem     1. Dex - current proposal.
-		\subitem     2. Rolling auction is still on the table.
-		\subitem     3. Oracle
+		\subitem{1. Dex -- current proposal.}
+		\subitem{2. Rolling auction is still on the table.}
+		\subitem{3. Oracle}
 \end{itemize}
 
 This section will provide an informal treatment of the proposed market's structure and dynamics, while section 2 will scaffold out its structure with a little more formality, including the definitions of all the important system variables. If you see an unfamiliar symbol in section 1, look up its definition in section 2.
@@ -207,7 +207,13 @@ The system may only ever be able to provide some level of stability within a set
 \subsubsection{Non-discretionary Issuance}
 
 One possibility is to simply provide an issuer no control over the tokens they issue. That is, when a quantity Nomins is issued, they are generated by the system, which then places a sell order at the current going rate for that quantity on an exchange on the behalf of the issuer. When the order is filled, the proceeds (in Curits, fiat, crypto, otherwise?) are remitted to the issuer.
-Conversely, when a quantity of Nomins is burned, they must first be obtained from the open market. So a user would indicate an intention to burn, providing sufficient value to buy the proposed quantity of Nomins, and the system would bid for that quantity on their behalf, only liquidating the user's Curit position once they have been obtained.
+Conversely, when a quantity of Nomins is burned, they must first be obtained from the open market. So a user would indicate an intention to burn, providing sufficient value to buy the proposed quantity of Nomins, and the system would bid for that quantity on their behalf, only liquidating the user's Curit position once they have been obtained. \\
+
+So one might consider there a formal distinction between wallets that issue tokens and those that do not. In this vein,
+one might envisage an extra fee to be charged to directly transfer nomins (rather than buying from the market) into a 
+wallet that has an outstanding quantity of nomins it has previously issued, but not burnt. This means that it would be
+less reasonable for an agent to sit on nomins in order to burn them in future, as it is more advantageous in times of
+relative stability to simply buy them from the market.
 
 \subsubsection{Motility}
 
@@ -297,7 +303,7 @@ so that they can be simulated and, if they turn out to be real issues, patched.
 In what follows we try to identify ways the system can fail, and explain why
 they are, or are not, likely or reasonable.
 
-\subsubsection{Nomin hyper-inflation}
+\subsubsection{Nomin inflation cycle}
 
 Although it's true that the system limits the total value of nomins relative to the
 total value of curits, if the price of each individual nomin falls, then more of them may
@@ -367,7 +373,7 @@ while the price of curits will increase by about \(U_{max} \theta\).
 Hence, our pool's issuance rights will increase to \(\frac{1 + U{max} \theta}{1 - \theta}\)
 of its previous value.\\
 
-\textsc{TODO:} Characterise the result of these assumptions w.r.t the value of
+\textsc{TODO:} Characterise the result of these assumptions w.r.t. the value of
 held curits, issued nomins, and work out a formula for, given these price
 updates, how many curits, nomins and their value after \(n\) iterations of
 traversing the cycle. Maybe ask the economists about this. I'm already out of
@@ -387,7 +393,7 @@ after the first iteration.
 	\item Stability of existing cryptocurrencies will improve over time (declining utility of the stablecoin?).
 	\item Unit of account will continue to be fiat for most use cases for the foreseeable future.
 	\item The value of the platform is equal to the value of money raised in the ICO at that time.
-   - the cost of developing the platform will be less than or equal to the amount raised.
+    \item the cost of developing the platform will be less than or equal to the amount raised.
 	\item Price discovery - internal exchange, mirrors external exchanges (prices Curits in nomins, based on the value of nomins in USD).
 	\item DEX follows external exchanges (arbitrage).
 \end{enumerate}
