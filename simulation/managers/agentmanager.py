@@ -21,7 +21,7 @@ class AgentManager:
         self.havven = havven
 
         # Lists of each type of agent.
-        self.banks: List[ag.Banker] = []
+        self.bankers: List[ag.Banker] = []
         self.randomizers: List[ag.Randomizer] = []
         self.arbitrageurs: List[ag.Arbitrageur] = []
         self.nomin_shorters: List[ag.NominShorter] = []
@@ -52,7 +52,7 @@ class AgentManager:
             endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100))*init_value)
             banker = ag.Banker(i, self.havven, fiat=endowment)
             self.havven.schedule.add(banker)
-            self.banks.append(banker)
+            self.bankers.append(banker)
             i += 1
         for _ in range(num_randomizers):
             randomizer = ag.Randomizer(i, self.havven, fiat=init_value)

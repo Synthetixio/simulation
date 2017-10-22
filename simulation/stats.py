@@ -5,7 +5,6 @@ from statistics import mean, stdev
 from mesa.datacollection import DataCollector
 
 import model
-import agents
 
 
 def mean_profit_fraction(havven: "model.Havven") -> float:
@@ -15,25 +14,37 @@ def mean_profit_fraction(havven: "model.Havven") -> float:
 
 def mean_banker_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Bankers in the market."""
-    return mean(float(a.profit_fraction()) for a in havven.schedule.agents
-                if isinstance(a, agents.Banker))
+    if len(havven.agent_manager.bankers) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.bankers)
 
 
 def mean_arb_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Arbitrageurs in the market."""
-    return mean(float(a.profit_fraction()) for a in havven.schedule.agents
-                if isinstance(a, agents.Arbitrageur))
+    if len(havven.agent_manager.arbitrageurs) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.arbitrageurs)
 
 
 def mean_rand_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Randomizers in the market."""
-    return mean(float(a.profit_fraction()) for a in havven.schedule.agents
-                if isinstance(a, agents.Randomizer))
+    if len(havven.agent_manager.randomizers) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.randomizers)
+
 
 def mean_nomshort_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by NominShorters in the market."""
-    return mean(float(a.profit_fraction()) for a in havven.schedule.agents
-                if isinstance(a, agents.NominShorter))
+    if len(havven.agent_manager.nomin_shorters) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.nomin_shorters)
+
+
+def mean_escrownomshort_profit_fraction(havven: "model.Havven") -> float:
+    if len(havven.agent_manager.escrow_nomin_shorters) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.escrow_nomin_shorters)
+
 
 def wealth_sd(havven: "model.Havven") -> float:
     """Return the standard deviation of wealth in the market."""
@@ -128,6 +139,7 @@ def create_datacollector() -> DataCollector:
                     "Arb Profit %": lambda h: round(100 * mean_arb_profit_fraction(h), 3),
                     "Rand Profit %": lambda h: round(100 * mean_rand_profit_fraction(h), 3),
                     "NomShort Profit %": lambda h: round(100 * mean_nomshort_profit_fraction(h), 3),
+                    "EscrowNomShort Profit %": lambda h: round(100 * mean_escrownomshort_profit_fraction(h), 3),
                     "Curit Demand": curit_demand,
                     "Curit Supply": curit_supply,
                     "Nomin Demand": nomin_demand,
