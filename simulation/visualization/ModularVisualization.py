@@ -187,9 +187,19 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        with self.resetlock:
-            # block=True makes the program wait for data to be added
-            data = self.application.model_handler.data_queue.get(block=True)
+        if self.application.threaded:
+            with self.resetlock:
+                # block=True makes the program wait for data to be added
+                data = self.application.model_handler.data_queue.get(block=True)
+                return {
+                    "type": "viz_state",
+                    "step": self.step,
+                    "data": data[1]
+                }
+        else:
+            self.application.model_handler.step()
+            data = self.application.model_handler.render_model()
+            print(data)
             return {
                 "type": "viz_state",
                 "step": self.step,
@@ -208,8 +218,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if not self.application.model_handler.running:
                 self.write_message({"type": "end"})
             else:
-                while self.application.model_handler.resetting:
-                    time.sleep(0.05)
+                if self.application.threaded:
+                    while self.application.model_handler.resetting:
+                        time.sleep(0.05)
                 # self.application.model_handler.step()
                 message = self.viz_state_message
                 self.write_message(message)
@@ -247,7 +258,8 @@ class ModelHandler:
     """
     Handle the Model data collection and resetting
     """
-    def __init__(self, name, model_cls, model_params, visualization_elements):
+    def __init__(self, threaded, name, model_cls, model_params, visualization_elements):
+        self.threaded = threaded
         self.model_name = name
         self.model_cls = model_cls
         self.description = 'No description available'
@@ -264,10 +276,13 @@ class ModelHandler:
         self.lock = threading.Lock()
 
     def reset_model(self):
-        self.resetting = True
-        with self.lock:
+        if self.threaded:
+            self.resetting = True
+            with self.lock:
+                self.create_model()
+            self.resetting = False
+        else:
             self.create_model()
-        self.resetting = False
 
     def create_model(self):
         """Create a new model, with changed parameters"""
@@ -293,7 +308,10 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        self.data_queue.put((self.model.time-1, visualization_state))
+        if self.threaded:
+            self.data_queue.put((self.model.time-1, visualization_state))
+        else:
+            return self.model.time-1, visualization_state
 
     def step(self):
         self.model.step()
@@ -324,10 +342,11 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, model_cls, visualization_elements, name="Mesa Model",
+    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model",
                  model_params={}):
         """ Create a new visualization server with the given elements. """
         # Prep visualization elements:
+        self.threaded = threaded
         self.visualization_elements = visualization_elements
         self.package_includes = set()
         self.local_includes = set()
@@ -340,10 +359,10 @@ class ModularServer(tornado.web.Application):
             self.js_code.append(element.js_code)
 
         # Initializing the model
-        self.model_handler = ModelHandler(name, model_cls, model_params, visualization_elements)
+        self.model_handler = ModelHandler(threaded, name, model_cls, model_params, visualization_elements)
         self.model_handler.create_model()
-
-        threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
+        if self.threaded:
+            threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
 
         # Initializing the application itself:
         super().__init__(self.handlers, **self.settings)

@@ -10,7 +10,7 @@ import model
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
-                cont_orders: bool = True) -> ModularServer:
+                cont_orders: bool = True, threaded=True) -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.
 
@@ -121,7 +121,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'checkbox', "Continuous order matching", cont_orders
     )
 
-    server = ModularServer(model.Havven, charts, "Havven Model",
+    server = ModularServer(threaded, model.Havven, charts, "Havven Model",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
                             "match_on_order": match_checkbox})
     return server
