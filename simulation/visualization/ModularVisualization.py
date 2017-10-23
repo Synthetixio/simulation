@@ -218,7 +218,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         elif msg["type"] == "reset":
             # on_message is async, so lock here as well when resetting
             with self.resetlock:
-                # calculate the step here, so it doesn't skip TODO check why it skips
+                # calculate the step here, so it doesn't skip TODO: check why it skips
                 self.step = 1
                 self.application.reset_model()
             self.write_message(self.viz_state_message)
@@ -244,6 +244,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
 
 class ModelHandler:
+    """
+    Handle the Model data collection and resetting
+    """
     def __init__(self, name, model_cls, model_params, visualization_elements):
         self.model_name = name
         self.model_cls = model_cls
@@ -267,6 +270,7 @@ class ModelHandler:
         self.resetting = False
 
     def create_model(self):
+        """Create a new model, with changed parameters"""
         model_params = {}
         for key, val in self.model_kwargs.items():
             if isinstance(val, UserSettableParameter):
@@ -284,6 +288,7 @@ class ModelHandler:
             self.data_queue.unfinished_tasks = 0
 
     def render_model(self):
+        """collect the data from the model and put it in the queue to be sent for rendering"""
         visualization_state = []
         for element in self.visualization_elements:
             element_state = element.render(self.model)
