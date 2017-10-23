@@ -187,7 +187,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     @property
     def viz_state_message(self):
         data = self.application.model_handler.data_queue.get(block=True)
-
         return {
             "type": "viz_state",
             "step": self.step,
@@ -258,22 +257,25 @@ class ModelHandler:
     def reset_model(self):
         self.resetting = True
         with self.lock:
-            model_params = {}
-            for key, val in self.model_kwargs.items():
-                if isinstance(val, UserSettableParameter):
-                    if val.param_type == 'static_text':  # static_text is never used for setting params
-                        continue
-                    model_params[key] = val.value
-                else:
-                    model_params[key] = val
-
-            self.model = self.model_cls(**model_params)
-            # clear the data queue
-            with self.data_queue.mutex:
-                self.data_queue.queue.clear()
-                self.data_queue.all_tasks_done.notify_all()
-                self.data_queue.unfinished_tasks = 0
+            self.create_model()
         self.resetting = False
+
+    def create_model(self):
+        model_params = {}
+        for key, val in self.model_kwargs.items():
+            if isinstance(val, UserSettableParameter):
+                if val.param_type == 'static_text':  # static_text is never used for setting params
+                    continue
+                model_params[key] = val.value
+            else:
+                model_params[key] = val
+
+        self.model = self.model_cls(**model_params)
+        # clear the data queue
+        with self.data_queue.mutex:
+            self.data_queue.queue.clear()
+            self.data_queue.all_tasks_done.notify_all()
+            self.data_queue.unfinished_tasks = 0
 
     def render_model(self):
         visualization_state = []
@@ -328,7 +330,7 @@ class ModularServer(tornado.web.Application):
 
         # Initializing the model
         self.model_handler = ModelHandler(name, model_cls, model_params, visualization_elements)
-        self.reset_model()
+        self.model_handler.create_model()
 
         threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
 
@@ -370,7 +372,8 @@ class ModularServer(tornado.web.Application):
     def run_model(model_handler):
         while True:
             if model_handler.resetting:
-                time.sleep(0.05)
+                print("waiting for reset...")
+                time.sleep(0.1)
                 continue
             # slow it down if the data isn't being used
             # higher value causes lag when the page is first created
@@ -381,5 +384,5 @@ class ModularServer(tornado.web.Application):
                 model_handler.step()
                 model_handler.render_model()
             end = time.time()
-            if end - start < 0.03:  # if calculated too fast, slow down
+            if end - start < 0.03:  # if calculated faster than 33 step/sec
                 time.sleep(end-start)

@@ -73,8 +73,9 @@ var ChartModule = function(series, width, height) {
 	};
 
 	this.reset = function() {
-		chart.destroy();
 		data.labels = [];
-		chart = new Chart(context, {type: 'line', data: data, options: options});
+		for (let i=0; i<chart.data.datasets.length; i++) {
+			chart.data.datasets[i].data = [];
+		}
 	};
 };
