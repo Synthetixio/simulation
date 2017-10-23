@@ -32,7 +32,7 @@ class AgentManager:
         total_value = sum(agent_fractions.values())
         if total_value > 0:
             for k in agent_fractions:
-                agent_fractions[k] / total_value
+                agent_fractions[k] /= total_value
 
         # Set the actual number of each agent type.
         num_bankers = int(num_agents * agent_fractions[ag.Banker]) \

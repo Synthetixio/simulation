@@ -42,6 +42,8 @@ var fpsControl = $('#fps').slider({
 // Sidebar dom access
 var sidebar = $("#settings_body");
 
+var agent_settings = $("#agent_settings");
+
 // WebSocket Stuff
 var ws = new WebSocket("ws://127.0.0.1:" + port + "/ws"); // Open the websocket connection
 ws.onopen = function() {
@@ -151,6 +153,54 @@ var initGUI = function() {
         sidebar.append(well);
     };
 
+    var addAgentSliders = function(param, obj) {
+        // this will assume only one of these exists
+
+        let data = obj.value;
+        console.log(data);
+
+        let min_val = 0;
+        let max_val = 100;
+        let step = 0.01;
+
+
+        for (let i in data) {
+            let dom_id = param+i+"_id";
+            let label = $("<p></p>")[0];
+            let tooltip = $("<a data-toggle='tooltip' data-placement='top' class='label label-primary'>" + i + "</a>")[0];
+            if (data[i].description !== undefined) {
+                $(tooltip).tooltip({
+                    title: data[i].description,
+                    placement: 'right'
+                });
+            }
+            label.append(tooltip);
+
+            let slider_input = $("<input class='agent_sliders' id='" + dom_id + "' type='text' />")[0];
+            let input_group = $("<div class='input-group input-group-lg'></div>")[0];
+            agent_settings.append(input_group);
+            input_group.append(label);
+            input_group.append(slider_input);
+
+            $(slider_input).slider({
+                min: min_val,
+                max: max_val,
+                value: data[i].value,
+                step: step,
+                ticks: [min_val, max_val],
+                ticks_labels: [min_val, max_val],
+                ticks_positions: [0, 100]
+            });
+            $(slider_input).on('change', function() {
+                $(".agent_sliders").each(function () {
+                    console.log($(this));
+
+                });
+                onSubmitCallback(param, Number($(this).val()));
+            })
+        }
+    };
+
     var addParamInput = function(param, option) {
         switch (option['param_type']) {
             case 'checkbox':
@@ -171,6 +221,10 @@ var initGUI = function() {
 
             case 'static_text':
                 addTextBox(param, option);
+                break;
+
+            case 'agent_fractions':
+                addAgentSliders(param, option);
                 break;
         }
     };

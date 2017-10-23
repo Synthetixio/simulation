@@ -46,6 +46,5 @@ It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the followi
 * Type annotations and mypy everywhere
 * Add all necessary agents
 * Speed up the simulation (jupyter line_profiler, Cython, pure-python, pypy, pandas optimisation, better algorithms)
-* Convert to fixed-point decimals?
 * Make things pretty
 * Run experiments
