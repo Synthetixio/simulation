@@ -175,6 +175,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.resetlock = threading.Lock()
         self.step = 0
 
     def open(self):
@@ -186,12 +187,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        data = self.application.model_handler.data_queue.get(block=True)
-        return {
-            "type": "viz_state",
-            "step": self.step,
-            "data": data[1]
-        }
+        with self.resetlock:
+            # block=True makes the program wait for data to be added
+            data = self.application.model_handler.data_queue.get(block=True)
+            return {
+                "type": "viz_state",
+                "step": self.step,
+                "data": data[1]
+            }
 
     def on_message(self, message):
         """
@@ -213,8 +216,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 self.step += 1
 
         elif msg["type"] == "reset":
-            self.step = 1
-            self.application.reset_model()
+            # on_message is async, so lock here as well when resetting
+            with self.resetlock:
+                # calculate the step here, so it doesn't skip TODO check why it skips
+                self.step = 1
+                self.application.reset_model()
             self.write_message(self.viz_state_message)
             self.step += 1
 
@@ -371,18 +377,22 @@ class ModularServer(tornado.web.Application):
     @staticmethod
     def run_model(model_handler):
         while True:
+            # allow the model to reset if it hasn't already
             if model_handler.resetting:
-                print("waiting for reset...")
                 time.sleep(0.1)
                 continue
-            # slow it down if the data isn't being used
+
+            # slow it down significantly if the data isn't being used
             # higher value causes lag when the page is first created
             if model_handler.data_queue.qsize() > 50:
                 time.sleep(0.5)
             start = time.time()
+
             with model_handler.lock:
                 model_handler.step()
                 model_handler.render_model()
+
             end = time.time()
-            if end - start < 0.03:  # if calculated faster than 33 step/sec
+            # if calculated faster than 33 step/sec allow it some time to sleep
+            if end - start < 0.03:
                 time.sleep(end-start)
