@@ -199,7 +199,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         else:
             self.application.model_handler.step()
             data = self.application.model_handler.render_model()
-            print(data)
             return {
                 "type": "viz_state",
                 "step": self.step,
@@ -308,10 +307,8 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        if self.threaded:
-            self.data_queue.put((self.model.time-1, visualization_state))
-        else:
-            return self.model.time-1, visualization_state
+
+        return self.model.time-1, visualization_state
 
     def step(self):
         self.model.step()
@@ -400,23 +397,29 @@ class ModularServer(tornado.web.Application):
 
     @staticmethod
     def run_model(model_handler):
-        while True:
-            # allow the model to reset if it hasn't already
-            if model_handler.resetting:
-                time.sleep(0.1)
-                continue
+        try:
+            while model_handler.running:
+                # allow the model to reset if it hasn't already
+                if model_handler.resetting:
+                    time.sleep(0.1)
+                    continue
 
-            # slow it down significantly if the data isn't being used
-            # higher value causes lag when the page is first created
-            if model_handler.data_queue.qsize() > 50:
-                time.sleep(0.5)
-            start = time.time()
+                # slow it down significantly if the data isn't being used
+                # higher value causes lag when the page is first created
+                if model_handler.data_queue.qsize() > 50:
+                    time.sleep(0.5)
+                start = time.time()
 
-            with model_handler.lock:
-                model_handler.step()
-                model_handler.render_model()
+                with model_handler.lock:
+                    model_handler.step()
+                    data = model_handler.render_model()
+                    model_handler.data_queue.put(data)
 
-            end = time.time()
-            # if calculated faster than 33 step/sec allow it some time to sleep
-            if end - start < 0.03:
-                time.sleep(end-start)
+                end = time.time()
+                # if calculated faster than 33 step/sec allow it some time to sleep
+                if end - start < 0.03:
+                    time.sleep(end-start)
+        except Exception as e:
+            print(e)
+            print("Model run thread closed.")
+            return
