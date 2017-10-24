@@ -1,3 +1,17 @@
+"""
+merchant.py
+
+A merchant who owns an inventory and restocks it using fiat,
+and sells the goods for nomin
+
+A buyer who receives a wage in fiat, and uses that to purchase
+goods with nomin
+
+The result on the market will be a consistent conversion from
+fiat to nomin by the buyers, and a bulk conversion from nomin
+to fiat by the merchants
+"""
+
 from .marketplayer import MarketPlayer
 from decimal import Decimal as Dec
 
@@ -20,19 +34,20 @@ class Merchant(MarketPlayer):
     """
     inventory: Dict[str, Dict[str, Dec]] = {
         # name: price(nomin), stock_price(fiat), current_stock, stock_goal
-        '1': {'price': Dec('14.95'), 'stock_price': Dec('9.95'), 'current_stock': Dec(100), 'stock_goal': Dec(100)},
-        '2': {'price': Dec('12.20'), 'stock_price': Dec('6.95'), 'current_stock': Dec(200), 'stock_goal': Dec(200)},
-        '3': {'price': Dec('3.50'), 'stock_price': Dec('1.20'), 'current_stock': Dec(300), 'stock_goal': Dec(300)}
+        str(i): {'price': Dec(random.random()*20), 'stock_price': 1,
+                 'current_stock': Dec(100), 'stock_goal': Dec(100)}
+        for i in range(1, random.randint(4, 6))
     }
-    last_restock = 1
+    for i in inventory:
+        inventory[i]['stock_price'] = inventory[i]['price']*Dec(random.random())
+
+    last_restock = 1  # random.randint(0,25)
     restock_tick_rate = 25
 
     def step(self):
-        if self.available_nomins:
-            self.sell_nomins_for_fiat_with_fee(self.available_nomins)
-
         self.last_restock += 1
         if self.last_restock > self.restock_tick_rate:
+            self.sell_nomins_for_fiat_with_fee(self.available_nomins)
             for item in self.inventory:
                 info = self.inventory[item]
                 to_restock = info['stock_goal'] - info['current_stock']
@@ -42,7 +57,7 @@ class Merchant(MarketPlayer):
                     self.inventory[item]['current_stock'] += to_restock
                 else:
                     print(item, info, to_restock, cost, self.fiat, self.available_fiat)
-                    raise Exception("Merchant outta money???")
+                    raise Exception("Merchant out of money? nom->fiat really bad?")
 
     def sell_stock(self, agent: 'Buyer', item: str, quantity: Dec) -> Dec:
         if agent.available_nomins > self.inventory[item]['price']*quantity and \
@@ -53,13 +68,20 @@ class Merchant(MarketPlayer):
 
 
 class Buyer(MarketPlayer):
+    """
+    Buyer interacts with merchants to purchase their goods using their nomins
+    They transfer their fiat->nomins and then use their nomins to buy goods
+    """
     inventory = {}
+
+    wage = random.randint(2, 10)
 
     def __init__(self, merchants, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.merchants = merchants
 
     def step(self):
+        self.fiat += self.wage
         if self.available_fiat:
             self.sell_fiat_for_nomins_with_fee(self.available_fiat)
         i = random.random()
@@ -70,7 +92,7 @@ class Buyer(MarketPlayer):
             amount = buying_from.sell_stock(self, buying, Dec(to_buy))
             if amount > 0:
                 fee = self.model.fee_manager.transferred_nomins_fee(amount)
-                self.transfer_nomins_to(buying_from, amount, fee)
+                self.transfer_nomins_to(buying_from, amount)
                 try:
                     self.inventory[buying] += to_buy
                 except KeyError:

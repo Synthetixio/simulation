@@ -74,7 +74,7 @@ class AgentManager:
             self.havven.schedule.add(escrow_nomin_shorter)
             self.escrow_nomin_shorters.append(escrow_nomin_shorter)
             i += 1
-        for _ in range(agent_fractions['Merchant']):
+        for _ in range(max(agent_fractions['Merchant'], 1)):
             merchant = ag.Merchant(i, self.havven, fiat=HavvenManager.round_decimal(init_value))
             self.havven.schedule.add(merchant)
             self.merchants.append(merchant)

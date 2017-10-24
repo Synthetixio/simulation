@@ -107,6 +107,7 @@ import webbrowser
 import threading
 import queue
 import time
+import random
 
 from visualization.UserParam import UserSettableParameter
 
@@ -268,6 +269,7 @@ class ModelHandler:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
         self.resetting = False
+        self.set_agent_fractions = False
 
         self.running = True
         self.data_queue = queue.Queue()

@@ -124,9 +124,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     )
 
     agent_fraction_selector = UserSettableParameter(
-        'agent_fractions', "Agent fraction selector", {
-            i: random.random() for i in ag.player_names
-        }
+        'agent_fractions', "Agent fraction selector", None
     )
 
     server = ModularServer(threaded, model.Havven, charts, "Havven Model",
