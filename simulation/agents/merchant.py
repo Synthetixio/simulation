@@ -52,6 +52,9 @@ class Merchant(MarketPlayer):
         if self.last_restock > self.restock_tick_rate:
             self.last_restock = 0
             self.sell_nomins_for_fiat_with_fee(self.available_nomins)
+            if self.available_nomins > 0:
+                self.sell_nomins_for_fiat_with_fee(self.available_nomins*Dec('0.99'))
+
             for item in self.inventory:
                 info = self.inventory[item]
                 to_restock = info['stock_goal'] - info['current_stock']
