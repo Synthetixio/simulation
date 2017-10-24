@@ -175,6 +175,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.resetlock = threading.Lock()
         self.step = 0
 
     def open(self):
@@ -186,13 +187,23 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        data = self.application.model_handler.data_queue.get(block=True)
-
-        return {
-            "type": "viz_state",
-            "step": self.step,
-            "data": data[1]
-        }
+        if self.application.threaded:
+            with self.resetlock:
+                # block=True makes the program wait for data to be added
+                data = self.application.model_handler.data_queue.get(block=True)
+                return {
+                    "type": "viz_state",
+                    "step": self.step,
+                    "data": data[1]
+                }
+        else:
+            self.application.model_handler.step()
+            data = self.application.model_handler.render_model()
+            return {
+                "type": "viz_state",
+                "step": self.step,
+                "data": data[1]
+            }
 
     def on_message(self, message):
         """
@@ -206,16 +217,20 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if not self.application.model_handler.running:
                 self.write_message({"type": "end"})
             else:
-                while self.application.model_handler.resetting:
-                    time.sleep(0.05)
+                if self.application.threaded:
+                    while self.application.model_handler.resetting:
+                        time.sleep(0.05)
                 # self.application.model_handler.step()
                 message = self.viz_state_message
                 self.write_message(message)
                 self.step += 1
 
         elif msg["type"] == "reset":
-            self.step = 1
-            self.application.reset_model()
+            # on_message is async, so lock here as well when resetting
+            with self.resetlock:
+                # calculate the step here, so it doesn't skip TODO: check why it skips
+                self.step = 1
+                self.application.reset_model()
             self.write_message(self.viz_state_message)
             self.step += 1
 
@@ -239,7 +254,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
 
 class ModelHandler:
-    def __init__(self, name, model_cls, model_params, visualization_elements):
+    """
+    Handle the Model data collection and resetting
+    """
+    def __init__(self, threaded, name, model_cls, model_params, visualization_elements):
+        self.threaded = threaded
         self.model_name = name
         self.model_cls = model_cls
         self.description = 'No description available'
@@ -256,31 +275,40 @@ class ModelHandler:
         self.lock = threading.Lock()
 
     def reset_model(self):
-        self.resetting = True
-        with self.lock:
-            model_params = {}
-            for key, val in self.model_kwargs.items():
-                if isinstance(val, UserSettableParameter):
-                    if val.param_type == 'static_text':  # static_text is never used for setting params
-                        continue
-                    model_params[key] = val.value
-                else:
-                    model_params[key] = val
+        if self.threaded:
+            self.resetting = True
+            with self.lock:
+                self.create_model()
+            self.resetting = False
+        else:
+            self.create_model()
 
-            self.model = self.model_cls(**model_params)
-            # clear the data queue
-            with self.data_queue.mutex:
-                self.data_queue.queue.clear()
-                self.data_queue.all_tasks_done.notify_all()
-                self.data_queue.unfinished_tasks = 0
-        self.resetting = False
+    def create_model(self):
+        """Create a new model, with changed parameters"""
+        model_params = {}
+        for key, val in self.model_kwargs.items():
+            if isinstance(val, UserSettableParameter):
+                if val.param_type == 'static_text':  # static_text is never used for setting params
+                    continue
+                model_params[key] = val.value
+            else:
+                model_params[key] = val
+
+        self.model = self.model_cls(**model_params)
+        # clear the data queue
+        with self.data_queue.mutex:
+            self.data_queue.queue.clear()
+            self.data_queue.all_tasks_done.notify_all()
+            self.data_queue.unfinished_tasks = 0
 
     def render_model(self):
+        """collect the data from the model and put it in the queue to be sent for rendering"""
         visualization_state = []
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        self.data_queue.put((self.model.time-1, visualization_state))
+
+        return self.model.time-1, visualization_state
 
     def step(self):
         self.model.step()
@@ -311,10 +339,11 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, model_cls, visualization_elements, name="Mesa Model",
+    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model",
                  model_params={}):
         """ Create a new visualization server with the given elements. """
         # Prep visualization elements:
+        self.threaded = threaded
         self.visualization_elements = visualization_elements
         self.package_includes = set()
         self.local_includes = set()
@@ -327,10 +356,10 @@ class ModularServer(tornado.web.Application):
             self.js_code.append(element.js_code)
 
         # Initializing the model
-        self.model_handler = ModelHandler(name, model_cls, model_params, visualization_elements)
-        self.reset_model()
-
-        threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
+        self.model_handler = ModelHandler(threaded, name, model_cls, model_params, visualization_elements)
+        self.model_handler.create_model()
+        if self.threaded:
+            threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
 
         # Initializing the application itself:
         super().__init__(self.handlers, **self.settings)
@@ -368,18 +397,29 @@ class ModularServer(tornado.web.Application):
 
     @staticmethod
     def run_model(model_handler):
-        while True:
-            if model_handler.resetting:
-                time.sleep(0.05)
-                continue
-            # slow it down if the data isn't being used
-            # higher value causes lag when the page is first created
-            if model_handler.data_queue.qsize() > 50:
-                time.sleep(0.5)
-            start = time.time()
-            with model_handler.lock:
-                model_handler.step()
-                model_handler.render_model()
-            end = time.time()
-            if end - start < 0.03:  # if calculated too fast, slow down
-                time.sleep(end-start)
+        try:
+            while model_handler.running:
+                # allow the model to reset if it hasn't already
+                if model_handler.resetting:
+                    time.sleep(0.1)
+                    continue
+
+                # slow it down significantly if the data isn't being used
+                # higher value causes lag when the page is first created
+                if model_handler.data_queue.qsize() > 50:
+                    time.sleep(0.5)
+                start = time.time()
+
+                with model_handler.lock:
+                    model_handler.step()
+                    data = model_handler.render_model()
+                    model_handler.data_queue.put(data)
+
+                end = time.time()
+                # if calculated faster than 33 step/sec allow it some time to sleep
+                if end - start < 0.03:
+                    time.sleep(end-start)
+        except Exception as e:
+            print(e)
+            print("Model run thread closed.")
+            return
