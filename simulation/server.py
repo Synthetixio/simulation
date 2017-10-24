@@ -2,16 +2,15 @@
 
 from typing import List
 
-from mesa.visualization.modules import ChartModule
-from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.ModularVisualization import ModularServer, VisualizationElement
+from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule
+from visualization.UserParam import UserSettableParameter
+from visualization.ModularVisualization import ModularServer, VisualizationElement
 
 import model
-from visualization import OrderBookModule, WealthModule, PortfolioModule
 
 
 def make_server(n_agents: int = 50, ur: float = 0.2,
-                cont_orders: bool = True) -> ModularServer:
+                cont_orders: bool = True, threaded=True) -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.
 
@@ -26,32 +25,38 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Nomin Price", "Color": "deepskyblue"},
             {"Label": "Nomin Ask", "Color": "deepskyblue"},
             {"Label": "Nomin Bid", "Color": "deepskyblue"},
-            {"Label": "1", "Color": ref_colour}]),
+            {"Label": "1", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Curit Price", "Color": "red"},
             {"Label": "Curit Ask", "Color": "red"},
             {"Label": "Curit Bid", "Color": "red"},
-            {"Label": "1", "Color": ref_colour}]),
+            {"Label": "1", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Curit/Nomin Price", "Color": "darkorchid"},
             {"Label": "Curit/Nomin Ask", "Color": "darkorchid"},
             {"Label": "Curit/Nomin Bid", "Color": "darkorchid"},
-            {"Label": "1", "Color": ref_colour}]),
+            {"Label": "1", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "deepskyblue"},
             {"Label": "Havven Curits", "Color": "red"},
-            {"Label": "Havven Fiat", "Color": "darkgreen"}]),
+            {"Label": "Havven Fiat", "Color": "darkgreen"},
+        ]),
 
         ChartModule([
             {"Label": "Gini", "Color": "navy"},
-            {"Label": "0", "Color": ref_colour}]),
+            {"Label": "0", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Max Wealth", "Color": "purple"},
-            {"Label": "Min Wealth", "Color": "orange"}]),
+            {"Label": "Min Wealth", "Color": "orange"},
+        ]),
 
         ChartModule([
             {"Label": "Avg Profit %", "Color": "grey"},
@@ -60,31 +65,38 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "Rand Profit %", "Color": "green"},
             {"Label": "NomShort Profit %", "Color": "orchid"},
             {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
-            {"Label": "0", "Color": ref_colour}]),
+            {"Label": "0", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
-            {"Label": "Escrowed Curits", "Color": "darkred"}]),
+            {"Label": "Escrowed Curits", "Color": "darkred"},
+        ]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
-            {"Label": "Curit Supply", "Color": "orange"}]),
+            {"Label": "Curit Supply", "Color": "orange"},
+        ]),
 
         ChartModule([
             {"Label": "Nomin Demand", "Color": "deepskyblue"},
-            {"Label": "Nomin Supply", "Color": "purple"}]),
+            {"Label": "Nomin Supply", "Color": "purple"},
+        ]),
 
         ChartModule([
             {"Label": "Fiat Demand", "Color": "darkgreen"},
-            {"Label": "Fiat Supply", "Color": "lightgreen"}]),
+            {"Label": "Fiat Supply", "Color": "lightgreen"},
+        ]),
 
         ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
-            {"Label": "0", "Color": ref_colour}]),
+            {"Label": "0", "Color": ref_colour}
+        ]),
 
         ChartModule([
             {"Label": "Fees Distributed", "Color": "blue"},
-            {"Label": "0", "Color": ref_colour}]),
+            {"Label": "0", "Color": ref_colour}
+        ]),
 
         PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
 
@@ -109,7 +121,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'checkbox', "Continuous order matching", cont_orders
     )
 
-    server = ModularServer(model.Havven, charts, "Havven Model",
+    server = ModularServer(threaded, model.Havven, charts, "Havven Model",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
                             "match_on_order": match_checkbox})
     return server

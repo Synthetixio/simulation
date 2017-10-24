@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict
 from decimal import Decimal as Dec
 
 from mesa.datacollection import DataCollector
-from mesa.visualization.ModularVisualization import VisualizationElement
+from visualization.ModularVisualization import VisualizationElement
 
 from model import Havven
 from managers import HavvenManager
@@ -14,14 +14,11 @@ class OrderBookModule(VisualizationElement):
     Display a depth graph for order books to show the quantity
       of buy/sell orders for the given market
     """
-    package_includes: List[str] = []
-    local_includes: List[str] = [
-        "visualization/js/chartist.min.js",
-        "visualization/js/DepthGraphModule.js"
-    ]
+    package_includes: List[str] = ["DepthGraphModule.js"]
+    local_includes: List[str] = []
 
     def __init__(
-            self, series: List[Dict[str, str]], height: int = 300,
+            self, series: List[Dict[str, str]], height: int = 150,
             width: int = 500, data_collector_name: str = "datacollector") -> None:
 
         self.series = series

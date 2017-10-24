@@ -25,8 +25,8 @@ class Havven(Model):
     def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True) -> None:
-
         # Mesa setup.
+
         super().__init__()
 
         # The schedule will activate agents in a random order per step.
