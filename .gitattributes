@@ -1,4 +1,4 @@
-simulation/visualization/js/chartist.min.js linguist-generated=true
+*.min.js linguist-generated=true
 analysis/*.pdf linguist-generated=true
 
 visualization/ linguist-vendored
