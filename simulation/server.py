@@ -124,11 +124,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
     agent_fraction_selector = UserSettableParameter(
         'agent_fractions', "Agent fraction selector", {
-            ag.Banker: 0.2,
-            ag.Arbitrageur: 0.2,
-            ag.Randomizer: 0.3,
-            ag.NominShorter: 0.15,
-            ag.CuritEscrowNominShorter: 0.15
+            'Banker': 0.2,
+            'Arbitrageur': 0.2,
+            'Randomizer': 0.3,
+            'NominShorter': 0.15,
+            'CuritEscrowNominShorter': 0.15
         }
     )
 

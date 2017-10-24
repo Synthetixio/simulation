@@ -15,7 +15,7 @@ class AgentManager:
     def __init__(self,
                  havven: "model.Havven",
                  num_agents: int,
-                 agent_fractions: Dict[type, float],
+                 agent_fractions: Dict[str, float],
                  init_value: Dec) -> None:
         # A reference to the havven sim itself.
         self.havven = havven
@@ -30,9 +30,20 @@ class AgentManager:
 
         # Normalise the fractions of the population each agent occupies.
         total_value = sum(agent_fractions.values())
+        result = {}
         if total_value > 0:
             for k in agent_fractions:
-                agent_fractions[k] /= total_value
+                if k == 'Banker':
+                    result[ag.Banker] = agent_fractions[k]/total_value
+                if k == 'Randomizer':
+                    result[ag.Randomizer] = agent_fractions[k]/total_value
+                if k == 'Arbitrageur':
+                    result[ag.Arbitrageur] = agent_fractions[k]/total_value
+                if k == 'NominShorter':
+                    result[ag.NominShorter] = agent_fractions[k]/total_value
+                if k == 'CuritEscrowNominShorter':
+                    result[ag.CuritEscrowNominShorter] = agent_fractions[k]/total_value
+        agent_fractions = result
 
         # Set the actual number of each agent type.
         num_bankers = int(num_agents * agent_fractions[ag.Banker]) \

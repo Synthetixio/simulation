@@ -89,7 +89,6 @@ class UserSettableParameter:
 
     @property
     def value(self):
-        print(self._value)
         return self._value
 
     @value.setter
@@ -111,11 +110,6 @@ class UserSettableParameter:
 
     @property
     def json(self):
-        if self.param_type == self.AGENT_FRACTIONS:
-            result = self.__dict__.copy()
-            data = result.pop('_value')
-            result['value'] = {str(i.__name__): data[i] for i in data}
-            return result
         result = self.__dict__.copy()
         result['value'] = result.pop('_value')  # Return _value as value, value is the same
         return result

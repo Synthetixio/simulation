@@ -46,13 +46,15 @@ class Havven(Model):
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
 
-        if agent_fractions is None or True:
-            agent_fractions = {ag.Banker: 0.2,
-             ag.Arbitrageur: 0.2,
-             ag.Randomizer: 0.3,
-             ag.NominShorter: 0.15,
-             ag.CuritEscrowNominShorter: 0.15}
-        print(agent_fractions)
+        if agent_fractions is None:
+            agent_fractions = {
+                'Banker': 0.2,
+                'Arbitrageur': 0.2,
+                'Randomizer': 0.3,
+                'NominShorter': 0.15,
+                'CuritEscrowNominShorter': 0.15
+            }
+
         self.agent_manager = AgentManager(self, num_agents,
                                           agent_fractions, Dec(init_value))
 

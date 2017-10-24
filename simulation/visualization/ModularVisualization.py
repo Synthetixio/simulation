@@ -237,10 +237,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         elif msg["type"] == "submit_params":
             param = msg["param"]
             value = msg["value"]
-
-            # Is the param editable?
-            if param in self.application.user_params:
-                self.application.model_handler.set_model_kwargs(param, value)
+            # as this is local, don't worry about invalid inputs
+            # but should be sanitised if this ever goes online
+            self.application.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
             self.write_message({
@@ -293,7 +292,6 @@ class ModelHandler:
                 model_params[key] = val.value
             else:
                 model_params[key] = val
-
         self.model = self.model_cls(**model_params)
         # clear the data queue
         with self.data_queue.mutex:
