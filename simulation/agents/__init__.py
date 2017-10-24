@@ -7,6 +7,7 @@ from .nomin_shorter import NominShorter, CuritEscrowNominShorter
 from .merchant import Merchant, Buyer
 
 # player names for the UI sliders
+# these have to match the class names
 player_names = [
     # 'CentralBank',
     'Arbitrageur',

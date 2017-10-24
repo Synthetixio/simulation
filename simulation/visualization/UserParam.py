@@ -127,11 +127,13 @@ class UserSettableParameter:
         return result
 
     def randomize_agents(self):
-        import agents as ag
+        """Randomize the agent initial values"""
+        # import here to avoid circular reference
+        from agents import player_names
         v = []
-        for i in ag.player_names:
+        for i in player_names:
             v = {
-                i: random.random() / len(ag.player_names) for i in ag.player_names
+                i: random.random() / len(player_names) for i in player_names
             }
         # total should be < 1, dividing by total should make total 1.
         total = sum(v[i] for i in v)

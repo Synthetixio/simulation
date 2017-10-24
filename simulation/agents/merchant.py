@@ -32,21 +32,25 @@ class Merchant(MarketPlayer):
     As nomin->fiat is a percentage, transfer all nomin to fiat
     every step
     """
-    inventory: Dict[str, Dict[str, Dec]] = {
-        # name: price(nomin), stock_price(fiat), current_stock, stock_goal
-        str(i): {'price': Dec(random.random()*20), 'stock_price': 1,
-                 'current_stock': Dec(100), 'stock_goal': Dec(100)}
-        for i in range(1, random.randint(4, 6))
-    }
-    for i in inventory:
-        inventory[i]['stock_price'] = inventory[i]['price']*Dec(random.random())
 
-    last_restock = 1  # random.randint(0,25)
-    restock_tick_rate = 25
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inventory: Dict[str, Dict[str, Dec]] = {
+            # name: price(nomin), stock_price(fiat), current_stock, stock_goal
+            str(i): {'price': Dec(random.random() * 20), 'stock_price': 1,
+                     'current_stock': Dec(100), 'stock_goal': Dec(100)}
+            for i in range(1, random.randint(4, 6))
+        }
+        for i in self.inventory:
+            self.inventory[i]['stock_price'] = self.inventory[i]['price'] * Dec((random.random() / 3) + 0.5)
+
+        self.last_restock = 1  # random.randint(0,25)
+        self.restock_tick_rate = 25
 
     def step(self):
         self.last_restock += 1
         if self.last_restock > self.restock_tick_rate:
+            self.last_restock = 0
             self.sell_nomins_for_fiat_with_fee(self.available_nomins)
             for item in self.inventory:
                 info = self.inventory[item]
@@ -56,7 +60,9 @@ class Merchant(MarketPlayer):
                     self.fiat -= cost
                     self.inventory[item]['current_stock'] += to_restock
                 else:
-                    print(item, info, to_restock, cost, self.fiat, self.available_fiat)
+                    print(self.portfolio())
+                    print(self.portfolio(True))
+                    print(to_restock, cost)
                     raise Exception("Merchant out of money? nom->fiat really bad?")
 
     def sell_stock(self, agent: 'Buyer', item: str, quantity: Dec) -> Dec:
@@ -91,7 +97,6 @@ class Buyer(MarketPlayer):
             buying = random.choice(list(buying_from.inventory.keys()))
             amount = buying_from.sell_stock(self, buying, Dec(to_buy))
             if amount > 0:
-                fee = self.model.fee_manager.transferred_nomins_fee(amount)
                 self.transfer_nomins_to(buying_from, amount)
                 try:
                     self.inventory[buying] += to_buy

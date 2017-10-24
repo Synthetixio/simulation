@@ -123,6 +123,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'checkbox', "Continuous order matching", cont_orders
     )
 
+    # the none value will randomize the data on every model reset
     agent_fraction_selector = UserSettableParameter(
         'agent_fractions', "Agent fraction selector", None
     )
