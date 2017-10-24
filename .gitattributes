@@ -1,2 +1,13 @@
 simulation/visualization/js/chartist.min.js linguist-generated=true
 analysis/*.pdf linguist-generated=true
+
+visualization/ linguist-vendored
+visualization/ModularVisualization.py linguist-vendored=false
+visualization/templates/modular_template.html linguist-vendored=false
+visualization/templates/js/BarGraphModule.js linguist-vendored=false
+visualization/templates/js/ChartModule.js linguist-vendored=false
+visualization/templates/js/DepthGraphModule.js linguist-vendored=false
+visualization/templates/js/runcontrol.js linguist-vendored=false
+visualization/modules/BarGraph.py linguist-vendored=false
+visualization/modules/OrderBookDepth.py linguist-vendored=false
+visualization/modules/Wealth.py linguist-vendored=false
