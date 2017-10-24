@@ -1,6 +1,7 @@
 """server.py: Functions for setting up the simulation/visualisation server."""
 
 from typing import List
+import random
 
 from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule
 from visualization.UserParam import UserSettableParameter
@@ -124,11 +125,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
     agent_fraction_selector = UserSettableParameter(
         'agent_fractions', "Agent fraction selector", {
-            'Banker': 0.2,
-            'Arbitrageur': 0.2,
-            'Randomizer': 0.3,
-            'NominShorter': 0.15,
-            'CuritEscrowNominShorter': 0.15
+            i: random.random() for i in ag.player_names
         }
     )
 
