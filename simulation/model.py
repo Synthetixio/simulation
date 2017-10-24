@@ -1,5 +1,6 @@
 """model.py: The havven model itself lives here."""
 
+from typing import Dict
 from decimal import Decimal as Dec
 
 from mesa import Model
@@ -24,7 +25,8 @@ class Havven(Model):
 
     def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
-                 match_on_order: bool = True) -> None:
+                 match_on_order: bool = True,
+                 agent_fractions: Dict[str, int] = None) -> None:
         # Mesa setup.
 
         super().__init__()
@@ -44,17 +46,20 @@ class Havven(Model):
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
 
-        # Set the market player fractions and endowment.
-        fractions = {ag.Banker: 0.2,
-                     ag.Arbitrageur: 0.2,
-                     ag.Randomizer: 0.3,
-                     ag.NominShorter: 0.15,
-                     ag.CuritEscrowNominShorter: 0.15}
-        self.agent_manager = AgentManager(self, num_agents,
-                                          fractions, Dec(init_value))
+        if agent_fractions is None:
+            agent_fractions = {
+                'Banker': 0.2,
+                'Arbitrageur': 0.2,
+                'Randomizer': 0.3,
+                'NominShorter': 0.15,
+                'CuritEscrowNominShorter': 0.15
+            }
 
-    def fiat_value(self, curits = Dec('0'), nomins = Dec('0'),
-                   fiat = Dec('0')) -> Dec:
+        self.agent_manager = AgentManager(self, num_agents,
+                                          agent_fractions, Dec(init_value))
+
+    def fiat_value(self, curits=Dec('0'), nomins=Dec('0'),
+                   fiat=Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""
         return self.market_manager.curits_to_fiat(curits) + \
             self.market_manager.nomins_to_fiat(nomins) + fiat

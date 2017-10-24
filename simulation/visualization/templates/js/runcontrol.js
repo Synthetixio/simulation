@@ -42,6 +42,9 @@ var fpsControl = $('#fps').slider({
 // Sidebar dom access
 var sidebar = $("#settings_body");
 
+var agent_settings = $("#agent_settings");
+var agent_values = {};
+
 // WebSocket Stuff
 var ws = new WebSocket("ws://127.0.0.1:" + port + "/ws"); // Open the websocket connection
 ws.onopen = function() {
@@ -151,6 +154,82 @@ var initGUI = function() {
         sidebar.append(well);
     };
 
+    var addAgentSliders = function(param, obj) {
+        // this will assume only one of these exists
+
+        let data = obj.value;
+
+        let min_val = 0;
+        let max_val = 100;
+        let step = 0.01;
+
+        let slider_objs = {};
+
+        for (let i in data) {
+            agent_values[i] = data[i].value;
+            let dom_id = param+"_"+i;
+            let label = $("<p></p>")[0];
+            let tooltip = $("<a data-toggle='tooltip' data-placement='top' class='label label-primary'>" + i + "</a>")[0];
+            if (data[i].description !== undefined) {
+                $(tooltip).tooltip({
+                    title: data[i].description,
+                    placement: 'right'
+                });
+            }
+            label.append(tooltip);
+
+            let slider_input = $("<input class='agent_sliders' id='" + i + "' type='text'/>")[0];
+            let input_group = $("<div class='input-group input-group-lg'></div>")[0];
+            agent_settings.append(input_group);
+            input_group.append(label);
+            input_group.append(slider_input);
+
+            slider_objs[i] = slider_input;
+
+            $(slider_input).slider({
+                name: i,
+                min: min_val,
+                max: max_val,
+                value: parseFloat(data[i])*max_val,
+                step: step,
+                ticks: [min_val, max_val],
+                ticks_labels: [min_val, max_val],
+                ticks_positions: [0, 100],
+                width: '100%'
+            });
+            $(slider_input).on('change', function() {
+                var slider = $(slider_input)[0];
+                var sum = 0;
+                var sum_others = 0;
+
+                var slider_group = $(".agent_sliders");
+
+                for (let i in slider_objs) {
+                    let item = $(slider_objs[i])[0];
+                    if (item !== slider) {
+                        sum_others += parseFloat(item.value);
+                    }
+                    sum += parseFloat(item.value);
+                }
+
+                let return_val = {};
+
+                slider_group.each(function () {
+                    let item = $(this)[0];
+                    if (item !== slider) {
+                        let diff = max_val - sum;
+                        $(item).slider('setValue', parseFloat(item.value) + (parseFloat(item.value)/sum_others)*diff);
+                    }
+                    return_val[item.id] = parseFloat(item.value)/max_val;
+                });
+
+                console.log(return_val);
+
+                onSubmitCallback(param, return_val);
+            })
+        }
+    };
+
     var addParamInput = function(param, option) {
         switch (option['param_type']) {
             case 'checkbox':
@@ -171,6 +250,10 @@ var initGUI = function() {
 
             case 'static_text':
                 addTextBox(param, option);
+                break;
+
+            case 'agent_fractions':
+                addAgentSliders(param, option);
                 break;
         }
     };

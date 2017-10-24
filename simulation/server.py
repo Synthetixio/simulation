@@ -6,6 +6,7 @@ from visualization.modules import ChartModule, OrderBookModule, WealthModule, Po
 from visualization.UserParam import UserSettableParameter
 from visualization.ModularVisualization import ModularServer, VisualizationElement
 
+import agents as ag
 import model
 
 
@@ -121,7 +122,17 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'checkbox', "Continuous order matching", cont_orders
     )
 
+    agent_fraction_selector = UserSettableParameter(
+        'agent_fractions', "Agent fraction selector", {
+            'Banker': 0.2,
+            'Arbitrageur': 0.2,
+            'Randomizer': 0.3,
+            'NominShorter': 0.15,
+            'CuritEscrowNominShorter': 0.15
+        }
+    )
+
     server = ModularServer(threaded, model.Havven, charts, "Havven Model",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
-                            "match_on_order": match_checkbox})
+                            "match_on_order": match_checkbox, 'agent_fractions': agent_fraction_selector})
     return server

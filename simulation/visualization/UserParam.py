@@ -41,8 +41,9 @@ class UserSettableParameter:
     CHOICE = 'choice'
     SLIDER = 'slider'
     STATIC_TEXT = 'static_text'
+    AGENT_FRACTIONS = 'agent_fractions'
 
-    TYPES = (NUMBER, CHECKBOX, CHOICE, SLIDER, STATIC_TEXT)
+    TYPES = (NUMBER, CHECKBOX, CHOICE, SLIDER, STATIC_TEXT, AGENT_FRACTIONS)
 
     _ERROR_MESSAGE = "Missing or malformed inputs for '{}' Option '{}'"
 
@@ -80,6 +81,9 @@ class UserSettableParameter:
         elif self.param_type == self.STATIC_TEXT:
             valid = isinstance(self.value, str)
 
+        elif self.param_type == self.AGENT_FRACTIONS:
+            valid = isinstance(self.value, dict)
+
         if not valid:
             raise ValueError(msg)
 
@@ -99,6 +103,10 @@ class UserSettableParameter:
             if self._value not in self.choices:
                 print("Selected choice value not in available choices, selected first choice from 'choices' list")
                 self._value = self.choices[0]
+        elif self.param_type == self.AGENT_FRACTIONS:
+            # value is a list of [(key, val), ...]
+            for item in value:
+                self._value[item[0]] = item[1]
 
     @property
     def json(self):
