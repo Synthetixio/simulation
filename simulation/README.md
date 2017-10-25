@@ -16,6 +16,11 @@ Or, to open the experiments notebook:
 
 ```jupyter notebook experiments.ipynb```
 
+To run the tests:
+
+```pytest --pyargs```
+
+
 ## Overview
 
 There will be three components to this simulation:
