@@ -5,7 +5,6 @@ from mesa.datacollection import DataCollector
 from visualization.ModularVisualization import VisualizationElement
 
 from model import Havven
-from managers import HavvenManager
 import orderbook as ob
 
 
