@@ -147,7 +147,7 @@ class MarketManager:
         return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.nomins)
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
-                      recipient: "ag.MarketPlayer", quantity: Dec, fee: Dec=None) -> bool:
+                      recipient: "ag.MarketPlayer", quantity: Dec, fee: Optional[Dec]=None) -> bool:
         """
         Transfer a positive quantity of fiat currency from the sender to the
           recipient, if balance is sufficient. Return True on success.
@@ -162,7 +162,7 @@ class MarketManager:
         return False
 
     def transfer_curits(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Dec=None) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec]=None) -> bool:
         """
         Transfer a positive quantity of curits from the sender to the recipient,
           if balance is sufficient. Return True on success.
@@ -177,7 +177,7 @@ class MarketManager:
         return False
 
     def transfer_nomins(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Dec=None) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec]=None) -> bool:
         """
         Transfer a positive quantity of nomins from the sender to the recipient,
           if balance is sufficient. Return True on success.
