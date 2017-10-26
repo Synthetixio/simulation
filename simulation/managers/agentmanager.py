@@ -77,7 +77,7 @@ class AgentManager:
             self.merchants.append(merchant)
             i += 1
         for _ in range(agent_amounts['Buyer']):
-            buyer = ag.Buyer(self.merchants, i, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
+            buyer = ag.Buyer(i, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
             self.havven.schedule.add(buyer)
             self.buyers.append(buyer)
             i += 1
