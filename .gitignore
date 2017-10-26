@@ -5,6 +5,7 @@ __pycache__
 # Python library/util caches
 .ipynb_checkpoints
 .mypy_cache
+.cache
 
 # Latex build auxiliaries
 *.aux
