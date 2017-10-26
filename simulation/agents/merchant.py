@@ -71,6 +71,10 @@ class Merchant(MarketPlayer):
                     self.last_restock = self.restock_tick_rate - 2
 
     def sell_stock(self, agent: 'Buyer', item: str, quantity: Dec) -> Dec:
+        """
+        Function to transfer stock to buyer, telling the buyer how much they
+        need to transfer... We can trust the buyer will transfer.
+        """
         if agent.available_nomins > self.inventory[item]['price']*quantity and \
                 self.inventory[item]['current_stock'] > quantity:
             self.inventory[item]['current_stock'] -= quantity
