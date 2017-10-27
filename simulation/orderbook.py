@@ -1,8 +1,9 @@
 """orderbook: an order book for trading in a market."""
 
 from typing import Iterable, Callable, List, Optional, Tuple
-from itertools import takewhile
 from decimal import Decimal as Dec
+from itertools import takewhile
+from collections import namedtuple
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
 from sortedcontainers import SortedListWithKey, SortedDict
@@ -232,7 +233,7 @@ class OrderBook:
         if counted != 0:
             self.cached_price = (total/counted, self.model_manager.time)
         else:
-            self.cached_price = (Dec(1), self.model_manager.time)
+            self.cached_price = (self.cached_price[0], self.model_manager.time)
         return self.cached_price[0]
 
     def step(self) -> None:
