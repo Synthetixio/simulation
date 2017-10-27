@@ -188,7 +188,8 @@ class OrderBook:
         self.bid_price_buckets: SortedDict = SortedDict(lambda x: -x)
         self.ask_price_buckets: SortedDict = SortedDict(lambda x: x)
 
-        self.cached_price: Tuple[Dec, int] = (Dec('1.0'), 0)
+        self.cached_price: Dec = Dec('1.0')
+        self.last_cached_price_time: int = 0
 
         self.time: int = 0
 
@@ -221,20 +222,49 @@ class OrderBook:
         """
         Return the rolling average of the price, only calculate it once per tick
         """
-        if self.model_manager.time <= self.cached_price[1]:
-            return self.cached_price[0]
+        if self.model_manager.time <= self.last_cached_price_time:
+            return self.cached_price
+
+        if self.model_manager.volume_weighted_average:
+            return self.weighted_rolling_price_average(self.model_manager.rolling_avg_time_window)
+        else:
+            return self.rolling_price_average(self.model_manager.rolling_avg_time_window)
+
+    def rolling_price_average(self, time_window):
+        total = Dec(0)
+        counted = 0
+
+        for item in reversed(self.history):
+            if item.completion_time < self.model_manager.time - time_window:
+                break
+            total += item.price
+            counted += 1
+
+        if counted == 0:
+            self.cached_price = self.cached_price
+        else:
+            self.cached_price = total / Dec(counted)
+
+        self.last_cached_price_time = self.model_manager.time
+        return self.cached_price
+
+    def weighted_rolling_price_average(self, time_window):
         total = Dec(0)
         counted_vol = Dec(0)
+
         for item in reversed(self.history):
-            if item.completion_time < self.model_manager.time - self.model_manager.rolling_avg_time_window:
+            if item.completion_time < self.model_manager.time - time_window:
                 break
-            total += item.price*item.quantity
+            total += item.price * item.quantity
             counted_vol += item.quantity
+
         if counted_vol == Dec(0):
-            self.cached_price = (self.cached_price[0], self.model_manager.time)
+            self.cached_price = self.cached_price
         else:
-            self.cached_price = (total / counted_vol, self.model_manager.time)
-        return self.cached_price[0]
+            self.cached_price = total / counted_vol
+
+        self.last_cached_price_time = self.model_manager.time
+        return self.cached_price
 
     def step(self) -> None:
         """
@@ -669,5 +699,3 @@ class OrderBook:
                 self.history.append(trade)
 
             spread = self.spread()
-
-        #self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))

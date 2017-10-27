@@ -39,6 +39,8 @@ class HavvenManager:
         self.fiat: Dec = self.escrowed_curits
 
         self.rolling_avg_time_window: int = 7
+        self.volume_weighted_average: bool = False
+        """Whether to calculate the rolling average taking into account the volume of the trades"""
 
     @classmethod
     def round_float(cls, value: float) -> Dec:
