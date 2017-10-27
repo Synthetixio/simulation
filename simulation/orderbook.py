@@ -223,16 +223,18 @@ class OrderBook:
         if self.model_manager.time <= self.cached_price[1]:
             return self.cached_price[0]
         total = Dec(0)
-        counted = Dec(0)
+        # counted = Dec(0)
+        counted_vol = Dec(0)
         for item in reversed(self.history):
             if item.completion_time < self.model_manager.time - self.model_manager.rolling_avg_time_window:
                 break
-            total += item.price
-            counted += 1
-        if counted != 0:
-            self.cached_price = (total/counted, self.model_manager.time)
+            total += item.price*item.quantity
+            # counted += 1
+            counted_vol += item.quantity
+        if counted_vol == Dec(0):
+            self.cached_price = (self.cached_price[0], self.model_manager.time)
         else:
-            self.cached_price = (Dec(1), self.model_manager.time)
+            self.cached_price = (total / counted_vol, self.model_manager.time)
         return self.cached_price[0]
 
     def step(self) -> None:
