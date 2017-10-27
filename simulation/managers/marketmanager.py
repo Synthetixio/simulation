@@ -93,7 +93,7 @@ class MarketManager:
         bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
         ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
         return ob.TradeRecord(bid.issuer, ask.issuer,
-                              price, quantity, bid_fee, ask_fee)
+                              price, quantity, bid_fee, ask_fee, self.model_manager.time)
 
     def curit_nomin_match(self, bid: "ob.Bid",
                           ask: "ob.Ask") -> Optional["ob.TradeRecord"]:

@@ -305,8 +305,7 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-
-        return self.model.time-1, visualization_state
+        return self.model.manager.time-1, visualization_state
 
     def step(self):
         self.model.step()

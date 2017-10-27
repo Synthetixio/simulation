@@ -1,6 +1,6 @@
 """orderbook: an order book for trading in a market."""
 
-from typing import Iterable, Callable, List, Optional
+from typing import Iterable, Callable, List, Optional, Tuple
 from itertools import takewhile
 from decimal import Decimal as Dec
 
@@ -10,6 +10,7 @@ from sortedcontainers import SortedListWithKey, SortedDict
 import agents as ag
 
 from managers import HavvenManager
+
 
 class LimitOrder:
     """
@@ -141,17 +142,18 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
-                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec) -> None:
+                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int) -> None:
         self.buyer = buyer
         self.seller = seller
         self.price = price
         self.quantity = quantity
         self.bid_fee = bid_fee
         self.ask_fee = ask_fee
+        self.completion_time = time
 
     def __str__(self) -> str:
         return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
-               f" + ({self.bid_fee}, {self.ask_fee})"
+               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time}"
 
 
 # A type for matching functions in the order book.
@@ -185,7 +187,7 @@ class OrderBook:
         self.bid_price_buckets: SortedDict = SortedDict(lambda x: -x)
         self.ask_price_buckets: SortedDict = SortedDict(lambda x: x)
 
-        self.price: Dec = Dec('1.0')
+        self.cached_price: Tuple[Dec, int] = (Dec('1.0'), 0)
 
         self.time: int = 0
 
@@ -212,6 +214,26 @@ class OrderBook:
         Return this market's name.
         """
         return f"{self.base}/{self.quote}"
+
+    @property
+    def price(self) -> Dec:
+        """
+        Return the rolling average of the price, only calculate it once per tick
+        """
+        if self.model_manager.time <= self.cached_price[1]:
+            return self.cached_price[0]
+        total = Dec(0)
+        counted = Dec(0)
+        for item in reversed(self.history):
+            if item.completion_time < self.model_manager.time - self.model_manager.rolling_avg_time_window:
+                break
+            total += item.price
+            counted += 1
+        if counted != 0:
+            self.cached_price = (total/counted, self.model_manager.time)
+        else:
+            self.cached_price = (Dec(1), self.model_manager.time)
+        return self.cached_price[0]
 
     def step(self) -> None:
         """
@@ -459,8 +481,9 @@ class OrderBook:
 
         # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
-                                                     (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += \
+            (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
+            (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
 
         if bid.price == new_price:
             # We may assume the current price is already recorded,
@@ -572,8 +595,8 @@ class OrderBook:
 
         # Update the unavailable quantities for this ask,
         # deducting the old and crediting the new.
-        ask.issuer.__dict__[f"unavailable_{self.base}"] += (new_quantity + new_fee) - \
-                                                    (ask.quantity + ask.fee)
+        ask.issuer.__dict__[f"unavailable_{self.base}"] += \
+            (new_quantity + new_fee) - (ask.quantity + ask.fee)
 
         if ask.price == new_price:
             # We may assume the current price is already recorded,
@@ -646,4 +669,4 @@ class OrderBook:
 
             spread = self.spread()
 
-        self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))
+        #self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))
