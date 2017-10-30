@@ -1,13 +1,9 @@
 
-\subsection{System variables}
-\noindent What follows are the main variables of the system. 
-Under each heading, each row will correspond to a single quantity of interest.
-Each row will have three columns. Leftmost, a mathematical definition of the variable; in the middle, the dimension of the quantity (which units it is measured in); and on the rightmost, a short English summary of the variable.\\
+\section{System variables}
 
-\textbf{TODO:} Utilisation ratio needs to have distinct parts. Number of escrowed curits is not quite the same as the number of issued nomins.\\
+\noindent What follows are the main variables of the system. Under each heading, each row will correspond to a single quantity of interest. Each row will have three columns. Leftmost, a mathematical definition of the variable; in the middle, the dimension of the quantity (which units it is measured in); and on the rightmost, a short English summary of the variable.\\
 
-\noindent Certain abbreviations will be used.
-For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for curits and nomins considered as units of measurement. \\
+\noindent Certain abbreviations will be used. For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for Curits and Nomins considered as units of measurement. \\
 
 \paragraph{Prices}
 \begin{align*}
@@ -15,7 +11,7 @@ For example, \(\CUR{}\) and \(\NOM{}\) will be used as abbreviations for curits 
     P_n & \ && &(\frac{\text{\$}}{\NOM{}}) && &\text{: nomin price.} \\
     \pi &:= \frac{P_c}{P_n} \ && &(\frac{\NOM{}}{\CUR{}}) && &\text{: curit to nomin conversion factor.} \\
     P_c' &= f(V_n, V_v) \cdot R && &(\frac{\text{\$}}{\NOM{} \cdot \text{sec}}) && &\text{: curit price rate of change.}
-    \intertext{Here \(R\) is a risk term incoporating, for example, volatility, number of buyers versus sellers, and so on.}
+    \intertext{Here \(R\) is a risk term incorporating, for example, volatility, number of buyers versus sellers, and so on.}
 \end{align*}
 \\
 
@@ -52,10 +48,8 @@ S_r \ && (\frac{1}{\text{sec}}) && &\text{: average redemption rate}
     V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin} \leftrightarrow \text{curit conversion rate.} \\
     V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin issuance rate.} \\
     V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: curit redemption rate.} \\
-    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.
-               Actually perhaps it should grow with the number of escrowed curits with
-               no nomins issued against them.}
-    \intertext{\(V_r\), by contrast, is taken to grow proportionally with the number of escrowed curits.}
+    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system. Actually perhaps it should grow with the number of escrowed Curits with no Nomins issued against them.}
+    \intertext{\(V_r\), by contrast, is taken to grow proportionally with the number of escrowed Curits.}
 \end{align*}
 \\
 
