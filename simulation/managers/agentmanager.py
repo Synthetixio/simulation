@@ -92,6 +92,10 @@ class AgentManager:
             self.escrow_nomin_shorters.append(escrow_nomin_shorter)
             i += 1
 
+        speculator = ag.Speculator(i, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(5)))
+        self.havven.schedule.add(speculator)
+        i += 1
+
         central_bank = ag.CentralBank(
             i, self.havven, fiat=Dec(num_agents * init_value),
             nomin_target=Dec('1.0')
