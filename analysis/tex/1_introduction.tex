@@ -45,9 +45,9 @@ frameworks for cryptocurrencies is required. \\
 
 \subsection{Achieving Stability}
 
-\noindent A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a decentralised
-economy.
-Such a token is challenging to design. Central banks have near complete discretion over their money supplies;
+\noindent A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a
+decentralised economy.
+Such a token is a challenge to design. Central banks have near complete discretion over their money supplies;
 vast quantities of effort and wealth are expended in supporting the stability of state-backed fiat currencies.
 And yet, there are many examples where these efforts have utterly failed.
 Stability is far harder in cryptoeconomic systems because their behaviour must be almost completely
@@ -63,21 +63,48 @@ constructed with the current orthodoxies baked in could succeed in the long term
 Instead we prefer simply to map the value of a stable token to that of the global reserve currency, the USD.
 In this way we provide \textit{nominal} stability, by relying on the stability of the underlying
 fiat currency.
-We have therefore taken to simply provide nominal stability by mapping the value of a stable token to an
-external currency, initially the USD. This significantly reduces the surface area of the system,
-since we do not need our stable token to be stable in and of itself, 
-we only need it to be stable with respect to an external measure.
-So if the USD becomes subject to hyperinflation our stable token will be similarly impacted.
-The mechanism by which we achieve this is described below, but in short,
-\textbf{Havven finds the value for the entire system in USD and issues a token denominated in
-USD backed by the collateral (value) of the system itself.}
-Thus, we remove the need for the system to monitor demand for the currency;
-it must simply be able to determine the price of the entire system and ensure that the total value of
-circulating currency remains below some pre-defined threshold. \\
+This peg, stable as measured with respect to a single external asset, is more achievable, though it has
+an obvious limitation: it is only as good as that external asset.
+For example, ff the US dollar is subject to hyperinflation, our stable token will be similarly impacted.
+However, we do not consider this to be a severe problem, given the historically greater stability of
+fiat currencies, and that any other asset can be trivially substituted for USD at any time. \\
+
+\noindent 
+\noindent The mechanism Havven uses for maintaining its peg relies on two linked tokens and a
+complex of incentives for stability:
+
+\paragraph{Nomin} The stablecoin itself, whose supply floats. Its price measured in fiat currency should be relatively stable.
+Other than price stability, the system should also encourage some adequate level of liquidity for Nomins
+to act as a useful medium of exchange.
+
+\paragraph{Curit} The collateral token, whose supply is static.
+The capitalisation of the Curits in the market reflects the system's aggregate value, and the reserve
+which backs the stablecoin. Thus, users who hold Curits take on the role of maintaining the peg. \\
+
+\noindent Each holder of Curits is granted the right to issue a value of Nomins in proportion to the USD value
+of the Curits they hold and are willing to place into escrow. If the user wishes to redeem their escrowed Curits, they must
+present the system with Nomins in order to free their Curits and trade them again.
+The holders of this token provide both collateral and liquidity, and in so doing assume some
+level of risk. To compensate this risk, Nomin-issuers will be rewarded with fees the system levies
+automatically as part of its normal operation.
+
+In this manner, the system incentivises the issuance and destruction of nomins so that the value of
+the nomin pool expands and contracts in proportion with the total value of curits backing them.
+If the curit price changes, then the volume of the token pool changes with it.
+On the other hand, if the nomin price changes exogenously, then the system is designed to provide
+incentives for actors to counteract that change. \\
 
 \subsection{What Havven is designed to solve}
 
-\noindent Havven has been designed with two criteria in mind; not compromising decentralisation for stability, and to be stable with respect to only an external proven medium of exchange. The first tenet should be fairly self-evident to anyone who believes in the decentralised nature of blockchain. The second is predicated on the fact that so long as the world is dominated by fiat, a solution that demonstrates incremental utility over both fiat and existing cryptocurrencies as a medium of exchange will significantly improve cryptocurrency adoption. For the end user, whether a stablecoin is intrinsically stable or simply mapped to an external value is somewhat irrelevant. Thus we chose a path that represents an incremental technical improvement, but that when achieved will unlock a myriad of use cases currently not possible due to the limitations of the Bitcoin monetary policy. \\
+\noindent Havven has been designed with two criteria in mind; not compromising decentralisation for stability,
+and to be stable with respect to only an external proven medium of exchange.
+The first tenet should be fairly self-evident to anyone who believes in the decentralised nature of blockchain.
+The second is predicated on the fact that so long as the world is dominated by fiat, a solution that
+demonstrates incremental utility over both fiat and existing cryptocurrencies as a medium of exchange will
+significantly improve cryptocurrency adoption. For the end user, whether a stablecoin is intrinsically stable
+or simply mapped to an external value is somewhat irrelevant.
+Thus we chose a path that represents an incremental technical improvement, but that when achieved will
+unlock a myriad of use cases currently not possible due to the limitations of the Bitcoin monetary policy. \\
 
 \subsection{Havven, a stablecoin system}
 
