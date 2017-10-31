@@ -74,18 +74,18 @@ fiat currencies, and that any other asset can be trivially substituted for USD a
 complex of incentives for stability:
 
 \paragraph{Nomin} The stablecoin itself, whose supply floats. Its price measured in fiat currency should be relatively stable.
-Other than price stability, the system should also encourage some adequate level of liquidity for Nomins
+Other than price stability, the system should also encourage some adequate level of liquidity for nomins
 to act as a useful medium of exchange.
 
 \paragraph{Curit} The collateral token, whose supply is static.
-The capitalisation of the Curits in the market reflects the system's aggregate value, and the reserve
-which backs the stablecoin. Thus, users who hold Curits take on the role of maintaining the peg. \\
+The capitalisation of the curits in the market reflects the system's aggregate value, and the reserve
+which backs the stablecoin. Thus, users who hold curits take on the role of maintaining the peg. \\
 
-\noindent Each holder of Curits is granted the right to issue a value of Nomins in proportion to the USD value
-of the Curits they hold and are willing to place into escrow. If the user wishes to redeem their escrowed Curits, they must
-present the system with Nomins in order to free their Curits and trade them again.
+\noindent Each holder of curits is granted the right to issue a value of nomins in proportion to the USD value
+of the curits they hold and are willing to place into escrow. If the user wishes to redeem their escrowed curits, they must
+present the system with nomins in order to free their curits and trade them again.
 The holders of this token provide both collateral and liquidity, and in so doing assume some
-level of risk. To compensate this risk, Nomin-issuers will be rewarded with fees the system levies
+level of risk. To compensate this risk, nomin-issuers will be rewarded with fees the system levies
 automatically as part of its normal operation.
 
 In this manner, the system incentivises the issuance and destruction of nomins so that the value of
@@ -133,27 +133,27 @@ end user the distinction is somewhat irrelevant, we therefore take an approach w
 to implement and model; and that will result in practically the same outcome. Hence, we propose a system of two
 related tokens which serve distinct purposes as a part of the Havven stablecoin system.
 
-\paragraph{Curit} The collateral token. Users who hold Curits take on the role of maintaining the peg. 
+\paragraph{Curit} The collateral token. Users who hold curits take on the role of maintaining the peg. 
 The holders of this token are providing collateral for the stablecoin, and in so doing, assuming some level of
-risk. To compensate this risk, Curit-holders will be rewarded with fees the system levies automatically as part
-of its normal operation. The capitalisation of the Curits in the market reflects the system's aggregate value.
+risk. To compensate this risk, curit-holders will be rewarded with fees the system levies automatically as part
+of its normal operation. The capitalisation of the curits in the market reflects the system's aggregate value.
 
-\paragraph{Nomin} The stablecoin. The system intends the price of each Nomin to be stabilised in terms of some
-external, relatively-stable currency or commodity basket. Each holder of Curits is granted the right to issue
-Nomins, in proportion to the value of the Curits they hold and are willing to place into escrow.
-If the user wishes to redeem their escrowed Curits, they must present the system with Nomins in order to free
-their Curits and trade them again. Other than price stability, the system should also encourage some adequate
-level of liquidity for Nomins to act as a useful medium of exchange. \\
+\paragraph{Nomin} The stablecoin. The system intends the price of each nomin to be stabilised in terms of some
+external, relatively-stable currency or commodity basket. Each holder of curits is granted the right to issue
+nomins, in proportion to the value of the curits they hold and are willing to place into escrow.
+If the user wishes to redeem their escrowed curits, they must present the system with nomins in order to free
+their curits and trade them again. Other than price stability, the system should also encourage some adequate
+level of liquidity for nomins to act as a useful medium of exchange. \\
 
 \noindent Clearly, the introduction of a new cryptocurrency, in isolation, offers no additional value given
 the existing and established alternatives such as Bitcoin and Ether. Havven thus seeks to derive value from the
 addition of \textbf{stability} to its inherited properties as a modern cryptocurrency. \\
 
-\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible ``Nomin''
-tokens represent some value held in reserve. We define the Curit to be the token of backing value as this is
-both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability
-to maintain stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value
-because we define Curits as carrying the value associated with being able to provide a functioning stable
+\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible ``nomin''
+tokens represent some value held in reserve. We define the curit to be the token of backing value as this is
+both the start and end point of using the Havven mechanism; curits develop intrinsic value given their ability
+to maintain stability (through nomins) with an external denomination. Hence, nomins have no intrinsic value
+because we define curits as carrying the value associated with being able to provide a functioning stable
 medium of exchange. \\
 
 \noindent Havven however is not representative money as we have traditionally known it. Historical instantiations,
@@ -162,12 +162,12 @@ economic turmoil. Given that it does not need to act as the primary currency in 
 of any pressure to respond and correct for macroeconomic market issues. We leave such manipulations of the money
 supply to the whims of central banks, for good or ill. Thus Havven is at its simplest a bridge between fiat and
 crypto, a hybrid of the two technologies and thus for numerous use cases superior to both. But it bears
-explicitly stating that whatever monetary policy is applied to the external value that Nomins are mapped to will
+explicitly stating that whatever monetary policy is applied to the external value that nomins are mapped to will
 flow through to the system, such that if the USD is significantly devalued through inflation, so too will the
-Nomin. In this scenario, the value of Curits against the USD will increase and more Nomins will be able to be
+nomin. In this scenario, the value of curits against the USD will increase and more nomins will be able to be
 issued against that value, so long as they are denominated in USD. \\
 
-\noindent The Havven system is designed such that the issued stablecoin (Nomins) is both denominated in and
+\noindent The Havven system is designed such that the issued stablecoin (nomins) is both denominated in and
 mapped to an external store of value. Throughout this paper we use USD as the reference, however this could
 be any external and appropriately fungible asset, such as a commodity or fiat currency, (note, denominations
 in other cryptocurrencies are not necessary as these already benefit from the features Havven is implementing
@@ -178,7 +178,7 @@ for the external denominator). \\
 \noindent Nomins in the early stages of the system are anticipated to be used as a means to hedge against
 cryptocurrency volatility and as a settlement layer. For example, centralised cryptocurrency exchanges may
 use the Havven system to settle between themselves, expressing the value of the settled funds/assets in USD
-(for Nomins denominated in USD). Later, with greater maturity and scalability of Ethereum, Havven may be
+(for nomins denominated in USD). Later, with greater maturity and scalability of Ethereum, Havven may be
 extended for more general purpose use. \\
 
 
