@@ -1,28 +1,79 @@
 \section{Introduction}
 
-Introduction. \\
+\subsection{Money and Cryptocurrencies}
 
-\subsection{What is money?}
+There are three primary functions of money; to act as a unit of account, a medium of exchange
+and as a store of value. In addition, money should ideally exhibit durability,
+portability, divisibility, uniformity, limited supply, and acceptability.
+Money has become almost invisible over the past few decades as payment technology has advanced.
+Because of this, it is often lost upon users of money that it is itself a technology that can be
+improved. Specifically, this means improving the performance of our six desirable properties. \\
 
-There are three primary functions of money; to act as a unit of account, a medium of exchange and as a store of value. In addition to these three functions, money should ideally exhibit durability, portability, divisibility, uniformity, limited supply, and acceptability. Money has become almost invisible over the past few decades as payment technology has advanced. Because of this, it is often lost upon users of money that it is itself a technology that can be improved. Specifically, this means improving the performance of our six desirable properties.
+\noindent Bitcoin as a technological improvement on existing forms of money is impressive because it manages to
+simultaneously improve durability, portability, and divisibility.
+Further, it does so without requiring the enforcement of a nation state from which to derive its value.
+The Bitcoin supply is, therefore, not subject to control by any central authority.
 
-\subsection{Bitcoin as money}
+This fixed monetary policy means that increased adoption has tended to drive the price up over time,
+allowing Bitcoin to outperform other forms of money as a store of value, precisely because it is not
+subject to debasement and devaluation. Unfortunately this fixed monetary supply creates the potential
+for volatility in the short term because there is no mechanism within Bitcoin that can monitor or
+adjust to changing demand for the currency.
 
-Bitcoin as a technological improvement on existing forms of money is impressive because it manages to simultaneously improve durability, portability, and divisibility. Further, it does so without requiring the support of a nation state from which to derive its value. The Bitcoin supply is, therefore, not subject to control by a centralised entity. This fixed monetary policy means that increased adoption has tended to drive the price up over time, allowing Bitcoin to outperform other forms of money as a store of value, precisely because it is not subject to debasement and devaluation. Unfortunately this fixed monetary supply creates the potential for volatility in the short term because there is no mechanism within Bitcoin that can monitor or adjust to changing demand for the currency. Thus it has tended to be a poor medium of exchange and an even worse unit of account. In order for something to perform well as a medium of exchange or unit of account it must remain relatively stable against other goods and services, because money is ultimately a good that other goods are denominated in. If the price of money as a good is too varied then it becomes less useful as a denominator of other goods. \\
+Thus it has tended to be a poor medium of exchange and an even worse unit of account.
+In order for something to perform well as a medium of exchange or unit of account it must remain
+relatively stable against other goods and services, because money is ultimately a good that other goods
+are denominated in. If the price of money as a good is too varied then it becomes less useful as a
+denominator of other goods. \\
 
-\subsection{What is a stablecoin}
+\subsection{Stablecoins}
 
-\noindent A stablecoin is a cryptocurrency designed for price stability, such that it can function as both a medium of exchange and unit of account. It should ideally be as effective for making payments as fiat currencies like the US Dollar, but still retain the desirable characteristics of Bitcoin; transaction immutability, censorship resistance and decentralisation. \\
+\noindent A stablecoin is a cryptocurrency designed for price stability, such that it can function as
+both a medium of exchange and unit of account. It should ideally be as effective for making payments
+as fiat currencies like the US Dollar, but still retain the desirable characteristics of Bitcoin;
+transaction immutability, censorship resistance and decentralisation. \\
 
-\subsection{Why stablecoins}
+\noindent Cryptocurrencies are in these ways a far better form of money, but have been significantly hindered
+in their adoption by the fact that as decentralised systems, they have had relatively inflexible internal
+monetary policies. Hence stability continues to be one of the most valuable and yet the most elusive
+characteristics.
+The fact that we have yet to achieve stability in cryptocurrencies without resorting to extreme
+centralisation should by no means be taken as evidence that this problem is insurmountable.
+The reality is that the technology to create alternative monetary policies within
+cryptoeconomic systems has only existed for a few years. Clearly, significant research into stable monetary
+frameworks for cryptocurrencies is required. \\
 
-\noindent Cryptocurrencies in some ways a far better form of money, but have been significantly hindered in their adoption by the fact that as decentralised systems, they have had relatively inflexible internal monetary policies. Hence stability continues to be one of the most valuable and yet the most elusive characteristics. The fact that we have yet to achieve stability in cryptocurrencies without resorting to extreme centralisation should by no means be taken as evidence that this problem is insurmountable. The reality is that the technology to create alternative monetary policies within cryptoeconomic systems has only existed for a few years. Clearly, significant research into stable monetary frameworks for cryptocurrencies is required. \\
+\subsection{Achieving Stability}
 
-\subsection{Intrinsic versus Nominal Stability}
+\noindent A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a decentralised
+economy.
+Such a token is challenging to design. Central banks have near complete discretion over their money supplies;
+vast quantities of effort and wealth are expended in supporting the stability of state-backed fiat currencies.
+And yet, there are many examples where these efforts have utterly failed.
+Stability is far harder in cryptoeconomic systems because their behaviour must be almost completely
+defined at the start, which means that there can be very little consideration for events that are unpredicted.
+We must likely resign ourselves to the fact that these systems will be only functional under certain conditions.
+However, if those conditions are well understood, and the cost of destabilising the system is greater than
+any derived benefit, we might ensure that the utility of the system outweighs the risks of participating in it. \\
 
-\noindent Stability is a complex goal, and there are many different approaches to achieving it, but there is no question that a viable, autonomous and decentralised system that supports the issuance of an intrinsically stable token is a key element in the progression towards a decentralised economy. Unfortunately while there is no evidence demonstrating this approach is not possible, such a system is still extremely challenging to design. Central banks have near complete discretion over their money supplies and vast numbers of man hours are expended in supporting the stability of state-based fiat currencies. And yet, there are many examples where these efforts have utterly failed. Stability is far harder in cryptoeconomic systems because a cryptoeconomic system must be almost completely defined at the start, which means that there can be very little consideration for events that are unpredicted. We must likely resign ourselves to the fact that such a system will be only functional within certain narrow parameters. This is not in itself necessarily an issue, provided the parameters within which the system functions are well understood and the cost of destabilising the system is sufficient such that the utility of the system outweighs the risks of participating in it. \\
-
-\noindent With Havven we have accepted that such an approach is likely to be out of reach in the short term. If economists cannot agree on the optimal approach to monetary policy, it seems unlikely that a system constructed with the current state of knowledge could succeed in the long term. We have therefore taken to simply provide nominal stability by mapping the value of a stable token to an external currency, initially the USD. This significantly reduces the surface area of the system, since we do not need our stable token to be stable in and of itself, we only need it to be stable with respect to an external measure. So if the USD becomes subject to hyperinflation our stable token will be similarly impacted. The mechanism by which we achieve this is described below, but in short, \textbf{Havven finds the value for the entire system in USD and issues a token denominated in USD backed by the collateral (value) of the system itself.} Thus, we remove the need for the system to monitor demand for the currency; it must simply be able to determine the price of the entire system and ensure that the total value of circulating currency remains below some pre-defined threshold. \\
+\noindent With Havven we have accepted that such an approach to building an \textit{intrinsically} stable
+currency is likely out of reach in the short term.
+If economists cannot agree on the optimal approach to monetary policy, it seems unlikely that a system
+constructed with the current orthodoxies baked in could succeed in the long term.
+Instead we prefer simply to map the value of a stable token to that of the global reserve currency, the USD.
+In this way we provide \textit{nominal} stability, by relying on the stability of the underlying
+fiat currency.
+We have therefore taken to simply provide nominal stability by mapping the value of a stable token to an
+external currency, initially the USD. This significantly reduces the surface area of the system,
+since we do not need our stable token to be stable in and of itself, 
+we only need it to be stable with respect to an external measure.
+So if the USD becomes subject to hyperinflation our stable token will be similarly impacted.
+The mechanism by which we achieve this is described below, but in short,
+\textbf{Havven finds the value for the entire system in USD and issues a token denominated in
+USD backed by the collateral (value) of the system itself.}
+Thus, we remove the need for the system to monitor demand for the currency;
+it must simply be able to determine the price of the entire system and ensure that the total value of
+circulating currency remains below some pre-defined threshold. \\
 
 \subsection{What Havven is designed to solve}
 
