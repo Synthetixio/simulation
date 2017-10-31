@@ -69,7 +69,7 @@ For example, ff the US dollar is subject to hyperinflation, our stable token wil
 However, we do not consider this to be a severe problem, given the historically greater stability of
 fiat currencies, and that any other asset can be trivially substituted for USD at any time. \\
 
-\noindent 
+\subsection{Havven}
 \noindent The mechanism Havven uses for maintaining its peg relies on two linked tokens and a
 complex of incentives for stability:
 
@@ -108,27 +108,78 @@ unlock a myriad of use cases currently not possible due to the limitations of th
 
 \subsection{Havven, a stablecoin system}
 
-\noindent We intend to design a decentralised stablecoin; a cryptocurrency which can act as a medium of exchange by maintaining a sufficiently stable price relative to some external denomination, but that does not require a trusted third party to maintain the stability.\\
+\noindent We intend to design a decentralised stablecoin; a cryptocurrency which can act as a medium of
+exchange by maintaining a sufficiently stable price relative to some external denomination,
+but that does not require a trusted third party to maintain the stability.\\
 
-\noindent  In his discussion of Hayek money~\cite{ametrano2016hayek}, Ametrano correctly makes the point that Bitcoin serves the purpose of crypto-gold much better than it does crypto-unit-of-account due to its volatility and constrained supply. By contrast, governments -- which mint their own currencies -- can and do execute discretionary stabilisation policies to manipulate the circulating supply. This kind of powerful lever is not available to Bitcoin and other supply-constrained currencies of its type, but a similar system whose monetary policy is algorithmically countercyclical rather than deflationary could inherit the desirable characteristics of both monetary paradigms. It should be possible, by automatic means, to incentivise the issuance and destruction of tokens according to demand. In this way, users of such a currency would be allowed to capitalise it while the system automatically seeks to expand and contract the money supply as its backing reserve fluctuates in value. By this mechanism we might produce a more perfect currency where supply floats with necessity, but which is not prone to debasement and other issues commonly associated with either inflationary or deflationary forms of money. Ideally, we also seek to remove some of the distortions created by traditional monetary policy, which, when it is expansionary, shrinks the purchasing power in every account which is not a direct beneficiary of that policy.\\
+\noindent  In his discussion of Hayek money~\cite{ametrano2016hayek}, Ametrano correctly makes the point that
+Bitcoin serves the purpose of crypto-gold much better than it does crypto-unit-of-account due to its volatility
+and constrained supply. By contrast, governments -- which mint their own currencies -- can and do execute
+discretionary stabilisation policies to manipulate the circulating supply. This kind of powerful lever is not
+available to Bitcoin and other supply-constrained currencies of its type, but a similar system whose monetary
+policy is algorithmically countercyclical rather than deflationary could inherit the desirable characteristics
+of both monetary paradigms. It should be possible, by automatic means, to incentivise the issuance and
+destruction of tokens according to demand. In this way, users of such a currency would be allowed to
+capitalise it while the system automatically seeks to expand and contract the money supply as its backing
+reserve fluctuates in value. By this mechanism we might produce a more perfect currency where supply floats
+with necessity, but which is not prone to debasement and other issues commonly associated with either
+inflationary or deflationary forms of money. Ideally, we also seek to remove some of the distortions created
+by traditional monetary policy, which, when it is expansionary, shrinks the purchasing power in every account
+which is not a direct beneficiary of that policy.\\
 
-\noindent While we believe that ultimately such a system of intrinsic stability can be constructed, we see such an achievement as relatively far away from being practicable. As discussed above, we also believe that to the end user the distinction is somewhat irrelevant, we therefore take an approach which we believe will be simpler to implement and model; and that will result in practically the same outcome. Hence, we propose a system of two related tokens which serve distinct purposes as a part of the Havven stablecoin system.
+\noindent While we believe that ultimately such a system of intrinsic stability can be constructed, we see such
+an achievement as relatively far away from being practicable. As discussed above, we also believe that to the
+end user the distinction is somewhat irrelevant, we therefore take an approach which we believe will be simpler
+to implement and model; and that will result in practically the same outcome. Hence, we propose a system of two
+related tokens which serve distinct purposes as a part of the Havven stablecoin system.
 
-\paragraph{Curit} The collateral token. Users who hold Curits take on the role of maintaining the peg. The holders of this token are providing collateral for the stablecoin, and in so doing, assuming some level of risk. To compensate this risk, Curit-holders will be rewarded with fees the system levies automatically as part of its normal operation. The capitalisation of the Curits in the market reflects the system's aggregate value.
+\paragraph{Curit} The collateral token. Users who hold Curits take on the role of maintaining the peg. 
+The holders of this token are providing collateral for the stablecoin, and in so doing, assuming some level of
+risk. To compensate this risk, Curit-holders will be rewarded with fees the system levies automatically as part
+of its normal operation. The capitalisation of the Curits in the market reflects the system's aggregate value.
 
-\paragraph{Nomin} The stablecoin. The system intends the price of each Nomin to be stabilised in terms of some external, relatively-stable currency or commodity basket. Each holder of Curits is granted the right to issue Nomins, in proportion to the value of the Curits they hold and are willing to place into escrow. If the user wishes to redeem their escrowed Curits, they must present the system with Nomins in order to free their Curits and trade them again. Other than price stability, the system should also encourage some adequate level of liquidity for Nomins to act as a useful medium of exchange. \\
+\paragraph{Nomin} The stablecoin. The system intends the price of each Nomin to be stabilised in terms of some
+external, relatively-stable currency or commodity basket. Each holder of Curits is granted the right to issue
+Nomins, in proportion to the value of the Curits they hold and are willing to place into escrow.
+If the user wishes to redeem their escrowed Curits, they must present the system with Nomins in order to free
+their Curits and trade them again. Other than price stability, the system should also encourage some adequate
+level of liquidity for Nomins to act as a useful medium of exchange. \\
 
-\noindent Clearly, the introduction of a new cryptocurrency, in isolation, offers no additional value given the existing and established alternatives such as Bitcoin and Ether. Havven thus seeks to derive value from the addition of \textbf{stability} to its inherited properties as a modern cryptocurrency. \\
+\noindent Clearly, the introduction of a new cryptocurrency, in isolation, offers no additional value given
+the existing and established alternatives such as Bitcoin and Ether. Havven thus seeks to derive value from the
+addition of \textbf{stability} to its inherited properties as a modern cryptocurrency. \\
 
-\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible ``Nomin'' tokens represent some value held in reserve. We define the Curit to be the token of backing value as this is both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability to maintain stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value because we define Curits as carrying the value associated with being able to provide a functioning stable medium of exchange. \\
+\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible ``Nomin''
+tokens represent some value held in reserve. We define the Curit to be the token of backing value as this is
+both the start and end point of using the Havven mechanism; Curits develop intrinsic value given their ability
+to maintain stability (through Nomins) with an external denomination. Hence, Nomins have no intrinsic value
+because we define Curits as carrying the value associated with being able to provide a functioning stable
+medium of exchange. \\
 
-\noindent Havven however is not representative money as we have traditionally known it. Historical instantiations, such as the gold standard which allowed anyone to claim against the reserve, caused exacerbations in times of economic turmoil. Given that it does not need to act as the primary currency in the market, Havven is relieved of any pressure to respond and correct for macroeconomic market issues. We leave such manipulations of the money supply to the whims of central banks, for good or ill. Thus Havven is at its simplest a bridge between fiat and crypto, a hybrid of the two technologies and thus for numerous use cases superior to both. But it bears explicitly stating that whatever monetary policy is applied to the external value that Nomins are mapped to will flow through to the system, such that if the USD is significantly devalued through inflation, so too will the Nomin. In this scenario, the value of Curits against the USD will increase and more Nomins will be able to be issued against that value, so long as they are denominated in USD. \\
+\noindent Havven however is not representative money as we have traditionally known it. Historical instantiations,
+such as the gold standard which allowed anyone to claim against the reserve, caused exacerbations in times of
+economic turmoil. Given that it does not need to act as the primary currency in the market, Havven is relieved
+of any pressure to respond and correct for macroeconomic market issues. We leave such manipulations of the money
+supply to the whims of central banks, for good or ill. Thus Havven is at its simplest a bridge between fiat and
+crypto, a hybrid of the two technologies and thus for numerous use cases superior to both. But it bears
+explicitly stating that whatever monetary policy is applied to the external value that Nomins are mapped to will
+flow through to the system, such that if the USD is significantly devalued through inflation, so too will the
+Nomin. In this scenario, the value of Curits against the USD will increase and more Nomins will be able to be
+issued against that value, so long as they are denominated in USD. \\
 
-\noindent The Havven system is designed such that the issued stablecoin (Nomins) is both denominated in and mapped to an external store of value. Throughout this paper we use USD as the reference, however this could be any external and appropriately fungible asset, such as a commodity or fiat currency, (note, denominations in other cryptocurrencies are not necessary as these already benefit from the features Havven is implementing for the external denominator). \\
+\noindent The Havven system is designed such that the issued stablecoin (Nomins) is both denominated in and
+mapped to an external store of value. Throughout this paper we use USD as the reference, however this could
+be any external and appropriately fungible asset, such as a commodity or fiat currency, (note, denominations
+in other cryptocurrencies are not necessary as these already benefit from the features Havven is implementing
+for the external denominator). \\
 
 \subsection{Use cases for Stablecoins}
 
-\noindent Nomins in the early stages of the system are anticipated to be used as a means to hedge against cryptocurrency volatility and as a settlement layer. For example, centralised cryptocurrency exchanges may use the Havven system to settle between themselves, expressing the value of the settled funds/assets in USD (for Nomins denominated in USD). Later, with greater maturity and scalability of Ethereum, Havven may be extended for more general purpose use. \\
+\noindent Nomins in the early stages of the system are anticipated to be used as a means to hedge against
+cryptocurrency volatility and as a settlement layer. For example, centralised cryptocurrency exchanges may
+use the Havven system to settle between themselves, expressing the value of the settled funds/assets in USD
+(for Nomins denominated in USD). Later, with greater maturity and scalability of Ethereum, Havven may be
+extended for more general purpose use. \\
 
 
 \noindent More information can be found on havven.io or by reading the position paper.
