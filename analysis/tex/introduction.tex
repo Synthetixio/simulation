@@ -1,3 +1,21 @@
+\begin{abstract}
+
+We present Havven, a stablecoin system. It is an implementation of representative money seeking to achieve a stable price with respect to an external asset (such as the USD). Havven is a dual-token system that issues a stablecoin whose value is represented by the value of the cryptoeconomic system itself. In Havven, stablecoins are overcollateralised such that the value of the collateral pool is higher than the value of the stablecoins in circulation. Reserve tokens are placed in escrow for the purpose of issuing stablecoins as well as for earning fees generated from transactions.
+
+A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a decentralised economy.
+
+Even with the powers afforded to central banks, there are many examples where currency stabilisation efforts have failed. Attempting to implement central banking mechanisms in a cryptoeconomic systems is even harder given that the behaviour of such systems must be completely defined at the start and they struggle to react to unforeseen market conditions.
+
+On the other hand, while simpler, pure fiat-backed cryptocurrencies are necessarily subject to centralisation risks. 
+
+Havven is thus a hybrid approach which simultaneously avoids many centralisation risks as well as the complexity of algorithmic central banking.
+
+Backing a stablecoin by a cryptoeconomic asset is the most pragmatic approach to creating a stable cryptocurrency and accelerating the adoption of distributed ledger technology.
+
+
+
+\end{abstract}
+
 \section{Introduction}
 
 \subsection{Money and Cryptocurrencies}
@@ -42,32 +60,6 @@ centralisation should by no means be taken as evidence that this problem is insu
 The reality is that the technology to create alternative monetary policies within
 cryptoeconomic systems has only existed for a few years. Clearly, significant research into stable monetary
 frameworks for cryptocurrencies is required. \\
-
-\subsection{Achieving Stability}
-
-\noindent A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a
-decentralised economy.
-Such a token is a challenge to design. Central banks have near complete discretion over their money supplies;
-a great deal of effort and wealth are expended in supporting the stability of state-backed fiat currencies.
-And yet, there are many examples where these efforts have utterly failed.
-Stability is far harder in cryptoeconomic systems because their behaviour must be almost completely
-defined at the start, which means that there can be very little consideration for events that are unpredicted.
-We must likely resign ourselves to the fact that these systems will be only functional under certain conditions.
-However, if those conditions are well understood, and the cost of destabilising the system is greater than
-any derived benefit, we might ensure that the utility of the system outweighs the risks of participating in it. \\
-
-\noindent With Havven we have accepted that such an approach to building an \textit{intrinsically} stable
-currency is likely out of reach in the short term.
-If economists cannot agree on the optimal approach to monetary policy, it seems unlikely that a system
-constructed with the current orthodoxies baked in could succeed in the long term.
-Instead we prefer simply to map the value of a stable token to that of the global reserve currency, the USD.
-In this way we provide \textit{nominal} stability, by relying on the stability of the underlying
-fiat currency.
-This peg, stable as measured with respect to a single external asset, is more achievable, though it has
-an obvious limitation: it is only as good as that external asset.
-For example, ff the US dollar is subject to hyperinflation, our stable token will be similarly impacted.
-However, we do not consider this to be a severe problem, given the historically greater stability of
-fiat currencies, and that any other asset can be trivially substituted for USD at any time. \\
 
 \subsection{Havven}
 \noindent The mechanism Havven uses for maintaining its peg relies on two linked tokens and a
