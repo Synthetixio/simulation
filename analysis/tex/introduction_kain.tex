@@ -34,52 +34,44 @@ as fiat currencies like the US Dollar, but still retain the desirable characteri
 transaction immutability, censorship resistance and decentralisation. \\
 
 \noindent Cryptocurrencies are in these ways a far better form of money, but have been significantly hindered
-in their adoption by the fact that as decentralised systems, they have had relatively inflexible internal
-monetary policies which have fostered volatility and deflation. Hence stability continues to be one of the
-most valuable and yet the most elusive characteristics.
-The fact that we have yet to achieve stability in cryptocurrencies without resorting to extreme
-centralisation should by no means be taken as evidence that this problem is insurmountable.
-The reality is that the technology to create alternative monetary policies within
-cryptoeconomic systems has only existed for a few years. Clearly, significant research into stable monetary
+in their adoption by volatility caused by the fact that as decentralised systems, they have tended to have relatively inflexible internal
+monetary policies. Hence stability continues to be one of the most valuable and yet the most elusive
+characteristics. The reality is that the technology to create alternative monetary policies within
+cryptoeconomic systems has not existed for very long. Clearly, significant research into stable monetary
 frameworks for cryptocurrencies is required. \\
 
 \subsection{Achieving Stability}
 
-\noindent A viable, autonomous, and decentralised stablecoin is a \textit{sine qua non} for achieving a
-decentralised economy.
-Such a token is a challenge to design. Central banks have near complete discretion over their money supplies;
-a great deal of effort and wealth are expended in supporting the stability of state-backed fiat currencies.
+\noindent Broadly there are two mechanisms for creating a stable cryptocurrency; the first is to design an autonomous system that can monitor and moderate the supply of money to align the price of that money with an external good, the second is to create a representative money where the cryptocurrency is merely a token representing a real world asset. The second approach has been implemented previously but the trade-off when using an asset in the physical world is the significant trust that must be placed in the custodians of that asset. The first approach has been worked on for a number of years and for various reasons has yet to be implemented successfully. This should not be surprising, central banks have near complete discretion over their money supplies; a great deal of effort and wealth are expended in supporting the stability of state-backed fiat currencies.
 And yet, there are many examples where these efforts have utterly failed.
 Stability is far harder in cryptoeconomic systems because their behaviour must be almost completely
 defined at the start, which means that there can be very little consideration for events that are unpredicted.
 We must likely resign ourselves to the fact that these systems will be only functional under certain conditions.
 However, if those conditions are well understood, and the cost of destabilising the system is greater than
-any derived benefit, we might ensure that the utility of the system outweighs the risks of participating in it. \\
+any derived benefit, we might ensure that the utility of the system outweighs the risks of participating in it. However, the fact that we have yet to achieve stability in cryptocurrencies without resorting to extreme centralisation should by no means be taken as evidence that this problem is insurmountable. \\
 
 \noindent With Havven we have accepted that such an approach to building an \textit{intrinsically} stable
 currency is likely out of reach in the short term.
 If economists cannot agree on the optimal approach to monetary policy, it seems unlikely that a system
 constructed with the current orthodoxies baked in could succeed in the long term.
-Instead we prefer simply to map the value of a stable token to that of the global reserve currency, the USD.
+Instead we have chosen to simply map the value of our stable token to that of the global reserve currency, the USD.
 In this way we provide \textit{nominal} stability, by relying on the stability of the underlying
-fiat currency.
-This peg, stable as measured with respect to a single external asset, is more achievable, though it has
-an obvious limitation: it is only as good as that external asset.
-For example, ff the US dollar is subject to hyperinflation, our stable token will be similarly impacted.
-However, we do not consider this to be a severe problem, given the historically greater stability of
-fiat currencies, and that any other asset can be trivially substituted for USD at any time. \\
+fiat currency. This has an obvious limitation: our stablecoin is only as good as that external asset.
+For example, if the US dollar is subject to hyperinflation, our stable token will be similarly impacted.
+However, we do not consider this to be a significant problem, given that any other asset can be trivially substituted for USD at any time. \\
 
 \subsection{Havven}
-\noindent The mechanism Havven uses for maintaining its peg relies on two linked tokens and a
-complex of incentives for stability:
+\noindent The Havven system is a novel form of representative money where there is no requirement for a physical asset, thus the problem of trust and custodianship is removed. The asset we use to back our stablecoin is the system itself. This is achieved because the Havven system generates fees from users who transact in the stablecoin, participants who hold the collateral token recieve these fees and thus the system rewards those who actively participate in maintaining the system and charges those who passively utilise the stablecoin. Because we have created a system that generates cash flow for participants we now have an asset which has a defined market value and can be used as collateral to back a stablecoin. The key to this is that the value of the system is measured in USD. This allows us to issue a stablecoin which can be presented and redeemed for a percentage of the collateral tokens valued at 1 USD. It should be obvious that this is a far superior asset for backing a stablecoin because a cryptoeconomic system does not require customdianship or trust, each participant has full transparency over how many tokens have been issued against the available collateral at all times.
+
+The two linked tokens and the complex of incentives for stability are defined below:
 
 \paragraph{Nomin} The stablecoin itself, whose supply floats. Its price measured in fiat currency should be relatively stable.
 Other than price stability, the system should also encourage some adequate level of liquidity for nomins
-to act as a useful medium of exchange.
+to act as a useful medium of exchange. The Nomin has value because it can be redeemed directly from the system for a fraction of Curits worth 1 USD.
 
 \paragraph{Curit} The collateral token, whose supply is static.
 The capitalisation of the curits in the market reflects the system's aggregate value, and the reserve
-which backs the stablecoin. Thus, users who hold curits take on the role of maintaining the peg. \\
+which backs the stablecoin. Thus, users who hold curits take on the role of maintaining stability. \\
 
 \noindent Each holder of curits is granted the right to issue a value of nomins in proportion to the USD value
 of the curits they hold and are willing to place into escrow. If the user wishes to redeem their escrowed curits, they must
@@ -122,21 +114,16 @@ inflationary or deflationary forms of money. Ideally, we also seek to remove som
 by traditional monetary policy, which, when it is expansionary, shrinks the purchasing power in every account
 which is not a direct beneficiary of that policy.\\
 
-\noindent The Havven stablecoin system is akin to representative money in the sense that the fungible nomin
+\noindent The Havven stablecoin system is a form of representative money in the sense that the fungible nomin
 tokens represent some value held in reserve. We define the curit to be the token of backing value as this is
-both the start and end point of using the Havven mechanism; curits develop intrinsic value given their ability
-to maintain stability (through nomins) with an external denomination. Hence, nomins have no intrinsic value
-because we define curits as carrying the value associated with being able to provide a functioning stable
-medium of exchange. \\
+both the start and end point of using the Havven mechanism; curits have intrinsic value given their ability
+to maintain stability (through nomins) with an external denomination. Hence, nomins only have value insomuch as they can be redeemed for Curits and carry the value associated with being able to provide a functioning stable medium of exchange. \\
 
-\noindent Havven however is not representative money as we have traditionally known it. Historical instantiations,
-such as the gold standard which allowed anyone to claim against the reserve, caused exacerbations in times of
-economic turmoil. Given that it does not need to act as the primary currency in the market, Havven is relieved
-of any pressure to respond and correct for macroeconomic market issues. We leave such manipulations of the money
+\noindent Havven is not subject to one of the historical limitations of representative money in that we are able to significantly overcapitalise the circulating currency without any macroeconomic consequences. Given that it does not need to act as the primary currency in the market, Havven is relieved of any pressure to respond and correct for macroeconomic market issues. We leave such manipulations of the money
 supply to the whims of central banks, for good or ill. Thus Havven is at its simplest a bridge between fiat and
 cryptocurrency, a hybrid of the two technologies and thus for numerous use cases superior to both. But it bears
 repeating that whatever monetary policy is applied to the external denomination will flow through to the system.
-For example, if the USD is significantly devalued through inflation, so too will the nomin. In this scenario,
+For example, if the USD is significantly devalued through inflation, so too will be the nomin. In this scenario,
 the value of curits against the USD will increase and more nomins will be able to be issued against that value,
 so long as they are denominated in USD. \\
 
