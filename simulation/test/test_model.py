@@ -3,6 +3,7 @@ from decimal import Decimal as Dec
 
 import model
 
+
 def test_fiat_value():
     havven = model.Havven(10)
     assert(isinstance(havven.fiat_value(), Dec))
@@ -38,14 +39,14 @@ def test_endowment():
 
 def test_step():
     havven = model.Havven(20)
-    assert(havven.time == 1)
+    assert(havven.manager.time == 1)
     havven.step()
-    assert(havven.time == 2)
+    assert(havven.manager.time == 2)
 
     time_delta = 100
     for _ in range(time_delta):
         havven.step()
-    assert(havven.time == time_delta + 2)
+    assert(havven.manager.time == time_delta + 2)
 
 
 def test_fee_distribution_period():
