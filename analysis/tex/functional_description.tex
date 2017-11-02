@@ -2,36 +2,6 @@
 
 Havven works by providing a set of market incentives that support the stability of nomin value with respect to an external asset.
 
-\subsection{Stabilisation mechanisms}
-
-Fundamentally, we wish to configure the system such that it incentivises the desired properties of a stablecoin, namely:
-\begin{enumerate}
-    \item Price stabilisation
-    \item Value transfer
-\end{enumerate}
-
-\noindent We focus on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free. \\
-
-\noindent Let us consider the various ways in which one can maintain a stable price relative to a fiat currency. The question we wish to answer is, ``How can we \textbf{control the supply} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?'' This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: ``market forces'' and ``control forces''. \\
-
-\noindent \textbf{Market} forces represent supply and demand. These are necessarily different for each currency, otherwise they would move strictly in unison. \\
-
-\noindent \textbf{Control} forces then are the controls one is able to apply over a currency to affect its value, such as an inflation rate or a buy-back scheme. \\
-
-\noindent Our price mapping then should seek to tune the control forces such that one unit of a control currency equals one unit of the denominating currency. We assume that the forces for one currency are independent of the forces for another. \\
-
-\noindent So what are the mechanisms we can apply to control the value of a currency? We consider:
-
-\begin{itemize}
-    \item Issuing new currency to increase supply (inflation)
-    \item Buying back existing currency to decrease supply (deflation)
-    \item Unilateral balance control (changing account balances to maintain a stable buying power)
-\end{itemize}
-
-\noindent Unilateral balance control, such described by Amentrano~\cite{ametrano2016hayek}, is discounted on the basis that an individual's balances being directly modified would be unpalatable to the general population. \\
-
-\noindent This leaves us with simply the forces relating to modifying supply. We will review a number of incentive mechanisms in the design of an economically stable cryptocurrency, including fees, supply control, capital growth, and bonds. This version of the draft whitepaper includes an initial treatment of fees.
-
 \subsection{Investment incentives}
 
 We consider the reasons why any rational actor would buy curits. A potential buyer has at least three avenues for making money in Havven:
@@ -46,7 +16,6 @@ It is desirable, perhaps in a future world dominated by micropayments, for these
 
 \paragraph{Arbitrage profit:}
 It is the arbitrageurs who will ultimately bring the price of nomins back into balance by a triangular circuit through nomins, curits, and the external (crypto or fiat) markets. Arbitrageurs might hold curits for a short time in order to pursue this strategy.
-
 
 
 \pagebreak
@@ -104,7 +73,15 @@ One possibility is to simply provide an issuer no control over the tokens they i
 
 \subsection{Price discovery}
 
-One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted ``Oracle'' service in order to gain knowledge of the external world and build a causal link.
+One of the key challenges with denominating a cryptocurrency in a fiat currency is the
+fundamental link this creates to the centralised world. When the denominating currency exists
+external to the blockchain ecosystem, some bridge must be built so that the system can act with
+knowledge of external information.
+We recognise that a decentralised price-finding mechanism would be our preferred approach.
+Research into this mechanism is on our horizon, and future versions of this white paper will contain
+our results.
+However, in order to reclaim system performance, we can trade some of the trustlessness of the design, for example by
+a trusted ``Oracle'' service, which transmits knowledge of the external world into the system, building a causal link.
 
 
 
