@@ -30,7 +30,7 @@
 \begin{align*}
     &U = \frac{C_N}{C} \ && &\text{(dimensionless)} && &\text{: Empirical issuance ratio. } \\
     &U_{max} \ && &\text{(dimensionless)} && &\text{: Targeted issuance ratio ceiling.}
-    \intertext{Ideally, \(0 \leq U \leq U_{max} \leq 1\), but we need to work out a good level for \(U_{max}\).}
+    \intertext{\(0 \leq U \leq U_{max} \leq 1\)}
 \end{align*}
 \\
 
@@ -48,7 +48,7 @@ S_r \ && (\frac{1}{\text{sec}}) && &\text{: average redemption rate}
     V_v &= V_i + V_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin} \leftrightarrow \text{curit conversion rate.} \\
     V_i &= (C - C_N) \cdot S_i \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: nomin issuance rate.} \\
     V_r &= C_N \cdot S_r \ && &(\frac{\CUR{}}{\text{sec}}) && &\text{: curit redemption rate.} \\
-    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system. Actually perhaps it should grow with the number of escrowed Curits with no Nomins issued against them.}
+    \intertext{\(V_i\) is assumed to grow as there are more free curits in the system.}
     \intertext{\(V_r\), by contrast, is taken to grow proportionally with the number of escrowed Curits.}
 \end{align*}
 \\
