@@ -3,34 +3,39 @@
 We take the view that falsification is an important aspect of validating
 the Havven system. In our quantitative analysis we seek to identify failure modes
 of the system, and also to characterise not just \textit{whether} Havven stabilises
-nomin prices, but \textit{how much} it does. \\
+nomin prices, but \textit{how much} it does.
 
-\noindent It has been observed that analytic methods are often difficult to
+\paragraph{Agent-based modelling} It has been observed that analytic methods are often difficult to
 apply in the complex and dynamic setting of a market.
 One suggested solution to this problem is \textit{agent-based modelling}.
 Under this paradigm, we proceed by first defining rational agent behaviour
 and then simulating the interplay of those strategies over time.
-It's hoped that this can often provide a more effective
-method of characterising market behaviour and equilibrium prices,
-when analytic reasoning fails.~\cite{poggio2001agent}\\
+We seek to develop a more effective
+method of characterising market behaviour and equilibrium prices than pure analytic reasoning.~\cite{poggio2001agent}\\
 
 \noindent Such simulations also provide an immediate means of measuring
-quantities of interest. We can discover how varying input parameters
-affects system outputs in an experimental fashion, simply by observing
-the model.
+quantities of interest. Simply by observing
+the model, we can discover how varying input parameters
+affect system outputs in an experimental fashion.
 One important corollary is that this is a way of extracting reasonable
 settings for system parameters (such as fee levels) that might be difficult
 to reason about \textit{a priori}. These systems, reactive as they are,
 also provide a method for testing proposed remedies for any identified failure
-modes. \\
+modes.
 
-\noindent In sum, then, the modelling seeks to answer the following, among
-other questions:
+\paragraph{Utilisation Ratio} Even though rational actor modelling suggests that the price of nomins and curits will equilibrilise given that the game-theoretic value of a nomin is as much as the value of a redeemable curit, we are aware that there may be some prevailing macroeconomic or psychological influences relating to an undercollateralised position (i.e. if the value of the collateral pool is less than the issued stablecoin). As such, our modelling will incorporate the notion of a "utilisation ratio" 0 < U < 1, such that the system is over-collateralised in an attempt to counteract these potential issues. It may be that resolving an optimised utilisation ratio is beyond the ability of our agent-based modelling to determine, and as such, selecting this may need to be informed by the activity of a live system. Thus it is currently intended for Havven to initially include in its governance model the power to correct the utilisation ratio. This power can be removed over time as the system is proven, perhaps directly linked to some parametric milestones such as nomin velocity and stability.
+
+\paragraph{Direct Redemption} Direct redemption is a system design option to allow a holder of nomins to redeem any escrowed curits. This option allows more efficient redemption of nomins for the backing value, however introduces the difficulty of liquidating another actor's escrowed curits and interrupting their collection of fees. This can be solved by adding a premium to the price of an escrowed curit (potentially user-defined) over the current value. This premium would need to be paid in ether as to preserve the symmetric issuance and destruction of nomins. \\
+
+\noindent In sum, then, the modelling seeks to answer the following, among other questions:
 
 \begin{itemize}
     \item Does the system stabilise its nomin price?
-    \item Under what conditions can this peg fail?
+    \item Under what conditions can stability fail?
     \item What are reasonable initial settings for fees and other parameters?
+    \item What effect does the utilisation ratio have on curit/nomin price ratio?
+    \item What is an effective utilisation ratio?
+    \item What is the effect of a direct redemption regime?
 \end{itemize}
 
 % \subsection{Modelling Havven}

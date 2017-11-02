@@ -1,6 +1,6 @@
 \section{Functional description}
 
-Havven works by providing a set of market incentives that support the stability Nomin value with respect to an external asset.
+Havven works by providing a set of market incentives that support the stability of nomin value with respect to an external asset.
 
 \subsection{Stability design considerations}
 
@@ -10,9 +10,9 @@ Fundamentally, we wish to configure the system such that it incentivises the des
     \item Value transfer
 \end{enumerate}
 
-This paper focuses on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free.
+\noindent We focus on value stabilisation as the key enabler for a better form of money; once we have this, we assume that we get value-transfer (market share for the currency) for free. \\
 
-Let us consider the various ways in which one can maintain a stable value relative to a fiat currency. The question we wish to answer is, ``How can we \textbf{control the value} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?'' This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: ``market forces'' and ``control forces''. \\
+\noindent Let us consider the various ways in which one can maintain a stable value relative to a fiat currency. The question we wish to answer is, ``How can we \textbf{control the value} of the cryptocurrency such that the price of one unit of the stablecoin matches the price of one unit of the denominating currency?'' This is a challenging scenario because there are multiple related forces at work on the price of each currency. We consider these as two independent groups: ``market forces'' and ``control forces''. \\
 
 \noindent \textbf{Market} forces represent supply and demand. These are necessarily different for each currency, otherwise they would move strictly in unison. \\
 
@@ -26,113 +26,39 @@ Let us consider the various ways in which one can maintain a stable value relati
     \item Issuing new currency to increase supply (inflation)
     \item Buying back existing currency to decrease supply (deflation)
     \item Unilateral balance control (changing account balances to maintain a stable buying power)
-    \item \textit{Others?}
 \end{itemize}
 
 \noindent Unilateral balance control, such described by Amentrano (source), is discounted on the basis that an individual's balances being directly modified would be unpalatable to the general population. \\
 
-This leaves us with simply the forces relating to modifying supply.
-
-We review the key incentive drivers in the design of an economically stable cryptocurrency. \\
-
-\begin{itemize}
-	\item Fees
-	\item Supply control
-	\item Capital growth
-	\item Bonds
-\end{itemize}
-
-\noindent We also consider the following significant questions:
-
-\begin{itemize}
-    \item How do we incentivise actors to contribute to system liquidity?
-    \item How should Nomins be created and destroyed?
-    \item Should fees only be given to those who have actually issued Nomins?
-    \item Are transfer fees charged in only Nomins? Would actors not then just try to convert to Curits and exchange there?
-    \item How do we select a utilisation ratio? What is its curve?
-    \item Should we allow the system to maintain a pool of Curits/Nomins that it itself can buy/sell?
-    \item What if the system didn't burn the Nomins that were handed back when Curits were redeemed?
-    \item Should Nomins, or Curits, be serialised?
-    \item Should newly created Nomins go to escrowed Curit accounts, or be sold?
-\end{itemize}
-
-\subsection{Description of mechanism}
-
-\noindent Curit holders have an ongoing option to commit to an escrow of their collateral token in return for an amount of Nomins valued at some fraction of the value of the Curits, denominated in USD. We call this fraction the Utilisation Ratio, (or later more formally, the Issuance Ratio), \(U\). \\
-
-\noindent A Curit holder can then sell their Nomins for ETH for any price (or we can force a sale at the correct ETH price), and retain the ETH.
-
-\subsection{Alternative approaches}
-
-\noindent An autonomous system which mimics the actions of a central bank, wherein reserves of cryptocurrency are held for the purposes of currency buy-back was also considered. This approach involves a complex system of managing bonds and Nomin issuance as coupons to bond-holders (similar to Basecoin), whilst also acting as a buyer of last resort for all Nomins sold under the peg beyond some threshold. This approach was discounted due to the need to anticipate complex market counter-algorithms to support the peg. By contrast, the Havven mechanism is a novel and simpler approach which uses only open market incentives for economically rational participants to bring stability to the exchange token. \\
+\noindent This leaves us with simply the forces relating to modifying supply. We will review a number of incentive mechanisms in the design of an economically stable cryptocurrency, including fees, supply control, capital growth, and bonds. This version of the draft whitepaper includes an initial treatment of fees.
 
 \subsection{Price discovery}
 
-One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted ``Oracle'' service in order to gain knowledge of the external world and build a causal link. \cite{brooks2017blog}.\\
-
-\subsection{Backing collateral}
-
-\noindent Central to the design of the Havven money system is how the currency is backed by collateral. \\
-
-\noindent For monetary systems that are backed by an external asset, centralisation risks are frequently encountered and are often without solution. The question arises: \\
-
-\noindent How can one take an external asset and make it distributed such that we can mitigate the centralisation risk? \\
-
-\noindent We contend that the simplest and most elegant solution is to use the system itself as the backing collateral. We can then issue an exchange token against this in a manner similar to fiat in that the exchange token has no intrinsic value, but similar to representative money in that the collateralised value exists in the Curit token. \\
-
-\noindent The basis for Havven is the initial acceptance of the idea that the asset can be the system. The only other alternative is to use a basket of cryptocurrencies to back the exchange token, however this ultimately suffers from the same issues we are trying to prevent, namely volatility that is only mitigated through diversification. \\
-
-\noindent Finally, in backing by a real-world (external) asset, such as gold or a state currency, we encounter centralisation risks once again, including an inability to prove the existence of the backing asset (fraud risk). \\
-
-\noindent Fundamentally, whenever you want to denominate a stablecoin in something from the real world (such as USD), then you will always need a bridge between the real world and the walled garden of the blockchain. \\
-
-\noindent To this end, our design initially assumes an Oracle-based bridge between fiat and Ether. The price of Ether is then taken and injected into the Havven Decentralised Exchange (DEX) where Curits and Nomins can be bought and sold. The DEX can then act with knowledge of the exchange rate between Ether/USD. \\
-
-\noindent In the future, we aim to remove the need for an Oracle; we are currently working on a method to use a purely on-chain mechanism to discover the price of Ether in fiat. \\
-
-\subsection{System pricing}
-
-We consider several options in estimating the total value of the Havven stablecoin system (i.e. what is the price of a Curit?):
-
-\begin{itemize}
-	\item Initial Pricing of the value of the system (Curits):
-		\subitem{1. Market-discovered pricing. This is likely to be initially undervalued and grow over time.}
-		\subitem{2. Pre-determined, calculated estimate}
-		\subitem{3. Hybrid: capped ICO of a portion of the Curits at an estimated value of the ultimate system }
-	\item 3. Ongoing pricing of the value of the system (Curits):
-		\subitem{1. Oracle.}
-		\subitem{2. Rolling auction.}
-		\subitem{3. DEX (experimental)}
-\end{itemize}
+One of the key challenges with denominating a cryptocurrency in a fiat currency is the fundamental link this creates to the centralised world; when the denominating currency exists external to the blockchain ecosystem, some bridge must be built so that the system can act with knowledge of the outside world. Often, this is done by sacrificing trust; in order to reclaim system performance, we can trade some of the trustlessness of the design, such as through implementing an trusted ``Oracle'' service in order to gain knowledge of the external world and build a causal link. \cite{brooks2017blog}.
 
 \subsection{Investment incentives}
 
-We consider the reasons why any rational actor would buy Curits. A potential buyer has at least three avenues for making money in Havven:
+We consider the reasons why any rational actor would buy curits. A potential buyer has at least three avenues for making money in Havven:
 
-\paragraph{Capital gains due to the appreciation of Curits:}
-Presumably the currency will appreciate due to a demand for Curits that is founded in the intrinsic utility of a stablecoin. Speculators will naturally be important players too.
+\paragraph{Capital gains due to the appreciation of curits:}
+Presumably the currency will appreciate due to a demand for curits that is founded in the intrinsic utility of a stablecoin.
 
 \paragraph{Interest accrued from fees:}
-If and when the price of Curits stabilises, then this may be the only long term positive-expected source of revenue. Ideally fees are set at a level where they are both high enough to be an incentive for rent-seekers to hold Curits in the long term (thus assuming the risk of providing collateral for the system) and low enough not to be a disincentive for ordinary users to transact in nomins.
+If the price of curits stabilises for long periods of time, fees may be the only source of revenue. Ideally fees are set at a level where they are both high enough to be an incentive for rent-seekers to hold curits in the long term (thus assuming the risk of providing collateral for the system) and low enough not to be a disincentive for ordinary users to transact in nomins.
 It is desirable, perhaps in a future world dominated by micropayments, for these fees to be negligible for end users, while still being macroeconomically important for the system, and for those who capitalise it.
 
 \paragraph{Arbitrage profit:}
-It is the arbitrageurs who will ultimately bring the price of Nomins back into balance by a triangular circuit through Nomins, Curits, and the external (crypto or fiat) markets. They might hold Curits for a short time in order to pursue this strategy.
+It is the arbitrageurs who will ultimately bring the price of nomins back into balance by a triangular circuit through nomins, curits, and the external (crypto or fiat) markets. Arbitrageurs might hold curits for a short time in order to pursue this strategy.
+
+
 
 
 \pagebreak
 \subsection{Fees}
 
-There are a number of questions to be asked, and answered, regarding fee design:
+There are several key considerations with respect to fee design:
 
-\begin{itemize}
-    \item What are fees for?
-    \item Who is entitled to them?
-    \item When can fees be levied?
-    \item What is the macroeconomic effect of the fee design as a coin travels through the system?
-\end{itemize}
-
-\subsubsection{Discussion of fee design considerations}
+\subsubsection{Fee design considerations}
 
 \paragraph{The purpose of fees}
 
@@ -140,15 +66,13 @@ Fees are intended to be redistributed to actors who support the stability of the
 
 \paragraph{Fee beneficiaries}
 
-One fee design starting point is to simply award fees to any holder of Curits, however in this situation holders can get all the benefit without taking any risk. Although in the aggregate, it would be better for holders of Curits if everyone issued Nomins. The marginal return for any single player (who cannot issue a large fraction of all circulating Nomins) of actually issuing them would not outweigh the risk they take on in doing so. If a user can issue 1\% of circulating Nomins, then doing so will only increase their fee takings by 1\%. Hence rational actors may not be incentivised to issue Nomins at all.
+One fee design starting point is to simply award fees to any holder of Curits, however in this situation holders can get all the benefit without taking any risk. Although in the aggregate, it would be better for holders of Curits if everyone issued Nomins. The marginal return for any single player (who cannot issue a large fraction of all circulating Nomins) of actually issuing them would not outweigh the risk they take on in doing so. If a user can issue 1\% of circulating Nomins, then doing so will only increase their fee takings by 1\%. Hence rational actors may not be incentivised to issue Nomins at all. \\
 
-We must improve the marginal benefit of issuing Nomins into circulation in order to avoid this tragedy of the commons situation. Hence, fees must be paid to those who issue Nomins, not just those who hold Curits.
+\noindent We must improve the marginal benefit of issuing Nomins into circulation in order to avoid this tragedy of the commons situation. Hence, fees must be paid to those who issue Nomins, not just those who hold Curits.
 
 \paragraph{Fee collection}
 
-The system can potentially charge fees whenever any value is transferred, or any state is updated.
-
-There are only a few circumstances that these things happen:
+The system can potentially charge fees whenever any value is transferred, or any state is updated, including:
 
 \begin{itemize}
     \item Nomin transfers
@@ -157,179 +81,22 @@ There are only a few circumstances that these things happen:
     \item Curit redemption
 \end{itemize}
 
-The question to consider is at what levels should these fees be placed? We might in general like to set higher Curit than Nomin transfer fees, making the stablecoin itself a lower friction market in order to incentivise its use for exchange. Meanwhile, issuance and redemption fees will change the difficulty of entering and exiting the issuance game. \\
+\noindent The question to consider is: at what levels should these fees be placed? We might in general like to set higher Curit than Nomin transfer fees, making the stablecoin itself a lower friction market in order to incentivise its use for exchange. Meanwhile, issuance and redemption fees will change the difficulty of entering and exiting the issuance game. \\
 
-It's also possible for fees to float. The fee schedule could be altered dynamically in order to stabilise the system. It's even conceivable that the system could set negative fee rates if it needed to. We might charge punitive fees if a user is above the targeted utilisation ratio.
+\noindent It is also possible for fees to float. The fee schedule could be altered dynamically in order to stabilise the system. It is even conceivable that the system could set negative fee rates if it needed to and charge punitive fees if a user is above the targeted utilisation ratio. For example, if Nomin liquidity is low, meaning the system wants to incentivise issuance, then Nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued by issuers (thus incentivising issuance) and at the same time making it more expensive to transact in Nomins. This would reduce demand and decrease the liquidity requirements. \\
 
-One example: if Nomin liquidity is low, meaning the system wants to incentivise issuance, then Nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued by issuers, thus incentivising issuance and at the same time making it more expensive to transact in Nomins,
-reducing demand and decreasing the liquidity requirements. \\
+\noindent Of note, fees are antithetical to arbitrage. The higher the fee, the higher the transaction friction, and the harder it is to make money by arbitrage. For example, if exchange fees amount to 1\% per trade, then a full arbitrage cycle between all three markets, (Nomins, Curits, and fiat) will cost in excess of 3\%. So it would not make sense to undertake arbitrage until such a time as the quoted exchange rate is misvalued by more than 3\% relative to the cross exchange rate. Hence, fees compete with arbitrage to stabilise price. Lower fees allow tighter stabilisation, within a window exactly in proportion with the fee rates themselves.
 
-It should be pointed out that fees are antithetical to arbitrage. The higher the fee, the higher the friction, and the harder it is to make money by arbitrage. For example, if exchange fees amount to 1\% per trade, then a full arbitrage cycle between all three markets, (Nomins, Curits, and fiat) will cost in excess of 3\%. So it would not make sense to undertake arbitrage until such a time as the quoted exchange rate is misvalued by more than 3\% relative to the cross exchange rate. Hence, fees compete with arbitrage to stabilise price. Lower fees allow tighter stabilisation, within a window exactly in proportion with the fee rates themselves.
-
-
-\pagebreak
 \subsection{Encouraging liquidity}
 
-\noindent It's desirable that when actors issue Nomins they are actually injected into the liquidity pool for their intended use, rather than be held by the same actor in order to benefit from both the receipt of fees but also the option of using those Nomins to release their Curits. In this manner they would accrue fees, but take on none of the risk of spending those Nomins, for they always have an instant option to liquidate their position and escape. An actor who had done the economically-desirable thing, on the other hand, who issued Nomins and then spent them, would be forced to buy Nomins in the open market in order to redeem their escrowed Curits. \\
-
-\noindent The use of someone escrowing their Curits is that they provide backing for the currency flowing through the system, and so they should be rewarded for assuming this risk. In the fractional reserve system, this incentive is provided by the interest accrued upon the loans which generate money. It may be possible to adapt this system to Havven, by allowing issuers to escrow their Curits for a fixed time period, allowing the system to issue currency against that collateral, to be paid back a greater value of Nomins at a later time. \\
-
-\noindent If an issuer should not just be able to hold Nomins and accrue fees, that must also include letting them sit in another wallet they control. They should also not be able to sell their Nomins into the open market and with the proceeds buy the same value and let \textit{that} sit, only transferring it back to their main wallet once they want to flee.
-
-\noindent But how to encourage a user to actually increase liquidity by buying goods with the Nomins they hold?
+\noindent It's desirable that when actors issue Nomins they are actually injected into the liquidity pool for their intended use, rather than be held by the same actor in order to benefit from both the receipt of fees but also the option of using those Nomins to release their Curits. In this manner they would accrue fees, but take on none of the risk of spending those Nomins, for they always have an instant option to liquidate their position and escape. On the other hand, an actor who had done the economically-desirable thing and issued Nomins to the market, would be forced to buy them back in the same market in order to redeem their escrowed curits. The use of someone escrowing their Curits is that they provide backing for the currency flowing through the system, and so they should be rewarded for assuming this risk.
 
 \subsubsection{Non-discretionary Issuance}
 
-One possibility is to simply provide an issuer no control over the tokens they issue. That is, when a quantity Nomins is issued, they are generated by the system, which then places a sell order at the current going rate for that quantity on an exchange on the behalf of the issuer. When the order is filled, the proceeds in ETH are remitted to the issuer. \\
+One possibility is to simply provide an issuer no control over the tokens they issue. That is, when a quantity nomins is issued, they are generated by the system which then places a sell order at the current going rate for that quantity on an exchange on the behalf of the issuer. When the order is filled, the proceeds in ether are remitted to the issuer. \\
 
-\noindent Conversely, when a quantity of Nomins is burned, they must first be obtained from the open market. So a user would indicate an intention to burn, providing sufficient value to buy the proposed quantity of Nomins, and the system would bid for that quantity on their behalf, only liquidating the user's Curit position once they have been obtained. \\
+\noindent Conversely, when a quantity of nomins is burned, they must first be obtained from the open market. In this way, a user would indicate an intention to burn, providing sufficient value to buy the proposed quantity of nomins, and the system would bid for that quantity on their behalf, thereby liquidating the user's curit position once the nomins have been obtained. \\
 
-\noindent So one might consider there to be a formal distinction between wallets that issue tokens and those that do not. In this vein, one might envisage an extra fee to be charged to directly transfer Nomins (rather than buying from the market) into a wallet that has an outstanding quantity of Nomins it has previously issued, but not burnt. This means that it would be less reasonable for an agent to sit on Nomins in order to burn them in future, as it is more advantageous in times of relative stability to simply buy them from the market. \\
-
-\subsubsection{Motility}
-
-\noindent But let us assume that we cannot force a user to issue and burn from the open market. We might like to encourage an issuer to spend their Nomins by other means. One method is to provide every account with a motility score and pay fees in proportion with the product of this score and the number of tokens that account has issued. \\
-
-\noindent This should be subject to common-sense obligations. The system should not be easily gamed. A user should not be able to cycle Nomins through accounts they control and collect fees. An issuer should not be able to just manipulate an account they control to have a high motility with small values and then dump a large value they want to hold into it. Ideally transferring value around repeatedly to manipulate the fee system would be expensive enough that the value lost to fees charged would outweigh the diminution of risk. \\
-
-\noindent We would like to incentivise long transaction paths out of an account, and high out-degree nodes along those paths (so money is actually liquid/fungible). Hence, we don't like short cycles or isolated subgraphs. Ideally, money would travel into the main connected component of the transaction graph as quickly as possible, then circulate in there with high velocity.
-
-\paragraph{Definitions}
-\begin{align*}
-    A \ &: \ \text{The set of all accounts} \\
-    T \ &: \ \text{The multiset of all transactions; a subset of \(A \times A \times \mathbb{N}.\)} \\
-    T_{a \rightarrow b} \subseteq T \ &: \ \text{The set of transactions from \(a\) to \(b\) with \(a, \ b \ \in A\).} \\
-    v_t \ &: \ \text{the value of a transaction} \ t \in T. \\
-    V_{a \rightarrow b} \ &:= \ \sum_{t \in T_{a \rightarrow b}}{v_t} \ \ \text{(the total value transferred from \(a\) to \(b\))} \\
-    V_{a}^{in} \ &:= \ \sum_{p \in A}{V_{p \rightarrow a}} \\
-    V_{a}^{out} \ &:= \ \sum_{p \in A}{V_{a \rightarrow p}} \\
-    \intertext{We might interpret \((A, T)\) as a weighted multigraph of transactions, 
-               with each transaction \(t \in T_{a \rightarrow b}\) corresponding to a weighted
-               edge in that graph between nodes \(a\) and \(b\).
-               Note that \(T_{a \rightarrow a} := \varnothing \), and hence \(V_{a \rightarrow a} = 0\)
-               (accounts can't transfer to themselves).}
-\end{align*}
-
-\noindent We would like to know how likely a Nomin is to be spent soon from a given account. The motility of the account should measure this. Considering an account \(a\), we will take
-\(\mathcal{M}(a)\) to be the motility of \(a\):
-\begin{align*}
-    \mathcal{M}(a) &:= \sum_{p \in A}{P(a \ \text{transfers to} \ p) \cdot \mathcal{M}(p)} \\
-    &= \sum_{p \in A}{\frac{V_{a \rightarrow p}}{V_{a}^{in}} \cdot \mathcal{M}(p)} \\
-    &= \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}
-\end{align*}
-
-Intuitively, if you transfer a lot of money to high-motility accounts, then your own motility is taken to be high.
-
-\paragraph{Calculating Motility}
-
-This will need to be calculated iteratively, and locally.
-Note that \(V_{a \rightarrow p} = 0\) for \(p\) that \(a\) has never transferred to, so those accounts can be neglected.
-It's probably too costly to store the value of \(V_{a \rightarrow b}\) explicitly. So we will have to eliminate this quantity in our expressions.
-We will update motility scores whenever a new transaction \(t\) from \(a\) to \(b\) of value \(v_t\) is made.
-\begin{align*}
-    \intertext{Value into \(b\) increases, so \(\mathcal{M}(b)\) can be easily recalculated.} \\
-    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_t \\
-    \mathcal{M}'(b) \ &\leftarrow \ \frac{1}{{V_{b}^{in}}'} \sum_{p \in A}{V_{b \rightarrow p} \cdot \mathcal{M}'(p)} \\
-    \intertext{Meanwhile, the value transferred from \(a\) to \(b\) also increases.}
-    V'_{a \rightarrow b} \ &\leftarrow \ V_{a \rightarrow b} + v_t \\
-    \mathcal{M}'(a) \ &\leftarrow \ \frac{1}{V_{a}^{in}} \Big( V'_{a \rightarrow b} \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}'(p)}\Big)\\
-    \intertext{Although these updates should also influence accounts which have (transitively) transferred into \(a\) and \(b\),
-               we want to reward people for increasing liquidity today, rather than at some future time, and
-               we take the motility of an account to be relatively stable after some time. As a result we will
-               take \(\mathcal{M}'(p) \approx \mathcal{M}(p)\) for \(p \notin \{a, b\} \). Then:} 
-    \mathcal{M}'(a) \ &\approx \ \frac{1}{V_{a}^{in}} \Big( (V_{a \rightarrow b} + v_t) \cdot \mathcal{M}'(b) \ + \ \sum_{p \in A \backslash \{b\}}{V_{a \rightarrow p} \cdot \mathcal{M}(p)}\Big) \\
-    &\approx \ \frac{v_t}{V_{a}^{in}} \mathcal{M}'(b) \ + \frac{1}{V_{a}^{in}} \sum_{p \in A}{V_{a \rightarrow p} \cdot \mathcal{M}(p)} \\
-    \intertext{So we will take our update step for a transaction \(t\) from \(a\) to \(b\) to be the following:}
-    {V_{b}^{in}}' \ &\leftarrow \ V_{b}^{in} + v_t \\
-    \mathcal{M}'(b) \ &\leftarrow \ \frac{V_{b}^{in}}{V_{b}^{in} + v_t} \mathcal{M}(b) \\
-    \mathcal{M}'(a) \ &\leftarrow \ \frac{v_t}{V_{a}^{in}} \mathcal{M}'(b) \ + \mathcal{M}(a)
-\end{align*}
-
-\noindent It may also be desirable to add a decay term so that accounts that have not moved any money in a long time are taken to have a lower motility.
-
-\subsection{System-actuated arbitrage}
-
-It is agreed that the system relies upon arbitrage to bring the prices of its various components into equilibrium. However, arbitrage is in some sense a form of economic friction. \\
-
-\noindent One possibility is to allow Havven itself to perform this arbitrage. This serves the dual purposes of improving the efficiency of the markets, and contributing to Havven's own capital pools. Ini this way, arbitrage opportunities could be spotted early, capitalised upon in a fee-free manner, arbitrage profit within the Havven ecosystem could be retained for productive price-stabilisation purposes, mining rewards, and any other uses that are found for this excess capital. \\
-
-\pagebreak
-\subsection{Utilisation ratio}
-
-It's not clear to me exactly what purpose \(U_{max}\) serves. It certainly keeps the value of the pool of Curits below the value of the pool of Nomins, assuming there is no devaluation of a ratio more severe than \(U_{max}\) itself. However, if the system has adequate mechanisms enforce \(U\ \leq U_{max}\), then why not simply allow users to issue Nomins up to the maximum value of Curits they have escrowed? \\
-
-\noindent A low \(U_{max}\) seems like it would place upward pressure on the price of Nomins. Consider a situation where \(U_{max} = 0.2\), and I have an impecunious friend, Jake, who owns a wallet which has issued \$20 worth of Nomins on the back of \$100 of escrowed Curits. At the moment, he has no
-money, but his wallet is worth \$80, since he can burn \$20 worth of Nomins to get at those curits. So Jake should be willing to pay anywhere up to \$80 to buy enough Nomins to free up the Curits. This situation will still motivate Jake until the price of the Nomins he's issued is equal to the price of the Curits he's escrowed. That is, until the price of a Nomin is worth five times the price of a Curit.\\
-
-\noindent Finally, let's consider the impact of the utilisation ratio on a Curit investor's value proposition. Examine the aggregate fees collected from Nomin transfers \(Ag_{nx}\), and expand out its definition:
-\[Ag_{nx} = \frac{F_{nx} \cdot S_n \cdot C \cdot P_c \cdot U}{P_n}\]
-This quantity is proportional with the actual utilisation ratio \(U\). The more Nomins that have been issued, the more fees are returned. So if \(U = 0.2\), then if the system would like to return a fee rate of 5\% per annum to Curit-holders, then fees to the tune of 25\% per year will have to be levied on Nomin transfers, assuming no other fees exist. This may be a little high.
-
-\pagebreak
-\subsection{Failure modes}
-
-We must try to identify ways Havven can produce undesirable results ahead of time so that they can be simulated and, if they turn out to be real issues, patched. In what follows we try to identify ways the system can fail, and explain why they are, or are not, likely or reasonable. \\
-
-\subsubsection{Nomin inflation cycle}
-
-Although it's true that the system limits the total value of Nomins relative to the total value of Curits, if the price of each individual Nomin falls, then more of them may be printed. If they are, then supply increases, further decreasing the price.
-
-\noindent Is this a vector for hyperinflation? Is it rational for individual agents to engage in behaviour which would encourage this? We would like to avoid a Weimar-style devaluation of the currency, so we must ensure that is not
-the case. \\
-
-\noindent Note that this is may be counterposed by the previous discussion of Nomin deflation due to the utilisation ratio limiting supply, although the higher the utilisation ratio ceiling, the weaker the effect. It remains to be seen through our modelling if that pressure is strong enough to overcome this inflationary scenario even at low utilisation ratios. \\
-
-\noindent Consider an agent which wants only to issue as many Nomins as possible in order to accrue fees on them. The most obvious way of doing this is to buy Curits, and then perform the following steps repeatedly:
-
-\begin{enumerate}
-    \item escrow all available Curits;
-    \item issue as many Nomins as possible against escrowed Curits;
-    \item sell the Nomins to buy more Curits;
-    \item goto 1.
-\end{enumerate}
-
-\paragraph{Static price}
-
-What quantity of escrowed Curits can be accumulated in this fashion?
-Let's say an agent starts with \(\$c\) worth of Curits, and the max utilisation ratio is \(U_{max}\).
-
-\noindent Further assume that this agent is acting in isolation, with access to infinitely deep currency markets, and so can't change market prices by its actions. Then, on the first iteration, the agent obtains \(U_{max} \cdot \$c\) additional value of Curits, against which a further \(U_{max}^2 \cdot \$c\) worth of Nomins can be issued on the second iteration, and so on. In a frictionless market, this cycle is also perfectly reversible. \\
-
-\noindent  This geometric sum implies that after iterating as long as possible, the agent's wallet contains approximately \(\sum_{k=0}^{\infty} {U_{max}^k \cdot \$c}\ = \frac{\$c}{1  - U_{max}}\) worth of escrowed Curits and \(\frac{\$c \cdot U_{max}}{1  - U_{max}}\) issued Nomins.\\
-
-\noindent So, for example, if \(U_{max} = 0.2\), then the agent can cycle until their wallet contains \(\$1.25c\) worth of escrowed Curits and \(\$0.25c\) worth of issued Nomins. That is, they have been able to issue \(25\%\) more Nomins than they naively should have been able to, and so will also collect \(25\%\) more fees. Note the agent assumes no extra risk if the market is sufficiently liquid, as they can still recover their original \(\$c\) of Curits by unrolling the cycle. \\
-
-\noindent These effects become more pronounced as \(U_{max}\) grows; at \(U_{max} = 0.5\), an agent can issue twice the face value of its initial Curit supply. If \(U_{max} = 1\), then the sum diverges, and agents can issue an infinite quantity of Nomins. Given transaction fees, this is never actually the case, but it is still extreme enough if a multiplier of tens or hundreds is in play. \\
-
-\paragraph{Elastic price}
-
-Of course, the reader may easily object that these situations are impossible both because the market is frictionless, and because as more agents try to exploit these cycles, Curits will become progressively more expensive, and Nomins progressively cheaper, so the cycles will become less advantageous.
-However this implies that agents with escrowed Curits will now immediately be
-able to issue more Nomins and continue the cycle. \\
-
-\noindent The question now to answer is: is this a positive feedback loop? If so, then Havven might be vulnerable to hyperinflationary events. It's a little difficult to characterise the situation from here, since it depends upon the
-elasticities in the market, which we do not know a priori. \\
-
-Let's assume the pool of agents following our strategy initially holds a fraction \(\theta\) of the total supply of Curits, value \(\$C\). We approximate with a assuming linear demand, supply, and elasticity curves. 
-Then, by selling \(\$ U_{max} \theta C\) worth of Nomins and buying the same value of Curits, the price of Nomins will drop by a factor of around \(\theta\), while the price of Curits will increase by about \(U_{max} \theta\).
-Hence, our pool's issuance rights will increase to \(\frac{1 + U{max} \theta}{1 - \theta}\) of its previous value.\\
-
-In effect, they can issue \(\frac{\$ (1 + U{max} \theta) U_{max} \theta C}{1 - \theta}\) after the first iteration.
-
-\subsubsection{Liquidity Trap}
-
-Details to be announced. \\
-
-\subsubsection{Trapped Currency}
-
-Details to be announced. \\
-
-\pagebreak
-\subsection{Assumptions}
-
-\begin{enumerate}
-	\item Ethereum will appropriately scale.
-	\item Unit of account will continue to be fiat for many use cases for the foreseeable future.
-\end{enumerate}
+\noindent So one might consider there to be a formal distinction between wallets that issue tokens and those that do not. In this vein, one might envisage an extra fee to be charged to directly transfer nomins (rather than buying from the market) into a wallet that has an outstanding quantity of nomins it has previously issued, but not burnt. The result of this is that it would be less reasonable for an agent to sit on nomins in order to burn them in future as it is more advantageous in times of relative stability to simply buy them from the market. \\
 
 \pagebreak
