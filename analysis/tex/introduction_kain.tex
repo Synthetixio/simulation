@@ -9,14 +9,15 @@ Money has become almost invisible over the past few decades as payment technolog
 Because of this, it is often lost upon users of money that it is itself a technology that can be
 improved. Specifically, this means improving the performance of our six desirable properties. \\
 
-\noindent Bitcoin as a technological improvement on existing forms of money is impressive because it manages to simultaneously improve durability, portability, and divisibility.
+\noindent Bitcoin is an impressive technological advancement upon existing forms of money which
+simultaneously improves durability, portability, and divisibility.
 Further, it does so without requiring the enforcement of a nation state from which to derive its value.
 The Bitcoin supply is, therefore, not subject to control by any central authority. \\
 
-\noindent This fixed monetary policy means that increased adoption has tended to drive the price up over time,
-allowing Bitcoin to outperform other forms of money as a store of value, precisely because it is not
-subject to debasement and devaluation. Unfortunately this fixed monetary supply creates the potential
-for volatility in the short term because there is no mechanism within Bitcoin that can monitor or
+\noindent It is precisely its fixed monetary policy which has protected Bitcoin from debasement or
+devaluation, allowing it to outperform other forms of money as a store of value. Increased adoption
+has tended to drive the price up over time; unfortunately the fixed money supply has created the
+potential for short-run volatility, because there is no mechanism within Bitcoin that can
 adjust to changing demand for the currency. \\
 
 \noindent Thus it has tended to be a poor medium of exchange and an even worse unit of account.
@@ -40,7 +41,19 @@ cryptoeconomic systems is still new, and significant research into stable moneta
 frameworks for cryptocurrencies is required.
 
 \subsection{Havven}
-\noindent The Havven system is a novel form of representative money where there is no requirement for a physical asset, thus the problem of trust and custodianship is removed. The asset we use to back our stablecoin is the system itself. This is achieved because the Havven system generates fees from users who transact in the stablecoin; participants who hold the collateral token receive these fees and thus the system rewards those who actively participate in maintaining the system and charges those who utilise the system. Because we have created a system that generates cash flow for participants we now have an asset which has a defined market value and can be used as the collateral to support the stablecoin. The key to this is that the value of the system is measured in USD. This allows us to issue a stablecoin which can be presented and redeemed for a percentage of the collateral tokens valued at 1 USD. Backing a stablecoin in this way is beneficial because such a cryptoeconomic system does not require trust in a centralised party; each participant has full transparency over how many tokens have been issued against the available collateral at all times. \\
+
+\noindent The Havven system is a novel form of representative money where there is no requirement for a physical
+asset, thus the problem of trust and custodianship is removed. The asset we use to back our stablecoin is the
+system itself. This is achieved because the Havven system generates fees from users who transact in the
+stablecoin; participants who hold the collateral token receive these fees and thus the system rewards those
+who actively participate in maintaining the system and charges those who utilise the system. \\
+
+\noindent Because we have created a system that generates cash flow for participants we now have an asset which has a defined market
+value and can be used as the collateral to support the stablecoin. The key to this is that the value of the
+system is measured in USD. This allows us to issue a stablecoin which can be presented and redeemed for a
+percentage of the collateral tokens valued at 1 USD. Backing a stablecoin in this way is beneficial because
+such a cryptoeconomic system does not require trust in a centralised party; each participant has full
+transparency over how many tokens have been issued against the available collateral at all times. \\
 
 \noindent The two linked tokens and the complex of incentives for stability are defined below:
 
@@ -59,43 +72,45 @@ The holders of this token provide both collateral and liquidity, and in so doing
 level of risk. To compensate this risk, such nomin-issuers will be rewarded with fees the system levies
 automatically as part of its normal operation. \\
 
+\noindent This issuance mechanism allows nomins to act as a form of representative money, where 
+each nomin represents a share in the curit value held in reserve. Nomins derive value insofar as they provide
+a superior medium of exchange, and are effectively redeemable for a constant value
+of the denominating asset. In this paper, we use USD as this asset, but this could be any external
+and appropriately fungible asset, such as a commodity or a fiat currency.  \\
+
 \noindent In this manner, the system incentivises the issuance and destruction of nomins so that the value of
 the nomin pool expands and contracts in proportion with the total value of curits backing them.
-If the curit price changes, then the volume of the token pool changes with it.
-On the other hand, if the nomin price changes exogenously, then the system is designed to provide
-incentives for actors to counteract that change. \\
+If prices changes exogenously, then the system is designed to provide incentives for actors to
+counteract that change. \\
 
-\noindent The Havven stablecoin system is a form of representative money in the sense that the fungible nomin
-tokens represent some value held in reserve. We define the curit to be the token of backing value given their ability to maintain stability (through nomins) with an external denomination. Hence, nomins only have value insomuch as they can be redeemed for Curits and carry the value associated with being able to provide a functioning stable medium of exchange. \\
-
-\noindent Havven is not subject to one of the historical limitations of representative money in that we are able to significantly overcapitalise the circulating currency without any macroeconomic consequences. Given that it does not need to act as the primary currency in the market, Havven is relieved of any pressure to respond and correct for macroeconomic market issues. Thus Havven acts as a bridge between fiat currency and
-cryptocurrency - a hybrid of the two technologies which inherits the monetary policies applied to the external denomination.
-
-\noindent The Havven system is designed such that the nomin is both denominated in and
-mapped to an external store of value. Throughout this paper we use USD as the reference, however this could
-be any external and appropriately fungible asset, such as a commodity or fiat currency. Note that denominations
-in other cryptocurrencies are not necessary as these already benefit from the features Havven is implementing
-for the external denominator.
+\noindent The Havven system is relieved of the obligation to respond to major macroeconomic conditions, 
+as it benefits from the stabilisation efforts of large institutions acting in fiat markets.
+As Havven has the freedom to significantly overcollateralise its pool of circulating currency, it
+insulates itself against dramatic corrections in the curit market.
+Thus Havven acts as a bridge between fiat currency and cryptocurrency - a hybrid of the two technologies which possesses
+the advantages of both. \\
 
 \subsection{Rationale}
 
-\noindent  In his discussion of Hayek money~\cite{ametrano2016hayek}, Ametrano correctly makes the point that
-Bitcoin serves the purpose of crypto-gold much better than it does crypto-unit-of-account due to its volatility
-and constrained supply. By contrast, governments -- which mint their own currencies -- can and do execute
-discretionary stabilisation policies to manipulate the circulating supply. This kind of powerful lever is not
-available to Bitcoin and other supply-constrained currencies of its type, but a similar system whose monetary
+\noindent  In his discussion of Hayek money~\cite{ametrano2016hayek}, Ametrano correctly makes the point that,
+due to its volatility and constrained supply, Bitcoin serves the purpose of crypto-gold much better than it
+does crypto-unit-of-account. By contrast, governments -- which mint their own fiat currencies -- can and do execute
+discretionary stabilisation policies to manipulate the circulating supply. This powerful lever is not
+available to Bitcoin and other supply-constrained currencies of its type, but a cryptocurrency whose monetary
 policy is algorithmically countercyclical rather than deflationary could inherit the desirable characteristics
-of both monetary paradigms. Hence it should be possible, by automatic means, to incentivise the issuance and
-destruction of tokens according to demand. In this way, users of such a currency would be allowed to
-capitalise it while the system automatically seeks to expand and contract the money supply as its backing
+of both monetary paradigms. It should be possible to automatically provide incentives the issuance and
+destruction of tokens according to demand. Users of such a currency would be allowed to back it while
+the system automatically seeks to expand and contract the money supply as its backing
 reserve fluctuates in value. \\
 
-\noindent There are many applications which Bitcoin's inherently deflationary monetary policy and
-volatility presently make impossible. any token which is able to demonstrate an increment
-in utility on these fronts over both fiat and cryptocurrencies will significantly
-enhance the uptake of cryptoeconomic technology. Clearly, the introduction of a new cryptocurrency in isolation offers no additional value given
+\noindent Clearly, the introduction of a new cryptocurrency in isolation offers no additional value given
 the existing and established alternatives such as Bitcoin and Ethereum. Havven thus seeks to derive value
 from the addition of \textbf{stability} to its inherited properties as a modern cryptocurrency.
-It is designed to provide a practical medium of exchange, without compromising the benefits that decentralisation offers in order to substantially improve the technology of money.
+It is designed to provide a practical medium of exchange, without compromising the benefits that
+decentralisation offers in order to substantially improve the technology of money.
+There are many applications which Bitcoin's inherently deflationary monetary policy and
+volatility presently make impossible: any token which is able to demonstrate an increment
+in utility on these fronts over both fiat and cryptocurrencies will significantly
+enhance the uptake of cryptoeconomic technology.
 
 \pagebreak

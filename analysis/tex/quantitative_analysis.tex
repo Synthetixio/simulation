@@ -23,10 +23,6 @@ to reason about \textit{a priori}. These systems, reactive as they are,
 also provide a method for testing proposed remedies for any identified failure
 modes.
 
-\paragraph{Utilisation Ratio} Even though rational actor modelling suggests that the price of nomins and curits will equilibrilise given that the game-theoretic value of a nomin is as much as the value of a redeemable curit, we are aware that there may be some prevailing macroeconomic or psychological influences relating to an undercollateralised position (i.e. if the value of the collateral pool is less than the issued stablecoin). As such, our modelling will incorporate the notion of a "utilisation ratio" 0 < U < 1, such that the system is over-collateralised in an attempt to counteract these potential issues. It may be that resolving an optimised utilisation ratio is beyond the ability of our agent-based modelling to determine, and as such, selecting this may need to be informed by the activity of a live system. Thus it is currently intended for Havven to initially include in its governance model the power to correct the utilisation ratio. This power can be removed over time as the system is proven, perhaps directly linked to some parametric milestones such as nomin velocity and stability.
-
-\paragraph{Direct Redemption} Direct redemption is a system design option to allow a holder of nomins to redeem any escrowed curits. This option allows more efficient redemption of nomins for the backing value, however introduces the difficulty of liquidating another actor's escrowed curits and interrupting their collection of fees. This can be solved by adding a premium to the price of an escrowed curit (potentially user-defined) over the current value. This premium would need to be paid in ether as to preserve the symmetric issuance and destruction of nomins. \\
-
 \noindent In sum, then, the modelling seeks to answer the following, among other questions:
 
 \begin{itemize}
@@ -46,6 +42,6 @@ modes.
 
 % \paragraph{Optimal strategy mix}
 
-\noindent Please visit \href{http://research.havven.io}{research.havven.io} for a pre-alpha version of our model.
+\noindent Please visit \href{http://research.havven.io}{\texttt{research.havven.io}} for a pre-alpha version of our model.
 
 \pagebreak
