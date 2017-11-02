@@ -43,10 +43,13 @@ frameworks for cryptocurrencies is required.
 \subsection{Havven}
 
 \noindent The Havven system is a novel form of representative money where there is no requirement for a physical
-asset, thus the problem of trust and custodianship is removed. The asset we use to back our stablecoin is the
-system itself. This is achieved because the Havven system generates fees from users who transact in the
-stablecoin; participants who hold the collateral token receive these fees and thus the system rewards those
-who actively participate in maintaining the system and charges those who utilise the system. \\
+asset, thus the problem of trust and custodianship is removed. The asset we use to back our stablecoin is 
+the pool of reserve tokens, contained within the system itself. These tokens reflect participation in the system,
+and are a proxy for its value. Havven generates fees from users who transact in the stablecoin;
+and distributes them among the holders of the reserve token, compensating them for underpinning the system.
+Thus Havven rewards those who actively participate in maintaining it and charges those who passively utilise it.
+To maintain stability, Havven includes market incentives that manage the supply of the exchange token such that
+its price mirrors that of the asset it tracks.
 
 \noindent Because we have created a system that generates cash flow for participants we now have an asset which has a defined market
 value and can be used as the collateral to support the stablecoin. The key to this is that the value of the
@@ -57,11 +60,11 @@ transparency over how many tokens have been issued against the available collate
 
 \noindent The two linked tokens and the complex of incentives for stability are defined below:
 
-\paragraph{Nomin} The stablecoin itself, whose supply floats. Its price measured in fiat currency should be relatively stable.
+\paragraph{Nomin:} The stablecoin itself, whose supply floats. Its price measured in fiat currency should be relatively stable.
 Other than price stability, the system should also encourage some adequate level of liquidity for nomins
-to act as a useful medium of exchange. The Nomin has value because it can be redeemed directly from the system for a fraction of curits worth 1 USD.
+to act as a useful medium of exchange. The nomin has value because it can be redeemed directly from the system for a fraction of curits worth 1 USD.
 
-\paragraph{Curit} The collateral token, whose supply is static.
+\paragraph{Curit:} The collateral token, whose supply is static.
 The capitalisation of the curits in the market reflects the system's aggregate value, and the reserve
 which backs the stablecoin. Thus, users who hold curits take on the role of maintaining stability. \\
 
