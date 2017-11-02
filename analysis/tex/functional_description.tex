@@ -59,38 +59,38 @@ There are several key considerations with respect to fee design:
 \paragraph{The purpose of fees}
 
 Fees are intended to be redistributed to actors who support the stability of the system. A fee pool will be distributed periodically for this purpose.
-If the system determines that the Nomin price is too low, then fees could be burned. If the price is too high then the system could sell these back
+If the system determines that the nomin price is too low, then fees could be burned. If the price is too high then the system could sell these back
 into the system at a discounted rate. The fee collection rate will also be a direct measure of the velocity of money in Havven. It's in the interest
-of Curit holders to maximise liquidity in order to maximise their return.
+of curit holders to maximise liquidity in order to maximise their return.
 
 \paragraph{Fee beneficiaries}
 
-One possibility would be simply to award fees to any holder of Curits,
+One possibility would be simply to award fees to any holder of curits,
 but in this situation holders can get all the benefit without taking any risk.
-Although in the aggregate, it would be better for Curits-holders if everyone issued Nomins,
-the marginal return for any single player (who cannot issue a large fraction of all circulating Nomins)
+Although in the aggregate, it would be better for curit-holders if everyone issued nomins,
+the marginal return for any single player (who cannot issue a large fraction of all circulating nomins)
 of actually issuing them would not outweigh the risk they take on in doing so. If a user can issue 1\% of circulating
-Nomins, then doing so will only increase their fee takings by 1\%. Hence rational actors would not be incentivised to issue Nomins at all.
+nomins, then doing so will only increase their fee takings by 1\%. Hence rational actors would not be incentivised to issue nomins at all.
 This is a classic tragedy of the commons.
 
-\noindent In order to avoid this situation, we must improve the marginal benefit of issuing Nomins into circulation.
-Hence, fees must be paid to those who \textit{issue} Nomins, not just those who hold Curits.
+\noindent In order to avoid this situation, we must improve the marginal benefit of issuing nomins into circulation.
+Hence, fees must be paid to those who \textit{issue} nomins, not just those who hold curits.
 
 \paragraph{Fee collection}
 
 The system can charge fees whenever any value is transferred, or any state is updated.
-\noindent Different fee rates have different macroeconomic effects. We might in general like to set higher Curit than Nomin transfer fees, making the stablecoin itself a lower friction market in order to incentivise its use for exchange. Meanwhile, issuance and redemption fees will change the difficulty of entering and exiting the issuance game. \\
+\noindent Different fee rates have different macroeconomic effects. We might in general like to set higher curit than nomin transfer fees, making the stablecoin itself a lower friction market in order to incentivise its use for exchange. Meanwhile, issuance and redemption fees will change the difficulty of entering and exiting the issuance game. \\
 
-\noindent It is also possible for fees to float. The fee schedule could be altered dynamically in order to stabilise the system. It is even conceivable that the system could set negative fee rates if it needed to and charge punitive fees if a user is above the targeted utilisation ratio. For example, if Nomin liquidity is low, meaning the system wants to incentivise issuance, then Nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued by issuers (thus incentivising issuance) and at the same time making it more expensive to transact in Nomins. This would reduce demand and decrease the liquidity requirements. \\
+\noindent It is also possible for fees to float. The fee schedule could be altered dynamically in order to stabilise the system. It is even conceivable that the system could set negative fee rates if it needed to and charge punitive fees if a user is above the targeted utilisation ratio. For example, if nomin liquidity is low, meaning the system wants to incentivise issuance, then nomin transfer fees could increase, thus having the combined effect of increasing the interest accrued by issuers (thus incentivising issuance) and at the same time making it more expensive to transact in nomins. This would reduce demand and decrease the liquidity requirements. \\
 
-\noindent Of note, fees are antithetical to arbitrage. The higher the fee, the higher the transaction friction, and the harder it is to make money by arbitrage. For example, if exchange fees amount to 1\% per trade, then a full arbitrage cycle between all three markets, (Nomins, Curits, and fiat) will cost in excess of 3\%. So it would not make sense to undertake arbitrage until such a time as the quoted exchange rate is misvalued by more than 3\% relative to the cross exchange rate. Hence, fees compete with arbitrage to stabilise price. Lower fees allow tighter stabilisation, within a window exactly in proportion with the fee rates themselves.
+\noindent Of note, fees are antithetical to arbitrage. The higher the fee, the higher the transaction friction, and the harder it is to make money by arbitrage. For example, if exchange fees amount to 1\% per trade, then a full arbitrage cycle between all three markets, (nomins, curits, and fiat) will cost in excess of 3\%. So it would not make sense to undertake arbitrage until such a time as the quoted exchange rate is misvalued by more than 3\% relative to the cross exchange rate. Hence, fees compete with arbitrage to stabilise price. Lower fees allow tighter stabilisation, within a window exactly in proportion with the fee rates themselves.
 
 \subsection{Encouraging liquidity}
 
-\noindent It's desirable that when actors issue Nomins they are actually injected into the liquidity pool for their intended use,
-rather than being held by the same actor in order to benefit from both the receipt of fees while retaining the option of using those Nomins to rapidly release their Curits.
-In this manner they would accrue fees, but take on none of the risk of spending those Nomins, for they always have an instantaneous option to liquidate their position and escape.
-On the other hand, an actor who had done the economically-desirable thing and issued Nomins to the market would be forced to buy them back before redeeming their escrowed curits.
+\noindent It's desirable that when actors issue nomins they are actually injected into the liquidity pool for their intended use,
+rather than being held by the same actor in order to benefit from both the receipt of fees while retaining the option of using those nomins to rapidly release their curits.
+In this manner they would accrue fees, but take on none of the risk of spending those nomins, for they always have an instantaneous option to liquidate their position and escape.
+On the other hand, an actor who had done the economically-desirable thing and issued nomins to the market would be forced to buy them back before redeeming their escrowed curits.
 
 \subsubsection{Non-discretionary Issuance}
 
