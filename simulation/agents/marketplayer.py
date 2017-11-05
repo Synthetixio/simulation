@@ -200,132 +200,117 @@ class MarketPlayer(Agent):
         """
         return self.model.mint.burn_nomins(self, value)
 
-    def _sell_quoted_(self, book: "ob.OrderBook", quantity: Dec,
-                      premium: Dec = Dec('0')) -> "ob.Bid":
+    def _sell_quoted_(self, book: "ob.OrderBook", quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of the quoted currency into the given market.
         """
         price = book.lowest_ask_price()
-        return book.buy(hm.round_decimal(quantity/price), self, premium)
+        return book.buy(hm.round_decimal(quantity/price), self)
 
-    def _sell_base_(self, book: "ob.OrderBook", quantity: Dec,
-                    discount: Dec = Dec('0')) -> "ob.Ask":
+    def _sell_base_(self, book: "ob.OrderBook", quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of the base currency into the given market.
         """
-        return book.sell(quantity, self, discount)
+        return book.sell(quantity, self)
 
-    def sell_nomins_for_curits(self, quantity: Dec,
-                               premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_nomins_for_curits(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of nomins to buy curits.
         """
         return self._sell_quoted_(self.model.market_manager.curit_nomin_market,
-                                  quantity, premium)
+                                  quantity)
 
-    def sell_curits_for_nomins(self, quantity: Dec,
-                               discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_curits_for_nomins(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of curits to buy nomins.
         """
         return self._sell_base_(self.model.market_manager.curit_nomin_market,
-                                quantity, discount)
+                                quantity)
 
-    def sell_fiat_for_curits(self, quantity: Dec,
-                             premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_fiat_for_curits(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat to buy curits.
         """
         return self._sell_quoted_(self.model.market_manager.curit_fiat_market,
-                                  quantity, premium)
+                                  quantity)
 
-    def sell_curits_for_fiat(self, quantity: Dec,
-                             discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_curits_for_fiat(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of curits to buy fiat.
         """
         return self._sell_base_(self.model.market_manager.curit_fiat_market,
-                                quantity, discount)
+                                quantity)
 
-    def sell_fiat_for_nomins(self, quantity: Dec,
-                             premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_fiat_for_nomins(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat to buy nomins.
         """
         return self._sell_quoted_(self.model.market_manager.nomin_fiat_market,
-                                  quantity, premium)
+                                  quantity)
 
-    def sell_nomins_for_fiat(self, quantity: Dec,
-                             discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_nomins_for_fiat(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of nomins to buy fiat.
         """
         return self._sell_base_(self.model.market_manager.nomin_fiat_market,
-                                quantity, discount)
+                                quantity)
 
     def _sell_quoted_with_fee_(self, received_qty_fn: Callable[[Dec], Dec],
-                               book: "ob.OrderBook", quantity: Dec,
-                               premium: Dec = Dec('0')) -> "ob.Bid":
+                               book: "ob.OrderBook", quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of the quoted currency into the given market, including the
         fee, as calculated by the provided function.
         """
         price = book.lowest_ask_price()
-        return book.buy(received_qty_fn(hm.round_decimal(quantity/price)), self, premium)
+        return book.buy(received_qty_fn(hm.round_decimal(quantity/price)), self)
 
     def _sell_base_with_fee_(self, received_qty_fn: Callable[[Dec], Dec],
-                             book: "ob.OrderBook", quantity: Dec,
-                             discount: Dec = Dec('0')) -> "ob.Ask":
+                             book: "ob.OrderBook", quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of the base currency into the given market, including the
         fee, as calculated by the provided function.
         """
-        return book.sell(received_qty_fn(quantity), self, discount)
+        return book.sell(received_qty_fn(quantity), self)
 
-    def sell_nomins_for_curits_with_fee(self, quantity: Dec,
-                                        premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_nomins_for_curits_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of nomins (including fee) to buy curits.
         """
         return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_nomins_received,
                                            self.model.market_manager.curit_nomin_market,
-                                           quantity, premium)
+                                           quantity)
 
-    def sell_curits_for_nomins_with_fee(self, quantity: Dec,
-                                        discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_curits_for_nomins_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of curits (including fee) to buy nomins.
         """
         return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
                                          self.model.market_manager.curit_nomin_market,
-                                         quantity, discount)
+                                         quantity)
 
-    def sell_fiat_for_curits_with_fee(self, quantity: Dec,
-                                      premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_fiat_for_curits_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy curits.
         """
         return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_fiat_received,
                                            self.model.market_manager.curit_fiat_market,
-                                           quantity, premium)
+                                           quantity)
 
-    def sell_curits_for_fiat_with_fee(self, quantity: Dec,
-                                      discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_curits_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of curits (including fee) to buy fiat.
         """
         return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
                                          self.model.market_manager.curit_fiat_market,
-                                         quantity, discount)
+                                         quantity)
 
-    def sell_fiat_for_nomins_with_fee(self, quantity: Dec,
-                                      premium: Dec = Dec('0')) -> "ob.Bid":
+    def sell_fiat_for_nomins_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy nomins.
         """
         return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_fiat_received,
                                            self.model.market_manager.nomin_fiat_market,
-                                           quantity, premium)
+                                           quantity)
 
     def sell_nomins_for_fiat_with_fee(self, quantity: Dec,
                                       discount: Dec = Dec('0')) -> "ob.Ask":
@@ -334,7 +319,7 @@ class MarketPlayer(Agent):
         """
         return self._sell_base_with_fee_(self.model.fee_manager.transferred_nomins_received,
                                          self.model.market_manager.nomin_fiat_market,
-                                         quantity, discount)
+                                         quantity)
 
     def place_curit_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
