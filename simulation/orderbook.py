@@ -348,6 +348,7 @@ class OrderBook:
         """
         Submit a new buy order to the book.
         """
+        quantity = HavvenManager.round_decimal(quantity)
         fee = self._ask_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
@@ -468,7 +469,7 @@ class OrderBook:
         bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity + bid.fee
 
         # Add to the issuer and book's records
-        bid.issuer.orders.add(bid)
+        bid.issuer.orders.append(bid)
         self.bids.add(bid)
 
         # Update the cumulative price totals with the new quantity.
@@ -582,7 +583,7 @@ class OrderBook:
         ask.issuer.__dict__[f"unavailable_{self.base}"] += ask.quantity + ask.fee
 
         # Add to the issuer and book's records.
-        ask.issuer.orders.add(ask)
+        ask.issuer.orders.append(ask)
         self.asks.add(ask)
 
         # Update the cumulative price totals with the new quantity.
@@ -699,3 +700,17 @@ class OrderBook:
                 self.history.append(trade)
 
             spread = self.spread()
+
+    def do_single_match(self):
+        """Match the top bid with the lowest ask for testing step by step"""
+        if len(self.bids) and len(self.asks):
+            prev_bid, prev_ask = self.bids[0], self.asks[0]
+            trade = self.matcher(prev_bid, prev_ask)
+
+            # If a trade was made, then save it in the history.
+            if trade is not None:
+                self.history.append(trade)
+
+            return trade
+
+        raise Exception("Either no bids or no asks in orderbook, when attempting to do single match")

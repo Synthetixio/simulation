@@ -6,9 +6,11 @@ import agents as ag
 from managers.havvenmanager import HavvenManager as hm
 
 UID = 0
+"""UID is a global id for all agents being added in the tests"""
 
-def make_model_without_agents():
-    havven = model.Havven(0)
+
+def make_model_without_agents(match_on_order=True):
+    havven = model.Havven(0, match_on_order=match_on_order)
     for item in havven.schedule.agents:
         havven.schedule.remove(item)
     havven.agent_manager.agents = {"others": []}
@@ -25,7 +27,7 @@ def add_market_player(model):
 
 """
 ===========================================
-= Testing transfer fees:                  =
+= Testing transfer fees
 ===========================================
 
 Alice wants to transfer 100 nomins to Bob, to help him start up his IT company.
@@ -34,6 +36,7 @@ She accesses her wallet, gets Bob to send her his wallet information. She then t
 
 Bob starts with no nomins
 
+TODO: This probably belongs in feemanager?
 TODO: change initial values that are dependant on fee (i.e. where 100.5 is hardcoded)
 """
 
@@ -132,6 +135,16 @@ def test_rounding_success():
     transfer_nomins_checks(initial, 100, True)
 
 
+def test_rounding_fail():
+    """
+    - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
+    -- Aka. How is rounding handled.
+    -- Assuming the same result as: initial = 100*(1+fee_rate)
+    """
+    initial = Dec("100.5") - Dec("4.9E-"+str(hm.currency_precision+1))
+    transfer_nomins_checks(initial, 100, True)
+
+
 def test_no_nomins():
     """
     - Alice has 0 nomins:
@@ -141,15 +154,142 @@ def test_no_nomins():
 
 
 """
-Scenario 2
+===========================================
+= Testing limit sells (Assuming limit buys work as intended)
+===========================================
+
 Alice wants to trade on the exchange, she wants to limit sell 100 nomins @ 1.1fiat/nom  on the NOM/FIAT market
-In all scenarios, the trade history can be checked to see if something was added, with the correct values. As well as adding other price metrics etc. and checking them.
+In all scenarios, the trade history can be checked to see if something was added, with the correct values.
+As well as adding other price metrics etc. and checking them.
 
 Scenarios:
 Alice tries to place a limit sell for 100 nomins @ 1.1:
-- Alice has less than 100*(1+fee_rate) nomins
--- Trade doesn’t get placed in all scenarios
+"""
 
+
+def place_nom_fiat_limit_sell_setup(alice_initial):
+    """
+    Create three actors to do the trades,
+    start the two who will have existing buys with 10000 fiat,
+    as that isn't what is being tested.
+
+    Have the model match_on_order be False, to test that the
+    bids/asks are created correctly
+    """
+    havven = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven)
+    alice.nomins = Dec(alice_initial)
+    bob = add_market_player(havven)
+    bob.fiat = Dec(10000)
+    charlie = add_market_player(havven)
+    charlie.fiat = Dec(10000)
+    return havven, alice, bob, charlie
+
+
+def place_nomin_fiat_ask(havven, player, order_quant, order_price, success):
+    """
+    Place an nomin fiat limit sell (Ask) and check it's correctness
+    matching on order should be disabled.
+    """
+    ask = player.place_nomin_fiat_ask(order_quant, order_price)
+    if success:
+        assert ask is not None
+        assert ask.quantity == order_quant
+        assert ask.fee == havven.fee_manager.transferred_nomins_fee(order_quant)
+    else:
+        assert ask is None
+    return ask
+
+
+def test_placing_with_zero_fail():
+    """
+    - Alice has less than 100*(1+fee_rate) nomins
+    -- Trade doesn't get placed in all scenarios
+    """
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(Dec(0))
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
+    assert ask is None
+    assert alice.nomins == 0
+    assert alice.fiat == 0
+
+
+def test_placing_fail():
+    """
+    - Alice has less than 100*(1+fee_rate) nomins
+    -- Trade doesn't get placed in all scenarios
+    """
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(Dec(100))
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
+    assert ask is None
+    assert alice.nomins == 100
+    assert alice.fiat == 0
+
+
+def test_placing_barely_fail():
+    """
+    - Alice has less than 100*(1+fee_rate) nomins
+    -- Trade doesn't get placed in all scenarios
+    """
+    initial = Dec('100.5') - Dec("1E-"+str(hm.currency_precision))
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
+    assert ask is None
+    assert alice.nomins == initial
+    assert alice.fiat == 0
+
+
+def test_placing_no_match():
+    """Alice has enough to place the order, but no limit buts exist"""
+    initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert ask is not None
+    assert alice.orders[0] == ask
+    # test to check matching to nothing raises an exception
+    with pytest.raises(Exception):
+        ask.book.do_single_match()
+    assert alice.available_nomins == initial - (ask.quantity + ask.fee)
+    assert alice.nomins == initial
+    ask.cancel()
+    assert alice.available_nomins == initial
+    assert alice.nomins == initial
+
+
+def test_barely_placing_no_match():
+    """Alice has barely enough to place the order, but no limit buts exist"""
+    initial = Dec("100.5")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert ask is not None
+    assert alice.orders[0] == ask
+    # test to check matching to nothing raises an exception
+    with pytest.raises(Exception):
+        ask.book.do_single_match()
+    assert alice.available_nomins == initial - (ask.quantity + ask.fee)
+    assert alice.available_nomins == 0
+    assert alice.nomins == initial
+    ask.cancel()
+    assert alice.available_nomins == initial
+    assert alice.nomins == initial
+
+
+def test_barely_placing_rounding_no_match():
+    initial = Dec("100.5") - Dec("4.9E-"+str(hm.currency_precision+1))
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert ask is not None
+    assert alice.orders[0] == ask
+    # test to check matching to nothing raises an exception
+    with pytest.raises(Exception):
+        ask.book.do_single_match()
+    assert alice.available_nomins == havven.manager.round_decimal(initial - (ask.quantity + ask.fee))
+    assert alice.available_nomins == 0
+    assert alice.nomins == initial
+    ask.cancel()
+    assert alice.available_nomins == havven.manager.round_decimal(initial)
+    assert alice.nomins == initial
+
+"""
 - Alice has more than 100*(1+fee_rate) nomins and Bob/Charlie already have limit buys
 -- Bob has a limit buy for 100 nomins @ 1.1
 --- Alice transfers 100 nomins to Bob

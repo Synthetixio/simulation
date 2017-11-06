@@ -1,4 +1,4 @@
-from typing import Set, Tuple, Callable
+from typing import List, Tuple, Callable
 from collections import namedtuple
 from decimal import Decimal as Dec
 
@@ -38,7 +38,7 @@ class MarketPlayer(Agent):
 
         self.initial_wealth: Dec = self.wealth()
 
-        self.orders: Set["ob.LimitOrder"] = set()
+        self.orders: List["ob.LimitOrder"] = []
 
     def __str__(self) -> str:
         return self.name
@@ -410,21 +410,21 @@ class MarketPlayer(Agent):
         """
         This agent's quantity of fiat not tied up in orders.
         """
-        return self.fiat - self.unavailable_fiat
+        return self.model.manager.round_decimal(self.fiat - self.unavailable_fiat)
 
     @property
     def available_curits(self) -> Dec:
         """
         This agent's quantity of curits not being tied up in orders.
         """
-        return self.curits - self.unavailable_curits
+        return self.model.manager.round_decimal(self.curits - self.unavailable_curits)
 
     @property
     def available_nomins(self) -> Dec:
         """
         This agent's quantity of nomins not being tied up in orders.
         """
-        return self.nomins - self.unavailable_nomins
+        return self.model.manager.round_decimal(self.nomins - self.unavailable_nomins)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """
