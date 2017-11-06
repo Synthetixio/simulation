@@ -147,11 +147,13 @@ class MarketManager:
         return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.nomins)
 
     def transfer_fiat(self, sender: "ag.MarketPlayer",
-                      recipient: "ag.MarketPlayer", quantity: Dec, fee: Dec) -> bool:
+                      recipient: "ag.MarketPlayer", quantity: Dec, fee: Optional[Dec] = None) -> bool:
         """
         Transfer a positive quantity of fiat currency from the sender to the
           recipient, if balance is sufficient. Return True on success.
         """
+        if fee is None:
+            fee = self.fee_manager.transferred_fiat_fee(quantity)
         if self.transfer_fiat_success(sender, quantity, fee):
             sender.fiat -= quantity + fee
             recipient.fiat += quantity
@@ -160,11 +162,13 @@ class MarketManager:
         return False
 
     def transfer_curits(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Dec) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec] = None) -> bool:
         """
         Transfer a positive quantity of curits from the sender to the recipient,
           if balance is sufficient. Return True on success.
         """
+        if fee is None:
+            fee = self.fee_manager.transferred_curits_fee(quantity)
         if self.transfer_curits_success(sender, quantity, fee):
             sender.curits -= quantity + fee
             recipient.curits += quantity
@@ -173,11 +177,13 @@ class MarketManager:
         return False
 
     def transfer_nomins(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Dec) -> bool:
+                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec] = None) -> bool:
         """
         Transfer a positive quantity of nomins from the sender to the recipient,
           if balance is sufficient. Return True on success.
         """
+        if fee is None:
+            fee = self.fee_manager.transferred_nomins_fee(quantity)
         if self.transfer_nomins_success(sender, quantity, fee):
             sender.nomins -= quantity + fee
             recipient.nomins += quantity

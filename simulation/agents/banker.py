@@ -20,14 +20,12 @@ class Banker(MarketPlayer):
         if hm.round_decimal(self.available_fiat) > 0:
             if self.fiat_curit_order:
                 self.fiat_curit_order.cancel()
-            fiat = self.model.fee_manager.transferred_fiat_received(self.available_fiat)
-            self.fiat_curit_order = self.sell_fiat_for_curits(hm.round_decimal(fiat * self.rate))
+            self.fiat_curit_order = self.sell_fiat_for_curits_with_fee(hm.round_decimal(self.available_fiat * self.rate))
 
         if hm.round_decimal(self.available_nomins) > 0:
             if self.nomin_curit_order:
                 self.nomin_curit_order.cancel()
-            nomins = self.model.fee_manager.transferred_nomins_received(self.available_nomins)
-            self.nomin_curit_order = self.sell_nomins_for_curits(nomins)
+            self.nomin_curit_order = self.sell_nomins_for_curits_with_fee(self.available_nomins)
 
         if hm.round_decimal(self.available_curits) > 0:
             self.escrow_curits(self.available_curits)
