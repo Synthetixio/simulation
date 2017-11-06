@@ -83,7 +83,6 @@ class AgentManager:
                                  Dec(num_agents * init_value))
         self.havven.schedule.add(central_bank)
         self.agents["others"].append(central_bank)
-        print(self.agents)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven.schedule.agents:
