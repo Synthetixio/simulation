@@ -46,10 +46,10 @@ def transfer_nomins_setup(alice_initial: Dec):
     alice = add_market_player(havven)
     alice.nomins = alice_initial
     bob = add_market_player(havven)
-    assert(bob.nomins == 0)
-    assert(alice.nomins == alice_initial)
-    assert(len(havven.schedule.agents) == 2)
-    assert(len(havven.agent_manager.agents['others']) == 2)
+    assert (bob.nomins == 0)
+    assert (alice.nomins == alice_initial)
+    assert (len(havven.schedule.agents) == 2)
+    assert (len(havven.agent_manager.agents['others']) == 2)
     return havven, alice, bob
 
 
@@ -77,9 +77,9 @@ def transfer_nomins_checks(initial, transfer_amt, success):
 
     # if the transfer should fail
     else:
-        assert(alice.nomins == Dec(initial))
-        assert(bob.nomins == 0)
-        assert(havven.manager.nomins == 0)
+        assert (alice.nomins == Dec(initial))
+        assert (bob.nomins == 0)
+        assert (havven.manager.nomins == 0)
 
     # return objects for additional checks if needed
     return alice, bob, havven
@@ -102,7 +102,7 @@ def test_transfer_nomins_exact_pass():
     -- Havven accrues 100*fee_rate nomins in fees
     """
     alice, bob, havven = transfer_nomins_checks(Dec('100.5'), 100, True)
-    assert(alice.nomins == 0)
+    assert (alice.nomins == 0)
 
 
 def test_transfer_nomins_fail():
@@ -121,7 +121,7 @@ def test_transfer_nomins_barely_fail():
     - Alice has 100*(1+fee_rate) - (1E^(-currency_precision)) nomins (i.e. 100.49999...)
     -- Same result as 100 nomins.
     """
-    initial = Dec("100.5") - Dec("1E-"+str(hm.currency_precision))
+    initial = Dec("100.5") - Dec("1E-" + str(hm.currency_precision))
     transfer_nomins_checks(initial, 100, False)
 
 
@@ -131,7 +131,7 @@ def test_rounding_success():
     -- Aka. How is rounding handled.
     -- Assuming the same result as: initial = 100*(1+fee_rate)
     """
-    initial = Dec("100.5") - Dec("5E-"+str(hm.currency_precision+1))
+    initial = Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1))
     transfer_nomins_checks(initial, 100, True)
 
 
@@ -141,7 +141,7 @@ def test_rounding_fail():
     -- Aka. How is rounding handled.
     -- Assuming the same result as: initial = 100*(1+fee_rate)
     """
-    initial = Dec("100.5") - Dec("4.9E-"+str(hm.currency_precision+1))
+    initial = Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1))
     transfer_nomins_checks(initial, 100, True)
 
 
@@ -230,7 +230,7 @@ def test_placing_barely_fail():
     - Alice has less than 100*(1+fee_rate) nomins
     -- Trade doesn't get placed in all scenarios
     """
-    initial = Dec('100.5') - Dec("1E-"+str(hm.currency_precision))
+    initial = Dec('100.5') - Dec("1E-" + str(hm.currency_precision))
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
     assert ask is None
@@ -274,7 +274,7 @@ def test_barely_placing_no_match():
 
 
 def test_barely_placing_rounding_no_match():
-    initial = Dec("100.5") - Dec("4.9E-"+str(hm.currency_precision+1))
+    initial = Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1))
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
     assert ask is not None
@@ -288,6 +288,7 @@ def test_barely_placing_rounding_no_match():
     ask.cancel()
     assert alice.available_nomins == havven.manager.round_decimal(initial)
     assert alice.nomins == initial
+
 
 """
 - Alice has more than 100*(1+fee_rate) nomins and Bob/Charlie already have limit buys

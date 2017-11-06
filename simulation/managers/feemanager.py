@@ -31,7 +31,7 @@ class FeeManager:
 
     def transferred_fiat_received(self, quantity: Dec) -> Dec:
         """
-        Returns the fiat received by the recipient if a given quantity(with fee)
+        Returns the fiat received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
@@ -40,7 +40,7 @@ class FeeManager:
 
     def transferred_curits_received(self, quantity: Dec) -> Dec:
         """
-        Returns the curits received by the recipient if a given quantity(with fee)
+        Returns the curits received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
@@ -49,7 +49,7 @@ class FeeManager:
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
-        Returns the nomins received by the recipient if a given quantity(with fee)
+        Returns the nomins received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
