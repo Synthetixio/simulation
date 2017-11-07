@@ -426,6 +426,11 @@ class MarketPlayer(Agent):
         """
         return self.model.manager.round_decimal(self.nomins - self.unavailable_nomins)
 
+    def round_values(self):
+        self.nomins = hm.round_decimal(self.nomins)
+        self.fiat = hm.round_decimal(self.fiat)
+        self.curits = hm.round_decimal(self.curits)
+
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """
         Notify this agent that its order was cancelled.

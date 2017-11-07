@@ -333,6 +333,7 @@ class OrderBook:
         fee = self._bid_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
+        agent.round_values()
         if agent.__getattribute__(f"available_{self.quote}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
@@ -352,6 +353,7 @@ class OrderBook:
         fee = self._ask_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
+        agent.round_values()
         if agent.__getattribute__(f"available_{self.base}") < quantity + fee:
             return None
 
@@ -466,7 +468,7 @@ class OrderBook:
             return
 
         # Update the issuer's unavailable quote value.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity * bid.price + bid.fee
 
         # Add to the issuer and book's records
         bid.issuer.orders.append(bid)
@@ -556,6 +558,18 @@ class OrderBook:
 
         # Free up tokens occupied by this bid.
         bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity + bid.fee
+
+        # # remove rounding errors that are unfavourable to players
+        # # with this solution errors can add up until all orders are cleared...
+        # # TODO: make the solution better (could just round down every time?)
+        # if bid.issuer.__dict__[f"unavailable_{self.quote}"] < 0:
+        #     # if the rounding error is large, raise an error
+        #     if bid.issuer.__dict__[f"unavailable_{self.quote}"] > \
+        #             Dec('2E-'+str(self.model_manager.currency_precision)):
+        #         raise Exception(f"""{bid.issuer} has {bid.issuer.__dict__[f'unavailable_{self.quote}']}
+        #                             unavailable {self.quote}""")
+        #     else:
+        #         bid.issuer.__dict__[f"unavailable_{self.quote}"] = Dec(0)
 
         # Remove this order's remaining quantity from its price bucket
         self._bid_bucket_deduct(bid.price, bid.quantity)
@@ -670,6 +684,18 @@ class OrderBook:
         # Free up tokens occupied by this bid.
         ask.issuer.__dict__[f"unavailable_{self.base}"] -= ask.quantity + ask.fee
 
+        # # remove rounding errors that are unfavourable to players
+        # # with this solution errors can add up until all orders are cleared...
+        # # TODO: make the solution better (could just round down every time?)
+        # if ask.issuer.__dict__[f"unavailable_{self.base}"] < 0:
+        #     # if the rounding error is large, raise an error
+        #     if ask.issuer.__dict__[f"unavailable_{self.base}"] > \
+        #             Dec('2E-'+str(self.model_manager.currency_precision)):
+        #         raise Exception(f"""{ask.issuer} has {ask.issuer.__dict__[f'unavailable_{self.base}']}
+        #                             unavailable {self.base}""")
+        #     else:
+        #         ask.issuer.__dict__[f"unavailable_{self.quote}"] = Dec(0)
+
         # Remove this order's remaining quantity from its price bucket.
         self._ask_bucket_deduct(ask.price, ask.quantity)
 
@@ -701,7 +727,7 @@ class OrderBook:
 
             spread = self.spread()
 
-    def do_single_match(self):
+    def do_single_match(self) -> TradeRecord:
         """Match the top bid with the lowest ask for testing step by step"""
         if len(self.bids) and len(self.asks):
             prev_bid, prev_ask = self.bids[0], self.asks[0]

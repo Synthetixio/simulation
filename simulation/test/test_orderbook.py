@@ -155,7 +155,7 @@ def test_no_nomins():
 
 """
 ===========================================
-= Testing limit sells (Assuming limit buys work as intended)
+= Testing limit sells 
 ===========================================
 
 Alice wants to trade on the exchange, she wants to limit sell 100 nomins @ 1.1fiat/nom  on the NOM/FIAT market
@@ -201,6 +201,21 @@ def place_nomin_fiat_ask(havven, player, order_quant, order_price, success):
     return ask
 
 
+def place_nomin_fiat_bid(havven, player, order_quant, order_price, success):
+    """
+    Place an nomin fiat limit sell (Ask) and check it's correctness
+    matching on order should be disabled.
+    """
+    bid = player.place_nomin_fiat_bid(order_quant, order_price)
+    if success:
+        assert bid is not None
+        assert bid.quantity == order_quant
+        assert bid.fee == havven.fee_manager.transferred_fiat_fee(order_quant*order_price)
+    else:
+        assert bid is None
+    return bid
+
+
 def test_placing_with_zero_fail():
     """
     - Alice has less than 100*(1+fee_rate) nomins
@@ -231,6 +246,8 @@ def test_placing_barely_fail():
     -- Trade doesn't get placed in all scenarios
     """
     initial = Dec('100.5') - Dec("1E-" + str(hm.currency_precision))
+    print(initial)
+    print(hm.round_decimal(initial))
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
     assert ask is None
@@ -238,8 +255,21 @@ def test_placing_barely_fail():
     assert alice.fiat == 0
 
 
+def test_barley_placing_rounding_fail():
+    """
+    Test if an ask is placed when the user's initial value would be rounded below the
+    required amount to place the ask
+    """
+    initial = Dec('100.5') - Dec("5.1E-" + str(hm.currency_precision+1))
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
+    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
+    assert ask is None
+    assert alice.nomins == hm.round_decimal(initial)
+    assert alice.fiat == 0
+
+
 def test_placing_no_match():
-    """Alice has enough to place the order, but no limit buts exist"""
+    """Alice has enough to place the order, but no limit buys exist"""
     initial = Dec("200")
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
@@ -256,7 +286,7 @@ def test_placing_no_match():
 
 
 def test_barely_placing_no_match():
-    """Alice has barely enough to place the order, but no limit buts exist"""
+    """Alice has barely enough to place the order, but no limit buys exist"""
     initial = Dec("100.5")
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
@@ -274,7 +304,7 @@ def test_barely_placing_no_match():
 
 
 def test_barely_placing_rounding_no_match():
-    initial = Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1))
+    initial = Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1))
     havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
     ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
     assert ask is not None
@@ -291,36 +321,263 @@ def test_barely_placing_rounding_no_match():
 
 
 """
-- Alice has more than 100*(1+fee_rate) nomins and Bob/Charlie already have limit buys
--- Bob has a limit buy for 100 nomins @ 1.1
---- Alice transfers 100 nomins to Bob
----- Alice resulting nomins = initial - 100*(1+fee_rate)
----- Bob’s resulting nomins = 100
----- Havven accrues 100*fee_rate nomins in fees
---- Bob transfers 100*1.1 fiat to Alice
----- Bob’s resulting fiat = initial - (100*1.1)*(1+fee_rate)
----- Alice’s resulting fiat = 100*1.1
----- Havven accrues 100*1.1*fee_rate fiat in fees
---- Both orders are cancelled
+===========================================
+= Testing limit buys
+===========================================
+"""
 
--- Bob has a limit buy for 100 nomins @ 1.2
---- Bob’s order already existed, so use the price 1.2
---- Same result as above (except using 1.2 as the price)
 
--- Bob has a limit buy for 100 nomins @ 1.0
---- The price is too low to match Alice’s order
---- Alice’s order is placed, and added to the orderbook
+def test_limit_buys():
+    pass
 
--- Bob has a limit buy for 200 nomins @ 1.1
---- Alice transfers 100 nomins to Bob
---- Bob transfers 100*1.1 fiat to Alice
---- Alice’s order is cancelled
---- Bob’s order is updated
----- Quantity is reduced by 100
----- Bob’s order’s fee is recalculated
------ Fee started at 100*1.1*fee_rate
------ Fee is reduced by 50*1.1*fee_rate
 
+"""
+===========================================
+= Testing testing limit sells matching existing buys
+===========================================
+"""
+
+
+def test_exact_match():
+    """
+    - Alice has more than 100*(1+fee_rate) nomins and Bob/Charlie already have limit buys
+    -- Bob has a limit buy for 100 nomins @ 1.1
+    --- Alice transfers 100 nomins to Bob
+    ---- Alice resulting nomins = initial - 100*(1+fee_rate)
+    ---- Bob’s resulting nomins = 100
+    ---- Havven accrues 100*fee_rate nomins in fees
+    --- Bob transfers 100*1.1 fiat to Alice
+    ---- Bob’s resulting fiat = initial - (100*1.1)*(1+fee_rate)
+    ---- Alice’s resulting fiat = 100*1.1
+    ---- Havven accrues 100*1.1*fee_rate fiat in fees
+    --- Both orders are cancelled
+    """
+    alice_initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(alice_initial)
+    bob_bid = place_nomin_fiat_bid(havven, bob, Dec(100), Dec('1.1'), True)
+
+    bob_initial = bob.fiat
+
+    assert bob_bid is not None
+    assert bob.orders[0] == bob_bid
+    with pytest.raises(Exception):
+        bob_bid.book.do_single_match()
+
+    alice_ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert alice_ask is not None
+    assert alice.orders[0] == alice_ask
+
+    trade = alice_ask.book.do_single_match()
+
+    assert trade is not None
+
+    assert bob.nomins == Dec(100)
+    assert bob.nomins == trade.quantity
+    assert alice.nomins == alice_initial - Dec(100) - havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert alice.nomins == alice_initial - trade.quantity - trade.ask_fee
+    assert havven.manager.nomins == havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert havven.manager.nomins == Dec(100) * havven.fee_manager.nom_fee_rate
+
+    assert alice.fiat == trade.quantity * trade.price
+    assert bob.fiat == (bob_initial - trade.quantity * trade.price - trade.bid_fee)
+    assert bob.fiat == bob_initial - (Dec(100) * Dec('1.1') * (1 + havven.fee_manager.fiat_fee_rate))
+
+    assert bob_bid.active is False
+    assert alice_ask.active is False
+
+
+def test_better_price_match():
+    """
+    -- Bob has a limit buy for 100 nomins @ 1.2
+    --- Bob’s order already existed, so use the price 1.2
+    --- Same result as above (except using 1.2 as the price)
+    """
+    alice_initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(alice_initial)
+    bob_bid = place_nomin_fiat_bid(havven, bob, Dec(100), Dec('1.2'), True)
+
+    bob_initial = bob.fiat
+
+    assert bob_bid is not None
+    assert bob.orders[0] == bob_bid
+    with pytest.raises(Exception):
+        bob_bid.book.do_single_match()
+
+    alice_ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert alice_ask is not None
+    assert alice.orders[0] == alice_ask
+
+    trade = alice_ask.book.do_single_match()
+
+    assert trade is not None
+
+    assert bob.nomins == Dec(100)
+    assert bob.nomins == trade.quantity
+    assert alice.nomins == alice_initial - Dec(100) - havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert alice.nomins == alice_initial - trade.quantity - trade.ask_fee
+    assert havven.manager.nomins == havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert havven.manager.nomins == Dec(100) * havven.fee_manager.nom_fee_rate
+
+    assert alice.fiat == trade.quantity * trade.price
+    assert bob.fiat == (bob_initial - trade.quantity * trade.price - trade.bid_fee)
+    assert bob.fiat == bob_initial - (Dec(100) * Dec('1.2') * (1 + havven.fee_manager.fiat_fee_rate))
+
+    assert bob_bid.active is False
+    assert alice_ask.active is False
+
+
+def test_price_too_low_match():
+    """
+    -- Bob has a limit buy for 100 nomins @ 1.0
+    --- The price is too low to match Alice’s order
+    --- Alice’s order is placed, and added to the orderbook
+    """
+    alice_initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(alice_initial)
+    bob_bid = place_nomin_fiat_bid(havven, bob, Dec(100), Dec('1'), True)
+
+    bob_initial = bob.fiat
+
+    assert bob_bid is not None
+    assert bob.orders[0] == bob_bid
+    with pytest.raises(Exception):
+        bob_bid.book.do_single_match()
+
+    alice_ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert alice_ask is not None
+    assert alice.orders[0] == alice_ask
+
+    trade = alice_ask.book.do_single_match()
+
+    assert trade is None
+
+    assert alice.available_nomins == havven.manager.round_decimal(alice_initial - (alice_ask.quantity + alice_ask.fee))
+    assert alice.nomins == alice_initial
+    assert alice.fiat == Dec(0)
+
+    assert bob.available_fiat == havven.manager.round_decimal(bob_initial - (bob_bid.quantity + bob_bid.fee))
+    assert bob.fiat == bob_initial
+    assert bob.nomins == Dec(0)
+
+    alice_ask.cancel()
+    bob_bid.cancel()
+
+    assert alice.available_nomins == havven.manager.round_decimal(alice_initial)
+    assert alice.nomins == alice_initial
+
+    assert bob.available_fiat == bob_initial
+    assert bob.fiat == bob_initial
+
+    assert bob_bid.active is False
+    assert alice_ask.active is False
+
+
+def test_higher_quantity_buy():
+    """
+    -- Bob has a limit buy for 200 nomins @ 1.1
+    --- Alice transfers 100 nomins to Bob
+    --- Bob transfers 100*1.1 fiat to Alice
+    --- Alice’s order is cancelled
+    --- Bob’s order is updated
+    ---- Quantity is reduced by 100
+    ---- Bob’s order’s fee is recalculated
+    ----- Fee started at 100*1.1*fee_rate
+    ----- Fee is reduced by 50*1.1*fee_rate
+    """
+    alice_initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(alice_initial)
+    bob_bid = place_nomin_fiat_bid(havven, bob, Dec(200), Dec('1.1'), True)
+
+    bob_initial = bob.fiat
+
+    assert bob_bid is not None
+    assert bob.orders[0] == bob_bid
+    with pytest.raises(Exception):
+        bob_bid.book.do_single_match()
+
+    alice_ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert alice_ask is not None
+    assert alice.orders[0] == alice_ask
+
+    trade = alice_ask.book.do_single_match()
+
+    assert bob.nomins == Dec(100)
+    assert bob.nomins == trade.quantity
+
+    assert alice.nomins == alice_initial - Dec(100) - havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert alice.nomins == alice_initial - trade.quantity - trade.ask_fee
+
+    assert alice.fiat == trade.quantity * trade.price
+    assert bob.fiat == bob_initial - trade.quantity*trade.price - trade.bid_fee
+
+    assert havven.manager.nomins == havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert havven.manager.nomins == Dec(100) * havven.fee_manager.nom_fee_rate
+    assert havven.manager.nomins == trade.ask_fee
+
+    assert havven.manager.fiat == havven.fee_manager.transferred_fiat_fee(trade.quantity * trade.price)
+    assert havven.manager.fiat == trade.bid_fee
+    assert havven.manager.fiat == Dec(100) * Dec('1.1') * havven.fee_manager.fiat_fee_rate
+
+    assert alice_ask.active is False
+
+    assert bob_bid.quantity == Dec(100)
+    assert bob_bid.fee == havven.fee_manager.transferred_fiat_fee(bob_bid.quantity * bob_bid.price)
+
+    bob_bid.cancel()
+
+    assert bob_bid.active is False
+
+
+def test_higher_quantity_higher_price_buy():
+    """same as above, except bid starts as 200@1.2"""
+    alice_initial = Dec("200")
+    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(alice_initial)
+    bob_bid = place_nomin_fiat_bid(havven, bob, Dec(200), Dec('1.2'), True)
+
+    bob_initial = bob.fiat
+
+    assert bob_bid is not None
+    assert bob.orders[0] == bob_bid
+    with pytest.raises(Exception):
+        bob_bid.book.do_single_match()
+    assert bob.unavailable_fiat == bob_bid.quantity * bob_bid.price + bob_bid.fee
+
+    alice_ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
+    assert alice_ask is not None
+    assert alice.orders[0] == alice_ask
+
+    trade = alice_ask.book.do_single_match()
+
+    assert bob.nomins == Dec(100)
+    assert bob.nomins == trade.quantity
+
+    assert alice.nomins == alice_initial - Dec(100) - havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert alice.nomins == alice_initial - trade.quantity - trade.ask_fee
+
+    assert alice.fiat == trade.quantity * trade.price
+    assert bob.fiat == bob_initial - trade.quantity*trade.price - trade.bid_fee
+
+    assert havven.manager.nomins == havven.fee_manager.transferred_nomins_fee(Dec(100))
+    assert havven.manager.nomins == Dec(100) * havven.fee_manager.nom_fee_rate
+    assert havven.manager.nomins == trade.ask_fee
+
+    assert havven.manager.fiat == havven.fee_manager.transferred_fiat_fee(trade.quantity * trade.price)
+    assert havven.manager.fiat == trade.bid_fee
+    assert havven.manager.fiat == Dec(100) * Dec('1.2') * havven.fee_manager.fiat_fee_rate
+
+    assert alice_ask.active is False
+
+    assert bob_bid.quantity == Dec(100)
+    assert bob_bid.fee == havven.fee_manager.transferred_fiat_fee(bob_bid.quantity * bob_bid.price)
+
+    assert bob.unavailable_fiat == bob_bid.quantity * bob_bid.price + bob_bid.fee
+
+    bob_bid.cancel()
+
+    assert bob_bid.active is False
+
+
+"""
 -- Bob has a limit buy for 50 nomins @ 1.1 and Charlie has a limit buy for 50 nom @ 1.2
 --- Charlie’s order is matched first, as it is the higher price
 --- Alice transfers 50 nomins to Charlie
@@ -338,4 +595,19 @@ def test_barely_placing_rounding_no_match():
 --- Alice receives 50*1.1 fiat from Bob
 --- Bob’s order is cancelled
 --- Alice’s order is cancelled
+
+TODO: same as above, but both at 1.1, to show the ordering is correct
+
+
+TODO: test more precises prices eg. ask:100@1.32451234
+TODO: testing buy limits thoroughly
+TODO: testing market buy/sells (and implement if needed)
+  - they're the same as sell_with_fee, should there really be a difference to limit buy/sell?
+TODO: testing user buying from themselves (should be allowed, as it only benefits the system)
+    - but then, should people buying from themselves influence the price?
+        it probably shouldn't, but they could always just have two accounts anyways.
+        is there any way to detect this?
+        to stop high volume price manipulation by one user?
+TODO: testing continuous buying/selling
+
 """
