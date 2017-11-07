@@ -398,6 +398,11 @@ def test_nomin_fiat_ask_match_scenarios(player_info):
 
 
 def nomin_fiat_ask_match_check(player_info):
+    """
+    Check if the nomin/fiat ask match to a series of
+    bids is valid, and works correctly
+    TODO: generalise for all markets, and multiple asks?
+    """
     a_info = player_info.pop(0)
 
     a_initial = Dec(a_info[0])
