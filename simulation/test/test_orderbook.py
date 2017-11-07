@@ -123,7 +123,7 @@ nomin_transfer_scenarios = [
     # - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
     # -- Aka. How is rounding handled.
     # -- Assuming the same result as: initial = 100*(1+fee_rate)
-    (Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1)), 100, True)
+    (Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1)), 100, True),
 ]
 
 
@@ -224,6 +224,10 @@ placing_nomin_for_fiat_ask_scenarios = [
 
     # Testing rounding, which should succeed
     (Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1)), 100, Dec('1.1'), True),
+
+    # test more precises prices and fees
+    (200, 100, '1.11234113', True),
+
 ]
 
 
@@ -374,6 +378,12 @@ matching_nomin_for_fiat_ask_scenarios = [
         (1000, 50, '1.2', 1)
 
     ],
+
+    # test more precise prices
+    [
+        (200, 100, '1.11234113', 1),
+        (1000, 100, '1.23222117', 1)
+    ]
 ]
 
 
@@ -512,7 +522,9 @@ def nomin_fiat_ask_match_check(player_info):
                 assert bob.nomins == b_quant
                 assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
-                assert bob.fiat == b_initial - (b_quant * b_price * (1 + havven.fee_manager.fiat_fee_rate))
+                assert bob.fiat == hm.round_decimal(
+                    b_initial - (b_quant * hm.round_decimal(b_price) * (1 + havven.fee_manager.fiat_fee_rate))
+                )
                 assert alice.fiat == a_last_fiat + b_quant * b_price
                 assert alice.fiat == a_last_fiat + trade.quantity * trade.price
                 assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
@@ -541,10 +553,6 @@ def nomin_fiat_ask_match_check(player_info):
 
 
 """
-TODO: same as above, but both at 1.1, to show ordering
-TODO: Alice's order is partially filled, others fully
-
-
 TODO: test more precises prices eg. ask:100@1.32451234
 TODO: testing buy limits thoroughly
 TODO: testing market buy/sells (and implement if needed)
