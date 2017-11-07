@@ -341,8 +341,39 @@ matching_nomin_for_fiat_ask_scenarios = [
     [
         (200, 100, '1.1', 1),
         (1000, 200, '1.2', 2)
-    ]
+    ],
 
+    # -- Bob has a limit buy for 50 nomins @ 1.1 and Charlie has a limit buy for 50 nom @ 1.2
+    # --- Charlie’s order is matched first, as it is the higher price
+    # --- Alice transfers 50 nomins to Charlie
+    # --- Alice receives 50*1.2 fiat from Charlie
+    # --- Havven accrues fees for both transfers
+    # --- Charlies order is cancelled
+    # --- Alice’s order is updated
+    # ---- Quantity is reduced by 50
+    # ---- Alice’s order’s fee is recalculated
+    # ----- Fee was originally 100*fee_rate
+    # ----- Max fee is now 50*fee_rate
+    # ---- Alice’s total nomins is reduced by 50*(1+fee_rate)
+    # --- Bob’s order is then matched
+    # --- Alice transfers 50 nomins to Bob
+    # --- Alice receives 50*1.1 fiat from Bob
+    # --- Bob’s order is cancelled
+    # --- Alice’s order is cancelled
+
+    [
+        (200, 100, '1.1', 1),
+        (1000, 50, '1.1', 1),
+        (1000, 50, '1.2', 1)
+
+    ],
+    # same as above, but alice wants to sell more, so she is left with an order
+    [
+        (200, 150, '1.1', 2),
+        (1000, 50, '1.1', 1),
+        (1000, 50, '1.2', 1)
+
+    ],
 ]
 
 
@@ -387,11 +418,14 @@ def nomin_fiat_ask_match_check(player_info):
         data['player'] = player
         others.append(data)
 
+    others.sort(key=lambda x: (-x['price'], x['bid'].time))
+
     ask = place_nomin_fiat_ask(havven, alice, a_quant, a_price, True)
     assert ask is not None
     assert alice.orders[-1] == ask
 
-    a_last = a_initial
+    a_last_nom = a_initial
+    a_last_fiat = Dec(0)
     last_havven_nomins = havven.manager.nomins
     last_havven_fiat = havven.manager.fiat
 
@@ -433,6 +467,10 @@ def nomin_fiat_ask_match_check(player_info):
                 assert b_type == 0
             break
 
+        # this should be enough to show the correct ordering of the sorted others?
+        assert trade.buyer == bob
+        assert trade.seller == alice
+
         if ask.active:
             if bid.active:
                 raise Exception("trade matched but both bid and ask are active")
@@ -441,14 +479,15 @@ def nomin_fiat_ask_match_check(player_info):
                 assert b_type == 1
                 # a_type assert doesn't happen here, as there will be more trades
                 assert bob.nomins == trade.quantity
-                assert alice.nomins == a_last - trade.quantity - trade.ask_fee
+                assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
-                assert alice.fiat == trade.quantity * trade.price
+                assert alice.fiat == a_last_fiat + trade.quantity * trade.price
                 assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
                 assert havven.manager.fiat == last_havven_fiat + trade.bid_fee
                 last_havven_nomins = havven.manager.nomins
                 last_havven_fiat = havven.manager.fiat
-                a_last = alice.nomins
+                a_last_nom = alice.nomins
+                a_last_fiat = alice.fiat
                 continue
 
         else:
@@ -459,7 +498,7 @@ def nomin_fiat_ask_match_check(player_info):
                 # TODO: don't rely so heavily on trade variables
                 assert bob.nomins == trade.quantity
 
-                assert alice.nomins == a_last - trade.quantity - trade.ask_fee
+                assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
                 assert alice.fiat == trade.quantity * trade.price
                 assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
@@ -471,11 +510,11 @@ def nomin_fiat_ask_match_check(player_info):
                 assert b_type == 1
                 assert bob.nomins == trade.quantity
                 assert bob.nomins == b_quant
-                assert alice.nomins == a_last - trade.quantity - trade.ask_fee
+                assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
                 assert bob.fiat == b_initial - (b_quant * b_price * (1 + havven.fee_manager.fiat_fee_rate))
-                assert alice.fiat == b_quant * b_price
-                assert alice.fiat == trade.quantity * trade.price
+                assert alice.fiat == a_last_fiat + b_quant * b_price
+                assert alice.fiat == a_last_fiat + trade.quantity * trade.price
                 assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
                 assert havven.manager.fiat == last_havven_fiat + trade.bid_fee
                 break
@@ -502,24 +541,6 @@ def nomin_fiat_ask_match_check(player_info):
 
 
 """
--- Bob has a limit buy for 50 nomins @ 1.1 and Charlie has a limit buy for 50 nom @ 1.2
---- Charlie’s order is matched first, as it is the higher price
---- Alice transfers 50 nomins to Charlie
---- Alice receives 50*1.2 fiat from Charlie
---- Havven accrues fees for both transfers
---- Charlies order is cancelled
---- Alice’s order is updated
----- Quantity is reduced by 50
----- Alice’s order’s fee is recalculated
------ Fee was originally 100*fee_rate
------ Max fee is now 50*fee_rate
----- Alice’s total nomins is reduced by 50*(1+fee_rate)
---- Bob’s order is then matched
---- Alice transfers 50 nomins to Bob
---- Alice receives 50*1.1 fiat from Bob
---- Bob’s order is cancelled
---- Alice’s order is cancelled
-
 TODO: same as above, but both at 1.1, to show ordering
 TODO: Alice's order is partially filled, others fully
 
