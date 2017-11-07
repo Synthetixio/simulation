@@ -85,72 +85,53 @@ def transfer_nomins_checks(initial, transfer_amt, success):
     return alice, bob, havven
 
 
-def test_transfer_nomins_pass():
-    """
-    - Alice has more than enough nomins to fill the transfer with fee (i.e. 200 nomins):
-    -- Alice’s resulting nomins = initial - 100*(1+fee_rate)
-    -- Bob’s resulting nomins = 100
-    -- Havven accrues 100*fee_rate nomins in fees
-    """
-    transfer_nomins_checks(200, 100, True)
+nomin_transfer_scenarios = [
+    # scenarios are in the form: [initial_nomin_holdings, transfer_amount, should_it_succeed]
+
+    # - Alice has more than enough nomins to fill the transfer with fee (i.e. 200 nomins):
+    # -- Alice's resulting nomins = initial - 100*(1+fee_rate)
+    # -- Bob's resulting nomins = 100
+    # -- Havven accrues 100*fee_rate nomins in fees
+    (200, 100, True),
+
+    # - Alice has exactly enough nomins to fill the transfer with fee (i.e. 100*(1+fee_rate) nomins):
+    # -- Alice’s resulting nomins = 0
+    # -- Bob’s resulting nomins = 100
+    # -- Havven accrues 100*fee_rate nomins in fees
+    (Dec('100.5'), 100, True),
+
+    # - Alice has exactly 100 nomins:
+    # TODO: (?) -- Alice is notified transfer failed
+    # -- Alice’s resulting nomins = 100
+    # -- Bob’s resulting nomins = 0
+    # -- Havven accrues no fees, as no transfer took place
+    (100, 100, False),
+
+    # - Alice has 0 nomins:
+    # -- Same result as 100 nomins
+    (0, 100, False),
+
+    # - Alice has 100*(1+fee_rate) - (1E^(-currency_precision)) nomins (i.e. 100.49999...)
+    # -- Same result as 100 nomins.
+    (Dec("100.5") - Dec("1E-" + str(hm.currency_precision)), 100, False),
+
+    # - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
+    # -- Aka. How is rounding handled.
+    # -- Assuming the same result as: initial = 100*(1+fee_rate)
+    (Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1)), 100, True),
+
+    # - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
+    # -- Aka. How is rounding handled.
+    # -- Assuming the same result as: initial = 100*(1+fee_rate)
+    (Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1)), 100, True)
+]
 
 
-def test_transfer_nomins_exact_pass():
-    """- Alice has exactly enough nomins to fill the transfer with fee (i.e. 100*(1+fee_rate) nomins):
-    -- Alice’s resulting nomins = 0
-    -- Bob’s resulting nomins = 100
-    -- Havven accrues 100*fee_rate nomins in fees
-    """
-    alice, bob, havven = transfer_nomins_checks(Dec('100.5'), 100, True)
-    assert (alice.nomins == 0)
-
-
-def test_transfer_nomins_fail():
-    """
-    - Alice has exactly 100 nomins:
-    TODO: (?) -- Alice is notified transfer failed
-    -- Alice’s resulting nomins = 100
-    -- Bob’s resulting nomins = 0
-    -- Havven accrues no fees, as no transfer took place
-    """
-    transfer_nomins_checks(100, 100, False)
-
-
-def test_transfer_nomins_barely_fail():
-    """
-    - Alice has 100*(1+fee_rate) - (1E^(-currency_precision)) nomins (i.e. 100.49999...)
-    -- Same result as 100 nomins.
-    """
-    initial = Dec("100.5") - Dec("1E-" + str(hm.currency_precision))
-    transfer_nomins_checks(initial, 100, False)
-
-
-def test_rounding_success():
-    """
-    - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
-    -- Aka. How is rounding handled.
-    -- Assuming the same result as: initial = 100*(1+fee_rate)
-    """
-    initial = Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1))
-    transfer_nomins_checks(initial, 100, True)
-
-
-def test_rounding_fail():
-    """
-    - Alice has 100*(1+fee_rate) - (5E^(-(1+currency_precision))) nomins
-    -- Aka. How is rounding handled.
-    -- Assuming the same result as: initial = 100*(1+fee_rate)
-    """
-    initial = Dec("100.5") - Dec("4.9E-" + str(hm.currency_precision + 1))
-    transfer_nomins_checks(initial, 100, True)
-
-
-def test_no_nomins():
-    """
-    - Alice has 0 nomins:
-    -- Same result as 100 nomins
-    """
-    transfer_nomins_checks(0, 100, False)
+@pytest.mark.parametrize('initial, transfer_amount, success', [
+    pytest.param(*i, id=f"{str(i[0])};{i[1]};{['fail','pass'][i[2]]}") for i in nomin_transfer_scenarios
+])
+def test_nomin_transfer_scenarios(initial, transfer_amount, success):
+    transfer_nomins_checks(initial, transfer_amount, success)
 
 
 """
@@ -216,108 +197,68 @@ def place_nomin_fiat_bid(havven, player, order_quant, order_price, success):
     return bid
 
 
-def test_placing_with_zero_fail():
-    """
-    - Alice has less than 100*(1+fee_rate) nomins
-    -- Trade doesn't get placed in all scenarios
-    """
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(Dec(0))
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
-    assert ask is None
-    assert alice.nomins == 0
-    assert alice.fiat == 0
+placing_nomin_for_fiat_ask_scenarios = [
+    # scenarios are in the form:
+    #
+    # [(alice_nomins, alice_ask_quant, alice_ask_price, success), ...]
+    #
+    # where the amount of bobs and charlies are variable, and they all place bids
+    # where type is 0 for no match, 1 for completely filled, 2 for partially filled, 3 for failed place
+    # Bob/Charlie/others should never fail to place, only Alice (i.e only have type 0, 1, 2)
+
+    # - Alice has less than 100*(1+fee_rate) nomins
+    # -- Trade doesn't get placed in all scenarios
+    (0, 100, Dec('1.1'), False),
+    (100, 100, Dec('1.1'), False),
+    (Dec('100.5') - Dec("1E-" + str(hm.currency_precision)), 100, Dec('1.1'), False),
+
+    # Test if an ask is placed when the user's initial value would be rounded below the
+    # required amount to place the ask
+    (Dec('100.5') - Dec("5.1E-" + str(hm.currency_precision+1)), 100, Dec('1.1'), False),
+
+    # Alice has enough to place the order, but no limit buys exist
+    (200, 100, Dec('1.1'), True),
+
+    # Alice has barely enough to place the order, but no limit buys exist
+    (Dec("100.5"), 100, Dec('1.1'), True),
+
+    # Testing rounding, which should succeed
+    (Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1)), 100, Dec('1.1'), True),
+]
 
 
-def test_placing_fail():
-    """
-    - Alice has less than 100*(1+fee_rate) nomins
-    -- Trade doesn't get placed in all scenarios
-    """
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(Dec(100))
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
-    assert ask is None
-    assert alice.nomins == 100
-    assert alice.fiat == 0
+@pytest.mark.parametrize('initial, quantity, price, success', [
+    pytest.param(
+        *i,
+        id=f"{str(i[0])};{i[1]}@{i[2]};{['fail','pass'][i[3]]}"
+    ) for i in placing_nomin_for_fiat_ask_scenarios
+])
+def test_nomin_fiat_ask_scenarios(initial, quantity, price, success):
+    nomin_ask_placement_check(initial, quantity, price, success)
 
 
-def test_placing_barely_fail():
-    """
-    - Alice has less than 100*(1+fee_rate) nomins
-    -- Trade doesn't get placed in all scenarios
-    """
-    initial = Dec('100.5') - Dec("1E-" + str(hm.currency_precision))
-    print(initial)
-    print(hm.round_decimal(initial))
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
-    assert ask is None
-    assert alice.nomins == initial
-    assert alice.fiat == 0
+def nomin_ask_placement_check(initial, quantity, price, success):
+    havven = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven)
+    alice.nomins = Dec(initial)
 
-
-def test_barley_placing_rounding_fail():
-    """
-    Test if an ask is placed when the user's initial value would be rounded below the
-    required amount to place the ask
-    """
-    initial = Dec('100.5') - Dec("5.1E-" + str(hm.currency_precision+1))
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), False)
-    assert ask is None
-    assert alice.nomins == hm.round_decimal(initial)
-    assert alice.fiat == 0
-
-
-def test_placing_no_match():
-    """Alice has enough to place the order, but no limit buys exist"""
-    initial = Dec("200")
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
-    assert ask is not None
-    assert alice.orders[0] == ask
-    # test to check matching to nothing raises an exception
-    with pytest.raises(Exception):
-        ask.book.do_single_match()
-    assert alice.available_nomins == initial - (ask.quantity + ask.fee)
-    assert alice.nomins == initial
-    ask.cancel()
-    assert alice.available_nomins == initial
-    assert alice.nomins == initial
-
-
-def test_barely_placing_no_match():
-    """Alice has barely enough to place the order, but no limit buys exist"""
-    initial = Dec("100.5")
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
-    assert ask is not None
-    assert alice.orders[0] == ask
-    # test to check matching to nothing raises an exception
-    with pytest.raises(Exception):
-        ask.book.do_single_match()
-    assert alice.available_nomins == initial - (ask.quantity + ask.fee)
-    assert alice.available_nomins == 0
-    assert alice.nomins == initial
-    ask.cancel()
-    assert alice.available_nomins == initial
-    assert alice.nomins == initial
-
-
-def test_barely_placing_rounding_no_match():
-    initial = Dec("100.5") - Dec("5E-" + str(hm.currency_precision + 1))
-    havven, alice, bob, charlie = place_nom_fiat_limit_sell_setup(initial)
-    ask = place_nomin_fiat_ask(havven, alice, Dec(100), Dec('1.1'), True)
-    assert ask is not None
-    assert alice.orders[0] == ask
-    # test to check matching to nothing raises an exception
-    with pytest.raises(Exception):
-        ask.book.do_single_match()
-    assert alice.available_nomins == havven.manager.round_decimal(initial - (ask.quantity + ask.fee))
-    assert alice.available_nomins == 0
-    assert alice.nomins == initial
-    ask.cancel()
-    assert alice.available_nomins == havven.manager.round_decimal(initial)
-    assert alice.nomins == initial
+    ask = place_nomin_fiat_ask(havven, alice, quantity, price, success)
+    if success:
+        assert ask is not None
+        assert alice.orders[0] == ask
+        # test to check matching to nothing raises an exception
+        with pytest.raises(Exception):
+            ask.book.do_single_match()
+        assert alice.available_nomins == havven.manager.round_decimal(initial - (ask.quantity + ask.fee))
+        assert alice.available_nomins == initial - quantity - havven.fee_manager.transferred_nomins_fee(quantity)
+        assert alice.nomins == initial
+        ask.cancel()
+        assert alice.available_nomins == havven.manager.round_decimal(initial)
+        assert alice.nomins == havven.manager.round_decimal(initial)
+    else:
+        assert ask is None
+        assert alice.nomins == havven.manager.round_decimal(initial)
+        assert alice.fiat == 0
 
 
 """
@@ -337,6 +278,17 @@ def test_limit_buys():
 ===========================================
 """
 
+matching_nomin_for_fiat_ask_scenarios = [
+    # scenarios are in the form:
+    # [
+    #   (alice_nomins, alice_ask_quant, alice_ask_price, type),
+    #   (bob_fiat, bob_bid_quant, bob_bid_price, type),
+    # ]
+    #
+    # where the amount of bobs is variable, and they all place bids
+    # where type is 0 for no match, 1 for completely filled, 2 for partially filled
+    # Placing orders should never fail as that isn't the point of this test
+]
 
 def test_exact_match():
     """
