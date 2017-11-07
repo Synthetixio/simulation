@@ -557,7 +557,7 @@ class OrderBook:
             return
 
         # Free up tokens occupied by this bid.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity * bid.price + bid.fee
 
         # # remove rounding errors that are unfavourable to players
         # # with this solution errors can add up until all orders are cleared...
