@@ -197,7 +197,7 @@ def place_nomin_fiat_bid(havven, player, order_quant, order_price, success):
     return bid
 
 
-placing_nomin_for_fiat_ask_scenarios = [
+placing_nomin_fiat_ask_scenarios = [
     # scenarios are in the form:
     #
     # [(alice_nomins, alice_ask_quant, alice_ask_price, success), ...]
@@ -235,13 +235,13 @@ placing_nomin_for_fiat_ask_scenarios = [
     pytest.param(
         *i,
         id=f"{str(i[0])};{i[1]}@{i[2]};{['fail','pass'][i[3]]}"
-    ) for i in placing_nomin_for_fiat_ask_scenarios
+    ) for i in placing_nomin_fiat_ask_scenarios
 ])
 def test_nomin_fiat_ask_scenarios(initial, quantity, price, success):
-    nomin_ask_placement_check(Dec(initial), Dec(quantity), Dec(price), success)
+    nomin_fiat_ask_placement_check(Dec(initial), Dec(quantity), Dec(price), success)
 
 
-def nomin_ask_placement_check(initial, quantity, price, success):
+def nomin_fiat_ask_placement_check(initial, quantity, price, success):
     havven = make_model_without_agents(match_on_order=False)
     alice = add_market_player(havven)
     alice.nomins = Dec(initial)
@@ -271,9 +271,72 @@ def nomin_ask_placement_check(initial, quantity, price, success):
 ===========================================
 """
 
+placing_nomin_fiat_bid_scenarios = [
+    # scenarios are in the form:
+    #
+    # [(alice_nomins, alice_ask_quant, alice_ask_price, success), ...]
+    #
+    # where the amount of bobs and charlies are variable, and they all place bids
+    # where type is 0 for no match, 1 for completely filled, 2 for partially filled, 3 for failed place
+    # Bob/Charlie/others should never fail to place, only Alice (i.e only have type 0, 1, 2)
 
-def test_limit_buys():
-    raise Exception("TODO")
+    # - Alice has less than 100*(1+fee_rate) nomins
+    # -- Trade doesn't get placed in all scenarios
+    (0, 100, Dec('1.1'), False),
+    (100, 100, Dec('1.1'), False),
+    (Dec('110.55') - Dec("1E-" + str(hm.currency_precision)), 100, Dec('1.1'), False),
+
+    # Test if an ask is placed when the user's initial value would be rounded below the
+    # required amount to place the ask
+    (Dec('110.55') - Dec("5.1E-" + str(hm.currency_precision+1)), 100, Dec('1.1'), False),
+
+    # Alice has enough to place the order, but no limit buys exist
+    (200, 100, Dec('1.1'), True),
+
+    # Alice has barely enough to place the order, but no limit buys exist
+    (Dec("110.55"), 100, Dec('1.1'), True),
+
+    # Testing rounding, which should succeed
+    (Dec("110.55") - Dec("5E-" + str(hm.currency_precision + 1)), 100, Dec('1.1'), True),
+
+    # test more precises prices and fees
+    (200, 100, '1.11234113', True),
+
+]
+
+
+@pytest.mark.parametrize('initial, quantity, price, success', [
+    pytest.param(
+        *i,
+        id=f"{str(i[0])};{i[1]}@{i[2]};{['fail','pass'][i[3]]}"
+    ) for i in placing_nomin_fiat_bid_scenarios
+])
+def test_nomin_fiat_bid_scenarios(initial, quantity, price, success):
+    nomin_fiat_bid_placement_check(Dec(initial), Dec(quantity), Dec(price), success)
+
+
+def nomin_fiat_bid_placement_check(initial, quantity, price, success):
+    havven = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven)
+    alice.fiat = Dec(initial)
+
+    bid = place_nomin_fiat_bid(havven, alice, quantity, price, success)
+    if success:
+        assert bid is not None
+        assert alice.orders[0] == bid
+        # test to check matching to nothing raises an exception
+        with pytest.raises(Exception):
+            bid.book.do_single_match()
+        assert alice.available_fiat == havven.manager.round_decimal(initial - (bid.quantity*bid.price + bid.fee))
+        assert alice.available_fiat == initial - quantity*price - havven.fee_manager.transferred_nomins_fee(quantity*price)
+        assert alice.fiat == initial
+        bid.cancel()
+        assert alice.available_fiat == havven.manager.round_decimal(initial)
+        assert alice.fiat == havven.manager.round_decimal(initial)
+    else:
+        assert bid is None
+        assert alice.fiat == havven.manager.round_decimal(initial)
+        assert alice.nomins == 0
 
 
 """
