@@ -1,6 +1,9 @@
 var ChartModule = function(series, width, height) {
+	let graph_id = (series[0].Label).replace(/[^a-zA-Z]/g, "");
+	console.log(graph_id);
 	// Create the elements
-    var div = $("<div height='"+height+"px'></div>");
+	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
+    var div = $("<div id='"+graph_id+"' class=''></div>");
 
 	// Create the tag:
 	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
@@ -9,6 +12,7 @@ var ChartModule = function(series, width, height) {
 	var canvas = $(canvas_tag)[0];
 	div.append(canvas);
 	//$("body").append(canvas);
+	$("#elements").append(button);
 	$("#elements").append(div);
 	// Create the context and the drawing controller:
 	var context = canvas.getContext("2d");
