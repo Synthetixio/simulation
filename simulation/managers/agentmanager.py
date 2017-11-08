@@ -87,3 +87,12 @@ class AgentManager:
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven.schedule.agents:
             agent.reset_initial_wealth()
+
+    def add(self, agent):
+        self.havven.schedule.add(agent)
+        for name, item in ag.player_names.items():
+            if type(agent) == item:
+                self.agents[name].append(agent)
+                return
+        else:
+            self.agents['others'].append(agent)
