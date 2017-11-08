@@ -36,7 +36,7 @@ She accesses her wallet, gets Bob to send her his wallet information. She then t
 
 Bob starts with no nomins
 
-TODO: This probably belongs in feemanager?
+TODO: This probably belongs in test_feemanager?
 TODO: change initial values that are dependant on fee (i.e. where 100.5 is hardcoded)
 """
 

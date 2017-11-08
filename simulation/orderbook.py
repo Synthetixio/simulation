@@ -559,18 +559,6 @@ class OrderBook:
         # Free up tokens occupied by this bid.
         bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity * bid.price + bid.fee
 
-        # # remove rounding errors that are unfavourable to players
-        # # with this solution errors can add up until all orders are cleared...
-        # # TODO: make the solution better (could just round down every time?)
-        # if bid.issuer.__dict__[f"unavailable_{self.quote}"] < 0:
-        #     # if the rounding error is large, raise an error
-        #     if bid.issuer.__dict__[f"unavailable_{self.quote}"] > \
-        #             Dec('2E-'+str(self.model_manager.currency_precision)):
-        #         raise Exception(f"""{bid.issuer} has {bid.issuer.__dict__[f'unavailable_{self.quote}']}
-        #                             unavailable {self.quote}""")
-        #     else:
-        #         bid.issuer.__dict__[f"unavailable_{self.quote}"] = Dec(0)
-
         # Remove this order's remaining quantity from its price bucket
         self._bid_bucket_deduct(bid.price, bid.quantity)
 
@@ -683,18 +671,6 @@ class OrderBook:
 
         # Free up tokens occupied by this bid.
         ask.issuer.__dict__[f"unavailable_{self.base}"] -= ask.quantity + ask.fee
-
-        # # remove rounding errors that are unfavourable to players
-        # # with this solution errors can add up until all orders are cleared...
-        # # TODO: make the solution better (could just round down every time?)
-        # if ask.issuer.__dict__[f"unavailable_{self.base}"] < 0:
-        #     # if the rounding error is large, raise an error
-        #     if ask.issuer.__dict__[f"unavailable_{self.base}"] > \
-        #             Dec('2E-'+str(self.model_manager.currency_precision)):
-        #         raise Exception(f"""{ask.issuer} has {ask.issuer.__dict__[f'unavailable_{self.base}']}
-        #                             unavailable {self.base}""")
-        #     else:
-        #         ask.issuer.__dict__[f"unavailable_{self.quote}"] = Dec(0)
 
         # Remove this order's remaining quantity from its price bucket.
         self._ask_bucket_deduct(ask.price, ask.quantity)
