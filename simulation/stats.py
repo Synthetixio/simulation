@@ -14,36 +14,36 @@ def mean_profit_fraction(havven: "model.Havven") -> float:
 
 def mean_banker_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Bankers in the market."""
-    if len(havven.agent_manager.bankers) == 0:
+    if len(havven.agent_manager.agents['Banker']) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven.agent_manager.bankers)
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.agents['Banker'])
 
 
 def mean_arb_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Arbitrageurs in the market."""
-    if len(havven.agent_manager.arbitrageurs) == 0:
+    if len(havven.agent_manager.agents['Arbitrageur']) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven.agent_manager.arbitrageurs)
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.agents['Arbitrageur'])
 
 
 def mean_rand_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by Randomizers in the market."""
-    if len(havven.agent_manager.randomizers) == 0:
+    if len(havven.agent_manager.agents['Randomizer']) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven.agent_manager.randomizers)
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.agents['Randomizer'])
 
 
 def mean_nomshort_profit_fraction(havven: "model.Havven") -> float:
     """Return the average fraction of profit being made by NominShorters in the market."""
-    if len(havven.agent_manager.nomin_shorters) == 0:
+    if len(havven.agent_manager.agents['NominShorter']) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven.agent_manager.nomin_shorters)
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.agents['NominShorter'])
 
 
 def mean_escrownomshort_profit_fraction(havven: "model.Havven") -> float:
-    if len(havven.agent_manager.escrow_nomin_shorters) == 0:
+    if len(havven.agent_manager.agents['CuritEscrowNominShorter']) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven.agent_manager.escrow_nomin_shorters)
+    return mean(float(a.profit_fraction()) for a in havven.agent_manager.agents['CuritEscrowNominShorter'])
 
 
 def wealth_sd(havven: "model.Havven") -> float:
