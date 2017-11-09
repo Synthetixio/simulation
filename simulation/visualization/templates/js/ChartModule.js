@@ -41,6 +41,7 @@ var ChartModule = function(series, width, height) {
 		maintainAspectRatio: false,
 
 		tooltips: {
+			enabled: false,
 			mode: 'index',
 			intersect: false,
 			position: "nearest"
