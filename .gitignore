@@ -7,17 +7,6 @@ __pycache__
 .mypy_cache
 .cache
 
-# Latex build auxiliaries
-*.aux
-*.fdb_latexmk
-*.fls
-*.log
-*.synctex.gz
-*.bbl
-*.blg
-block8logo_svg*
-svg-inkscape
-
 # IDE, editor, and OS caches
 # (these should probably be in ./git/info/exclude)
 .idea
