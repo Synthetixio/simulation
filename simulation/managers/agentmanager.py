@@ -33,13 +33,17 @@ class AgentManager:
             for name in ag.player_names:
                 if name in agent_fractions:
                     result[name] = agent_fractions[name]/total_value
+                    # always have a merchant
 
         agent_fractions = result
 
         # create each agent with custom
         total_players = 0
         for item in result:
-            for i in range(int(num_agents*agent_fractions[item] if item in agent_fractions else 0)):
+            total = int(num_agents*agent_fractions[item]) if item in agent_fractions else 0
+            if item == 'Merchant' and total == 0:
+                total = 1
+            for i in range(total):
                 if ag.player_names[item] == ag.Banker:
                     endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100)) * init_value)
                     banker = ag.Banker(total_players, self.havven, fiat=endowment)
@@ -73,6 +77,16 @@ class AgentManager:
                     )
                     self.havven.schedule.add(escrow_nomin_shorter)
                     self.agents[item].append(escrow_nomin_shorter)
+                    total_players += 1
+                elif ag.player_names[item] == ag.Merchant:
+                    merchant = ag.Merchant(total_players, self.havven, fiat=HavvenManager.round_decimal(init_value))
+                    self.havven.schedule.add(merchant)
+                    self.agents[item].append(merchant)
+                    total_players += 1
+                elif ag.player_names[item] == ag.Buyer:
+                    buyer = ag.Buyer(total_players, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
+                    self.havven.schedule.add(buyer)
+                    self.agents[item].append(buyer)
                     total_players += 1
 
         central_bank = ag.CentralBank(
