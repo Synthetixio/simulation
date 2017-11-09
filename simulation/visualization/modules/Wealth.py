@@ -36,8 +36,8 @@ class WealthModule(BarGraphModule):
         return vals
 
 
-PortfolioTuple = Tuple[List[str], List[str], List[str],
-                       List[float], List[float],
+PortfolioTuple = Tuple[List[str], List[str], List[int],
+                       List[str], List[float], List[float],
                        List[float], List[float], List[float]]
 
 
@@ -57,6 +57,8 @@ class PortfolioModule(BarGraphModule):
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
+
+        # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
 
         vals: PortfolioTuple = (["Fiat", "Escrowed Curits", "Curits", "Nomins", "Issued Nomins"],
                                 ["darkgreen", "darkred", "red", "deepskyblue", "blue"],
@@ -85,15 +87,21 @@ class PortfolioModule(BarGraphModule):
         return vals
 
 
+OrderbookValueTuple = Tuple[List[str], List[str], List[int], List[str], List[float], List[float],
+                            List[float], List[float], List[float], List[float]]
+
+
 class CurrentOrderModule(BarGraphModule):
-    def render(self, model: Havven) -> PortfolioTuple:
+    def render(self, model: Havven) -> OrderbookValueTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
 
-        vals: PortfolioTuple = (["NomFiatAsk", "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
-                                ["red", "green", "blue", "magenta", "cyan", "yellow"],
-                                [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], [])
+        # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
+
+        vals: OrderbookValueTuple = (["NomFiatAsk", "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
+                ["red", "green", "blue", "magenta", "cyan", "yellow"],
+                [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], [])
 
         try:
             agents = sorted(
@@ -110,6 +118,7 @@ class CurrentOrderModule(BarGraphModule):
                 cur_fiat_bid_tot = 0
                 nom_cur_ask_tot = 0
                 nom_cur_bid_tot = 0
+
                 for order in orders:
                     if order.book.quote == "fiat":
                         if order.book.base == "nomins":
@@ -128,6 +137,7 @@ class CurrentOrderModule(BarGraphModule):
                             nom_cur_ask_tot += order.quantity
                         if type(order) == Bid:
                             nom_cur_bid_tot += order.quantity*order.price
+
                 vals[4].append(float(nom_fiat_ask_tot))
                 vals[5].append(-float(nom_fiat_bid_tot))
                 vals[6].append(float(cur_fiat_ask_tot))
