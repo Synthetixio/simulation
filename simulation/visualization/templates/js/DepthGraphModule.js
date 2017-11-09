@@ -75,8 +75,9 @@ var DepthGraphModule = function (graph_id, width, height) {
 
         this.reset();
         let price_range = 1.0;
-        let bids = new_data[0];
-        let asks = new_data[1];
+        let curr_price = new_data[0];
+        let bids = new_data[1];
+        let asks = new_data[2];
 
         // data is sorted by rate, in the form [(rate, quantity) ... ]
         let max_bid = 0, min_ask = 0;
@@ -107,13 +108,13 @@ var DepthGraphModule = function (graph_id, width, height) {
         }
         if (added_bid) {
             chart.data.datasets[0].data.unshift(
-                {x:this.round(avg_price * (1 - price_range)), y:chart.data.datasets[0].data[0].y,
+                {x:this.round(curr_price * (1 - price_range)), y:chart.data.datasets[0].data[0].y,
                  meta: 'Quant: ' + chart.data.datasets[0].data[0].y}
             );
             chart.data.datasets[1].data.unshift(undefined);
         } else {
             chart.data.datasets[0].data.unshift(
-                {x:this.round(avg_price * (1 - price_range)), y:0,
+                {x:this.round(curr_price * (1 - price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
             chart.data.datasets[1].data.unshift(undefined);
@@ -139,14 +140,14 @@ var DepthGraphModule = function (graph_id, width, height) {
 
         if (added_ask) {
             chart.data.datasets[1].data.push(
-                {x:this.round(avg_price * (1 + price_range)),
+                {x:this.round(curr_price * (1 + price_range)),
                     y:chart.data.datasets[1].data[chart.data.datasets[1].data.length-1].y,
                  meta: 'Quant: ' + chart.data.datasets[1].data[chart.data.datasets[1].data.length-1].y}
             );
             chart.data.datasets[0].data.push(undefined);
         } else {
             chart.data.datasets[1].data.push(
-                {x:this.round(avg_price * (1 + price_range)), y:0,
+                {x:this.round(curr_price * (1 + price_range)), y:0,
                  meta: 'Quant: ' + 0}
             );
             chart.data.datasets[0].data.push(undefined);
