@@ -1,5 +1,4 @@
 *.min.js linguist-generated=true
-analysis/*.pdf linguist-generated=true
 
 visualization/ linguist-vendored
 visualization/ModularVisualization.py linguist-vendored=false
