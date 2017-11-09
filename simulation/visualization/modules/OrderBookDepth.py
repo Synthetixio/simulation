@@ -37,7 +37,7 @@ class OrderBookModule(VisualizationElement):
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
-
+        price = 1.0
         bids: List[Tuple[Dec, Dec]] = []
         asks: List[Tuple[Dec, Dec]] = []
 
@@ -49,6 +49,7 @@ class OrderBookModule(VisualizationElement):
 
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
+                price = order_book.price
                 bids = order_book.bid_price_buckets.items()
                 asks = order_book.ask_price_buckets.items()
             except Exception:
@@ -56,4 +57,5 @@ class OrderBookModule(VisualizationElement):
                 asks = []
 
         # convert decimals to floats
-        return [[(float(i[0]), float(i[1])) for i in bids], [(float(i[0]), float(i[1])) for i in asks]]
+
+        return [float(price), [(float(i[0]), float(i[1])) for i in bids], [(float(i[0]), float(i[1])) for i in asks]]

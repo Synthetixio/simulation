@@ -380,3 +380,34 @@ playPauseButton.on('click', run);
 stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
+
+
+// function to hide graph divs
+function toggle_graph(div) {
+    let doc = document.documentElement;
+    let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+
+    $(div).toggleClass("hidden");
+
+    // scroll so page doesn't shift on toggle
+    $('html, body').animate({
+        scrollTop: top
+    }, 0);
+
+    return false;
+}
+
+function toggle_all(btn) {
+    if (btn.innerHTML === "Hide all") {
+        $(".btn-pad").each(function() {
+            $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");
+        });
+        btn.innerHTML = "Show all";
+    } else {
+        $(".btn-pad").each(function() {
+            $('#'+(this.innerHTML)).removeClass("hidden");
+        });
+        btn.innerHTML = "Hide all";
+    }
+
+}

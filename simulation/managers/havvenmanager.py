@@ -18,6 +18,9 @@ class HavvenManager:
         # Set the decimal rounding mode
         getcontext().rounding = ROUND_HALF_UP
 
+        # Initiate Time
+        self.time: int = 1
+
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: Dec = utilisation_ratio_max
 
@@ -34,6 +37,10 @@ class HavvenManager:
         self.curits: Dec = self.curit_supply
         self.nomins: Dec = self.nomin_supply
         self.fiat: Dec = self.escrowed_curits
+
+        self.rolling_avg_time_window: int = 7
+        self.volume_weighted_average: bool = False
+        """Whether to calculate the rolling average taking into account the volume of the trades"""
 
     @classmethod
     def round_float(cls, value: float) -> Dec:

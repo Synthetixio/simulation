@@ -16,6 +16,13 @@ Or, to open the experiments notebook:
 
 ```jupyter notebook experiments.ipynb```
 
+To run the tests:
+
+```python3 -m pytest --pyargs -v```
+
+Note: Running pytest through python3 is more consistent (global pytest install, other python versions).
+The -v flag is for verbose, to list every individual test passing.
+
 ## Overview
 
 There will be three components to this simulation:

@@ -14,3 +14,23 @@
 .navbar-toggle {
     z-index:3;
 }
+
+html {
+    height: auto !important;
+    padding-bottom: 200px !important;
+}
+
+.btn-pad {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    width:100%;
+    border-color: #333 !important;
+    background-image: linear-gradient(to bottom,#999 0,#BBB 100%) !important;
+    color: #000;
+}
+
+.btn-pad:hover {
+    background-position: 0 0;
+    background-color: #222 !important;
+    background-image: linear-gradient(to bottom,#666 0,#999 100%) !important;
+}

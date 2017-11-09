@@ -1,5 +1,6 @@
 from typing import List
 from decimal import Decimal as Dec
+from random import shuffle
 
 import agents 
 from .havvenmanager import HavvenManager
@@ -30,7 +31,7 @@ class FeeManager:
 
     def transferred_fiat_received(self, quantity: Dec) -> Dec:
         """
-        Returns the fiat received by the recipient if a given quantity
+        Returns the fiat received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
@@ -39,7 +40,7 @@ class FeeManager:
 
     def transferred_curits_received(self, quantity: Dec) -> Dec:
         """
-        Returns the curits received by the recipient if a given quantity
+        Returns the curits received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
@@ -48,7 +49,7 @@ class FeeManager:
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
-        Returns the nomins received by the recipient if a given quantity
+        Returns the nomins received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
@@ -83,12 +84,17 @@ class FeeManager:
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
+        # reward in random order in case there's
+        # some ordering bias I'm missing.
+        shuffled_agents = list(schedule_agents)
+        shuffle(shuffled_agents)
+
         pre_nomins = self.model_manager.nomins
-        for agent in schedule_agents:
+        supply = self.model_manager.nomin_supply
+        for agent in shuffled_agents:
             if self.model_manager.nomins <= 0:
                 break
-            qty = min(HavvenManager.round_decimal(pre_nomins * agent.issued_nomins / \
-                                                  self.model_manager.nomin_supply),
+            qty = min(HavvenManager.round_decimal(pre_nomins * agent.issued_nomins / supply),
                       self.model_manager.nomins)
             agent.nomins += qty
             self.model_manager.nomins -= qty

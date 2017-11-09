@@ -1,8 +1,9 @@
 """orderbook: an order book for trading in a market."""
 
-from typing import Iterable, Callable, List, Optional
-from itertools import takewhile
+from typing import Iterable, Callable, List, Optional, Tuple
 from decimal import Decimal as Dec
+from itertools import takewhile
+from collections import namedtuple
 
 # We need a fast ordered data structure to support efficient insertion and deletion of orders.
 from sortedcontainers import SortedListWithKey, SortedDict
@@ -10,6 +11,7 @@ from sortedcontainers import SortedListWithKey, SortedDict
 import agents as ag
 
 from managers import HavvenManager
+
 
 class LimitOrder:
     """
@@ -20,13 +22,13 @@ class LimitOrder:
         self.price = HavvenManager.round_decimal(price)
         """Quoted currency per unit of base currency."""
 
-        self.fee = HavvenManager.round_decimal(fee)
+        self.fee = fee
         """An extra fee charged on top of the face value of the order."""
 
         self.time = time
         """The time this order was created, or last modified."""
 
-        self.quantity = HavvenManager.round_decimal(quantity)
+        self.quantity = quantity
         """Denominated in the base currency."""
 
         self.issuer = issuer
@@ -70,7 +72,7 @@ class Bid(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
         # Note that the bid will not be active if quantity is not positive.
-        self.book._add_new_bid_(self)
+        self.book.add_new_bid(self)
 
     @classmethod
     def comparator(cls, bid: "Bid"):
@@ -107,7 +109,7 @@ class Ask(LimitOrder):
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
         # Note that the ask will not be active if quantity is not positive.
-        self.book._add_new_ask_(self)
+        self.book.add_new_ask(self)
 
     @classmethod
     def comparator(cls, ask: "Ask"):
@@ -141,17 +143,18 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
-                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec) -> None:
+                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int) -> None:
         self.buyer = buyer
         self.seller = seller
         self.price = price
         self.quantity = quantity
         self.bid_fee = bid_fee
         self.ask_fee = ask_fee
+        self.completion_time = time
 
     def __str__(self) -> str:
         return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
-               f" + ({self.bid_fee}, {self.ask_fee})"
+               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time}"
 
 
 # A type for matching functions in the order book.
@@ -185,7 +188,8 @@ class OrderBook:
         self.bid_price_buckets: SortedDict = SortedDict(lambda x: -x)
         self.ask_price_buckets: SortedDict = SortedDict(lambda x: x)
 
-        self.price: Dec = Dec('1.0')
+        self.cached_price: Dec = Dec('1.0')
+        self.last_cached_price_time: int = 0
 
         self.time: int = 0
 
@@ -197,8 +201,8 @@ class OrderBook:
         self.matcher: Matcher = matcher
 
         # Fees will be calculated with the following functions.
-        self._bid_fee_fn_: Callable[[Dec], Dec] = bid_fee_fn
-        self._ask_fee_fn_: Callable[[Dec], Dec] = ask_fee_fn
+        self._bid_fee_fn: Callable[[Dec], Dec] = bid_fee_fn
+        self._ask_fee_fn: Callable[[Dec], Dec] = ask_fee_fn
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
@@ -213,13 +217,62 @@ class OrderBook:
         """
         return f"{self.base}/{self.quote}"
 
+    @property
+    def price(self) -> Dec:
+        """
+        Return the rolling average of the price, only calculate it once per tick
+        """
+        if self.model_manager.time <= self.last_cached_price_time:
+            return self.cached_price
+
+        if self.model_manager.volume_weighted_average:
+            return self.weighted_rolling_price_average(self.model_manager.rolling_avg_time_window)
+        else:
+            return self.rolling_price_average(self.model_manager.rolling_avg_time_window)
+
+    def rolling_price_average(self, time_window):
+        total = Dec(0)
+        counted = 0
+
+        for item in reversed(self.history):
+            if item.completion_time < self.model_manager.time - time_window:
+                break
+            total += item.price
+            counted += 1
+
+        if counted == 0:
+            self.cached_price = self.cached_price
+        else:
+            self.cached_price = total / Dec(counted)
+
+        self.last_cached_price_time = self.model_manager.time
+        return self.cached_price
+
+    def weighted_rolling_price_average(self, time_window):
+        total = Dec(0)
+        counted_vol = Dec(0)
+
+        for item in reversed(self.history):
+            if item.completion_time < self.model_manager.time - time_window:
+                break
+            total += item.price * item.quantity
+            counted_vol += item.quantity
+
+        if counted_vol == Dec(0):
+            self.cached_price = self.cached_price
+        else:
+            self.cached_price = total / counted_vol
+
+        self.last_cached_price_time = self.model_manager.time
+        return self.cached_price
+
     def step(self) -> None:
         """
         Advance the time on this order book by one step.
         """
         self.time += 1
 
-    def _bid_bucket_add_(self, price: Dec, quantity: Dec) -> None:
+    def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
         Add a quantity to the bid bucket for a price,
         adding a new bucket if none exists.
@@ -229,7 +282,7 @@ class OrderBook:
         else:
             self.bid_price_buckets[price] = quantity
 
-    def _bid_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
+    def _bid_bucket_deduct(self, price: Dec, quantity: Dec) -> None:
         """
         Deduct a quantity from the bid bucket for a price,
         removing the bucket if it is emptied.
@@ -239,7 +292,7 @@ class OrderBook:
         else:
             self.bid_price_buckets[price] -= quantity
 
-    def _ask_bucket_add_(self, price: Dec, quantity: Dec) -> None:
+    def _ask_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
         Add a quantity to the ask bucket for a price,
         adding a new bucket if none exists.
@@ -249,7 +302,7 @@ class OrderBook:
         else:
             self.ask_price_buckets[price] = quantity
 
-    def _ask_bucket_deduct_(self, price: Dec, quantity: Dec) -> None:
+    def _ask_bucket_deduct(self, price: Dec, quantity: Dec) -> None:
         """
         Deduct a quantity from the ask bucket for a price,
         removing the bucket if it is emptied.
@@ -259,33 +312,34 @@ class OrderBook:
         else:
             self.ask_price_buckets[price] -= quantity
 
-    def _bid_fee_(self, price: Dec, quantity: Dec) -> Dec:
+    def _bid_fee(self, price: Dec, quantity: Dec) -> Dec:
         """
         Return the fee paid on the quoted end for a bid
         of the given quantity and price.
         """
-        return self._bid_fee_fn_(HavvenManager.round_decimal(price * quantity))
+        return self._bid_fee_fn(HavvenManager.round_decimal(price * quantity))
 
-    def _ask_fee_(self, price: Dec, quantity: Dec) -> Dec:
+    def _ask_fee(self, price: Dec, quantity: Dec) -> Dec:
         """
         Return the fee paid on the base end for an ask
         of the given quantity and price.
         """
-        return self._ask_fee_fn_(quantity)
+        return self._ask_fee_fn(quantity)
 
     def bid(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
         Submit a new sell order to the book.
         """
-        fee = self._bid_fee_(price, quantity)
+        fee = self._bid_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
+        agent.round_values()
         if agent.__getattribute__(f"available_{self.quote}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
         bid = Bid(price, quantity, fee, agent, self)
 
-        # Attempt to trde the bid immediately if desired.
+        # Attempt to trade the bid immediately
         if self.match_on_order:
             self.match()
 
@@ -295,34 +349,36 @@ class OrderBook:
         """
         Submit a new buy order to the book.
         """
-        fee = self._ask_fee_(price, quantity)
+        quantity = HavvenManager.round_decimal(quantity)
+        fee = self._ask_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
+        agent.round_values()
         if agent.__getattribute__(f"available_{self.base}") < quantity + fee:
             return None
 
         ask = Ask(price, quantity, fee, agent, self)
 
-        # Attempt to trde the ask immediately if desired.
+        # Attempt to trade the ask immediately
         if self.match_on_order:
             self.match()
 
         return ask
 
-    def buy(self, quantity: Dec, agent: "ag.MarketPlayer", premium: Dec = Dec('0.0')) -> Bid:
+    def buy(self, quantity: Dec, agent: "ag.MarketPlayer") -> Bid:
         """
         Buy a quantity of the sale token at the best available price.
         Optionally buy at a premium a certain fraction above the market price.
         """
-        price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity) * (Dec(1) + premium))
+        price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity))
         return self.bid(price, quantity, agent)
 
-    def sell(self, quantity: Dec, agent: "ag.MarketPlayer", discount: Dec = Dec('0.0')) -> Ask:
+    def sell(self, quantity: Dec, agent: "ag.MarketPlayer") -> Ask:
         """
         Sell a quantity of the sale token at the best available price.
         Optionally sell at a discount a certain fraction below the market price.
         """
-        price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity) * (Dec(1) - discount))
+        price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity))
         return self.ask(price, quantity, agent)
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
@@ -399,7 +455,7 @@ class OrderBook:
         """
         return self.lowest_ask_price() - self.highest_bid_price()
 
-    def _add_new_bid_(self, bid: Bid) -> None:
+    def add_new_bid(self, bid: Bid) -> None:
         """
         Add a new Bid. This should be called only in the Bid constructor.
         Price, quantity, and issuer are assumed already to have been set
@@ -412,14 +468,14 @@ class OrderBook:
             return
 
         # Update the issuer's unavailable quote value.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity * bid.price + bid.fee
 
         # Add to the issuer and book's records
-        bid.issuer.orders.add(bid)
+        bid.issuer.orders.append(bid)
         self.bids.add(bid)
 
         # Update the cumulative price totals with the new quantity.
-        self._bid_bucket_add_(bid.price, bid.quantity)
+        self._bid_bucket_add(bid.price, bid.quantity)
 
         # Advance time
         self.step()
@@ -455,12 +511,13 @@ class OrderBook:
         # Compute the new fee.
         new_fee = fee
         if fee is None:
-            new_fee = self._bid_fee_(new_price, new_quantity)
+            new_fee = self._bid_fee(new_price, new_quantity)
 
         # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
-                                                     (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] += \
+            (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
+            (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
 
         if bid.price == new_price:
             # We may assume the current price is already recorded,
@@ -475,8 +532,8 @@ class OrderBook:
         else:
             # Deduct the old quantity from its price bucket,
             # and add the new quantity into the appropriate bucket.
-            self._bid_bucket_deduct_(bid.price, bid.quantity)
-            self._bid_bucket_add_(new_price, new_quantity)
+            self._bid_bucket_deduct(bid.price, bid.quantity)
+            self._bid_bucket_add(new_price, new_quantity)
 
             # Since the price changed, update the bid's position
             # in the book.
@@ -500,10 +557,10 @@ class OrderBook:
             return
 
         # Free up tokens occupied by this bid.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity * bid.price + bid.fee
 
         # Remove this order's remaining quantity from its price bucket
-        self._bid_bucket_deduct_(bid.price, bid.quantity)
+        self._bid_bucket_deduct(bid.price, bid.quantity)
 
         # Delete the order from the ask list and issuer.
         self.bids.remove(bid)
@@ -512,7 +569,7 @@ class OrderBook:
         self.step()
         bid.issuer.notify_cancelled(bid)
 
-    def _add_new_ask_(self, ask: Ask) -> None:
+    def add_new_ask(self, ask: Ask) -> None:
         """
         Add a new Ask. This should be called only in the Ask constructor.
         Price, quantity, and issuer are assumed already to have been set
@@ -528,11 +585,11 @@ class OrderBook:
         ask.issuer.__dict__[f"unavailable_{self.base}"] += ask.quantity + ask.fee
 
         # Add to the issuer and book's records.
-        ask.issuer.orders.add(ask)
+        ask.issuer.orders.append(ask)
         self.asks.add(ask)
 
         # Update the cumulative price totals with the new quantity.
-        self._ask_bucket_add_(ask.price, ask.quantity)
+        self._ask_bucket_add(ask.price, ask.quantity)
 
         # Advance time.
         self.step()
@@ -568,12 +625,12 @@ class OrderBook:
         # Compute the new fee
         new_fee = fee
         if fee is None:
-            new_fee = self._ask_fee_(new_price, new_quantity)
+            new_fee = self._ask_fee(new_price, new_quantity)
 
         # Update the unavailable quantities for this ask,
         # deducting the old and crediting the new.
-        ask.issuer.__dict__[f"unavailable_{self.base}"] += (new_quantity + new_fee) - \
-                                                    (ask.quantity + ask.fee)
+        ask.issuer.__dict__[f"unavailable_{self.base}"] += \
+            (new_quantity + new_fee) - (ask.quantity + ask.fee)
 
         if ask.price == new_price:
             # We may assume the current price is already recorded,
@@ -588,8 +645,8 @@ class OrderBook:
         else:
             # Deduct the old quantity from its price bucket,
             # and add the new quantity into the appropriate bucket.
-            self._ask_bucket_deduct_(ask.price, ask.quantity)
-            self._ask_bucket_add_(new_price, new_quantity)
+            self._ask_bucket_deduct(ask.price, ask.quantity)
+            self._ask_bucket_add(new_price, new_quantity)
 
             # Since the price changed, update the ask's position
             # in the book.
@@ -616,7 +673,7 @@ class OrderBook:
         ask.issuer.__dict__[f"unavailable_{self.base}"] -= ask.quantity + ask.fee
 
         # Remove this order's remaining quantity from its price bucket.
-        self._ask_bucket_deduct_(ask.price, ask.quantity)
+        self._ask_bucket_deduct(ask.price, ask.quantity)
 
         # Delete order from the ask list and issuer.
         self.asks.remove(ask)
@@ -646,4 +703,16 @@ class OrderBook:
 
             spread = self.spread()
 
-        self.price = HavvenManager.round_decimal((self.lowest_ask_price() + self.highest_bid_price()) / Dec(2))
+    def do_single_match(self) -> TradeRecord:
+        """Match the top bid with the lowest ask for testing step by step"""
+        if len(self.bids) and len(self.asks):
+            prev_bid, prev_ask = self.bids[0], self.asks[0]
+            trade = self.matcher(prev_bid, prev_ask)
+
+            # If a trade was made, then save it in the history.
+            if trade is not None:
+                self.history.append(trade)
+
+            return trade
+
+        raise Exception("Either no bids or no asks in orderbook, when attempting to do single match")

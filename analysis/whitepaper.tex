@@ -13,6 +13,7 @@
 \usepackage{svg}
 \usepackage{graphicx}
 \usepackage[superscript, biblabel, nomove]{cite}
+\usepackage{hyperref}
 
 
 \usepackage{draftwatermark}
@@ -26,8 +27,8 @@
 \newcommand{\NOM}{\textsc{nom}}
 
 
-\title{Havven: a stablecoin system\\ v0.2}
-\author{Anton Jurisevic, Samuel Brooks, Kain Warwick}
+\title{Havven: a stablecoin system\\ v0.3}
+\author{Samuel Brooks, Anton Jurisevic, Kain Warwick}
 \date{October 2017}
 
 
@@ -38,12 +39,29 @@
 \end{figure}
 \maketitle
 
-\input{tex/1_introduction}
-\input{tex/2_functional_description}
-\input{tex/3_qualitative_analysis}
-\input{tex/4_quantitative_analysis}
-\input{tex/5_system_variables}
-\input{tex/6_alternative_approaches}
+\hfill
+
+\begin{abstract}
+\noindent There is currently no effective decentralised unit of account. Previous attempts to create
+stable tokens have either relied on significant centralisation or have been undermined by their
+complexity. We present Havven, a representative money system which seeks to achieve price
+stability with respect to an external asset. Havven is a dual-token solution, composed of a
+stabilised exchange token and the reserve token which backs it. Users are incentivised to maintain
+this distributed reserve, and to manage the stable token supply so that it is in proportion with the
+value of the collateral. Because the collateral is encapsulated entirely within the system and
+distributed among its users, we remove the need for a trusted central authority.
+Such a stable cryptocurrency, useful for everyday economic purposes, will accelerate the adoption of
+distributed ledger technology.
+\end{abstract}
+
+\pagebreak
+
+\input{tex/introduction_kain}
+\input{tex/functional_description}
+\input{tex/quantitative_analysis}
+% \input{tex/qualitative_analysis}
+\input{tex/system_variables}
+\input{tex/alternative_approaches}
 
 \bibliography{tex/citations}
 \bibliographystyle{plain}

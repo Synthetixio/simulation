@@ -7,14 +7,13 @@ from .nomin_shorter import NominShorter, CuritEscrowNominShorter
 from .merchant import Merchant, Buyer
 
 # player names for the UI sliders
-# these have to match the class names
-player_names = [
-    # 'CentralBank',
-    'Arbitrageur',
-    'Banker',
-    'Randomizer',
-    'NominShorter',
-    'CuritEscrowNominShorter',
-    'Merchant',
-    'Buyer'
-]
+player_names = {
+    # 'CentralBank': CentralBank,
+    'Arbitrageur': Arbitrageur,
+    'Banker': Banker,
+    'Randomizer': Randomizer,
+    'NominShorter': NominShorter,
+    'CuritEscrowNominShorter': CuritEscrowNominShorter,
+    'Merchant': Merchant,
+    'Buyer': Buyer
+}

@@ -1,6 +1,6 @@
 """model.py: The havven model itself lives here."""
 
-from typing import Dict
+from typing import Dict, Optional
 from decimal import Decimal as Dec
 
 from mesa import Model
@@ -26,7 +26,7 @@ class Havven(Model):
     def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True,
-                 agent_fractions: Dict[str, int] = None) -> None:
+                 agent_fractions: Optional[Dict[str, int]] = None) -> None:
         # Mesa setup.
 
         super().__init__()
@@ -36,9 +36,6 @@ class Havven(Model):
 
         # Set up data collection.
         self.datacollector = stats.create_datacollector()
-
-        # Initiate Time Itself.
-        self.time: int = 0
 
         # Initialise simulation managers.
         self.manager = HavvenManager(Dec(utilisation_ratio_max), match_on_order)
@@ -73,7 +70,7 @@ class Havven(Model):
 
     def step(self) -> None:
         """Advance the model by one step."""
-        # Agents submit trades>
+        # Agents submit trades.
         self.schedule.step()
 
         # Resolve outstanding trades.
@@ -83,11 +80,11 @@ class Havven(Model):
             self.market_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.
-        if (self.time % self.fee_manager.fee_period) == 0:
+        if (self.manager.time % self.fee_manager.fee_period) == 0:
             self.fee_manager.distribute_fees(self.schedule.agents)
 
         # Collect data.
         self.datacollector.collect(self)
 
         # Advance Time Itself.
-        self.time += 1
+        self.manager.time += 1

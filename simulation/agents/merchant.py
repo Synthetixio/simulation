@@ -112,7 +112,7 @@ class Buyer(MarketPlayer):
         # If feeling spendy, buy something.
         if random.random() < self.mpc:
             to_buy = Dec(int(random.random()*5)+1)
-            buying_from = random.choice(self.model.agent_manager.merchants)
+            buying_from = random.choice(self.model.agent_manager.agents['Merchant'])
             buying = random.choice(list(buying_from.inventory.keys()))
             amount = buying_from.sell_stock(self, buying, Dec(to_buy))
             if amount > 0:
