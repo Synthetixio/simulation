@@ -26,9 +26,10 @@ var BarGraphModule = function (graph_id, width, height) {
 		maintainAspectRatio: false,
 
 		tooltips: {
+		    enabled: false,
 			mode: 'index',
 			intersect: false,
-            position: "nearest"
+            position: "nearest",
 		},
 		hover: {
 			mode: 'nearest',
@@ -44,11 +45,6 @@ var BarGraphModule = function (graph_id, width, height) {
                 stacked: true
 			}]
 		},
-		elements: {
-            line: {
-                tension: 0, // disables bezier curves
-            }
-        },
 		animation: false
 	};
     // Create the chart object
@@ -62,17 +58,19 @@ var BarGraphModule = function (graph_id, width, height) {
         if (new_data.length >= 3) {
             let data_labels = new_data[0];
             let data_colors = new_data[1];
-            let bar_labels = new_data[2];
+            let data_stack = new_data[2];
+            let bar_labels = new_data[3];
 
             for (let i in bar_labels) {
                 chart.data.labels[i] = bar_labels[i];
             }
 
-            for (let i = 3; i < new_data.length; i++) {
+            for (let i = 4; i < new_data.length; i++) {
                 chart.data.datasets.push({
-                    label: data_labels[i-3],
-                    backgroundColor: data_colors[i-3],
-                    borderColor: data_colors[i-3],
+                    label: data_labels[i-4],
+                    backgroundColor: data_colors[i-4],
+                    borderColor: data_colors[i-4],
+                    stack: data_stack[i-4],
                     fill: true,
                     pointRadius: 0,
                     data: []
@@ -80,9 +78,9 @@ var BarGraphModule = function (graph_id, width, height) {
             }
 
             // meta is the "label" that shows up when hovering
-            for (let i = 3; i < new_data.length; i++) {
+            for (let i = 4; i < new_data.length; i++) {
                 for (let j = 0; j < new_data[i].length; j++) {
-                    chart.data.datasets[i - 3].data.push(this.round(new_data[i][j]));
+                    chart.data.datasets[i - 4].data.push(this.round(new_data[i][j]));
                 }
             }
 
