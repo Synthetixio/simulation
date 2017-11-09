@@ -1,8 +1,7 @@
 # Havven: a proposed stablecoin
 
-This repository will contain Havven code, prototypes, analysis, simulations.
+This repository will contain Havven simulations.
 
 ## Structure
 
-* `prototype/` - Early prototypes of Havven functionality.
 * `simulation/` - An agent-based simulation of the market dynamics.
