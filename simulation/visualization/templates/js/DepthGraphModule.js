@@ -43,6 +43,7 @@ var DepthGraphModule = function (graph_id, width, height) {
 		maintainAspectRatio: false,
 
 		tooltips: {
+            enabled: false,
 			mode: 'index',
 			intersect: false,
 		},

@@ -26,9 +26,10 @@ var BarGraphModule = function (graph_id, width, height) {
 		maintainAspectRatio: false,
 
 		tooltips: {
+		    enabled: false,
 			mode: 'index',
 			intersect: false,
-            position: "nearest"
+            position: "nearest",
 		},
 		hover: {
 			mode: 'nearest',
