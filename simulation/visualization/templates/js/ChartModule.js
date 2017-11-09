@@ -1,6 +1,5 @@
 var ChartModule = function(series, width, height) {
 	let graph_id = (series[0].Label).replace(/[^a-zA-Z]/g, "");
-	console.log(graph_id);
 	// Create the elements
 	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
     var div = $("<div id='"+graph_id+"' class=''></div>");
