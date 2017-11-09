@@ -35,7 +35,6 @@ class AgentManager:
                     result[name] = agent_fractions[name]/total_value
                     # always have a merchant
 
-
         agent_fractions = result
 
         # create each agent with custom
