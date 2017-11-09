@@ -99,9 +99,11 @@ class CurrentOrderModule(BarGraphModule):
 
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
 
-        vals: OrderbookValueTuple = (["NomFiatAsk", "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
-            ["blue", "deepskyblue", "darkred", "red", "purple", "darkorchid"],
-            [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], [])
+        vals: OrderbookValueTuple = (
+            ["NomFiatAsk",  "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
+            ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
+            [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
+        )
 
         try:
             agents = sorted(
