@@ -1,8 +1,8 @@
 // BarGraphModule.js
 
 var BarGraphModule = function (graph_id, width, height) {
-
-    var div = $("<div height='"+height+"px'></div>");
+    var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
+    var div = $("<div id='"+graph_id+"' class=''></div>");
 
 	// Create the tag:
 	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
@@ -11,6 +11,7 @@ var BarGraphModule = function (graph_id, width, height) {
 	var canvas = $(canvas_tag)[0];
 	div.append(canvas);
 	//$("body").append(canvas);
+	$("#elements").append(button);
 	$("#elements").append(div);
 	// Create the context and the drawing controller:
 	var context = canvas.getContext("2d");
@@ -56,7 +57,6 @@ var BarGraphModule = function (graph_id, width, height) {
     this.render = function (step, new_data) {
         // data should be in the form:
         // [data_labels, bar_labels, data_colors, dataset1, ...]
-
         this.reset();
 
         if (new_data.length >= 3) {
@@ -87,7 +87,6 @@ var BarGraphModule = function (graph_id, width, height) {
             }
 
         }
-
         chart.update();
     };
 
@@ -98,5 +97,5 @@ var BarGraphModule = function (graph_id, width, height) {
 
     this.round = function (value) {
         return Math.floor(value*10000)/10000
-    }
+    };
 };

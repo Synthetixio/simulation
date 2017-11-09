@@ -4,8 +4,8 @@ var DepthGraphModule = function (graph_id, width, height) {
 	// Create the elements
 
 	// Create the tag:
-    var text_tag = "<p>"+graph_id+"</p>";
-    var div = $("<div height='"+height+"px'></div>");
+	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
+    var div = $("<div id='"+graph_id+"' class=''></div>");
 
 	// Create the tag:
 	var canvas_tag = "<canvas style='border:1px dotted'></canvas>";
@@ -13,7 +13,7 @@ var DepthGraphModule = function (graph_id, width, height) {
 	var canvas = $(canvas_tag)[0];
 	div.append(canvas);
 
-    $("#elements").append($(text_tag)[0]);
+    $("#elements").append($(button)[0]);
 	$("#elements").append(div);
 
 	var context = canvas.getContext("2d");
