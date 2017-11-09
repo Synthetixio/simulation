@@ -68,7 +68,9 @@ class Merchant(MarketPlayer):
                     self.inventory[item]['current_stock'] += to_restock
                 # if out of money try again in 2 ticks.
                 else:
-                    self.last_restock = self.restock_tick_rate - 2
+                    amount_possible = int(self.available_fiat / info['stock_price'])
+                    self.fiat -= info['stock_price']*amount_possible
+                    self.inventory[item]['current_stock'] += amount_possible
 
     def sell_stock(self, agent: 'Buyer', item: str, quantity: Dec) -> Dec:
         """
