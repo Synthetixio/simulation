@@ -25,7 +25,6 @@ class WealthModule(BarGraphModule):
                 data_collector.agent_vars["Agents"][-1],
                 key=lambda x: x[0]
             )[:-1]
-
             for item in agents:
                 vals[2].append(item[1].name)
                 vals[3].append(float(item[1].wealth()))

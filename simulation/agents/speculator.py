@@ -41,7 +41,6 @@ class Speculator(MarketPlayer):
         """
 
     def step(self) -> None:
-        print(self.active_nomin_trade, self.active_curit_trade)
         if self.active_curit_trade:
             self._check_trade_profit(*self.active_curit_trade)
         if self.active_nomin_trade:

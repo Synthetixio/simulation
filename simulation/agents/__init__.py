@@ -5,6 +5,7 @@ from .randomizer import Randomizer
 from .centralbank import CentralBank
 from .nomin_shorter import NominShorter, CuritEscrowNominShorter
 from .speculator import Speculator
+from .merchant import Merchant, Buyer
 
 # player names for the UI sliders
 player_names = {
@@ -14,5 +15,7 @@ player_names = {
     'Randomizer': Randomizer,
     'NominShorter': NominShorter,
     'CuritEscrowNominShorter': CuritEscrowNominShorter,
-    'Speculator': Speculator
+    'Speculator': Speculator,
+    'Merchant': Merchant,
+    'Buyer': Buyer
 }

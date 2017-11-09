@@ -1,3 +1,5 @@
+import random
+
 
 class UserSettableParameter:
     """ A class for providing options to a visualization for a given parameter.
@@ -61,6 +63,7 @@ class UserSettableParameter:
         self.step = step
         self.choices = choices
         self.description = description
+        self.got_set = False
 
         # Validate option types to make sure values are supplied properly
         msg = self._ERROR_MESSAGE.format(self.param_type, name)
@@ -82,18 +85,28 @@ class UserSettableParameter:
             valid = isinstance(self.value, str)
 
         elif self.param_type == self.AGENT_FRACTIONS:
-            valid = isinstance(self.value, dict)
+            if value is not None:
+                valid = isinstance(self.value, dict)
+                self.got_set = True
+            else:
+                # randomize the data if given None
+                self._value = {}
+                self.randomize_agents()
+                valid = True
 
         if not valid:
             raise ValueError(msg)
 
     @property
     def value(self):
+        if not self.got_set and self.param_type == self.AGENT_FRACTIONS:
+            self.randomize_agents()
         return self._value
 
     @value.setter
     def value(self, value):
         self._value = value
+        self.got_set = True
         if self.param_type == self.SLIDER:
             if self._value < self.min_value:
                 self._value = self.min_value
@@ -104,7 +117,6 @@ class UserSettableParameter:
                 print("Selected choice value not in available choices, selected first choice from 'choices' list")
                 self._value = self.choices[0]
         elif self.param_type == self.AGENT_FRACTIONS:
-            # value is a list of [(key, val), ...]
             for item in value:
                 self._value[item[0]] = item[1]
 
@@ -113,3 +125,17 @@ class UserSettableParameter:
         result = self.__dict__.copy()
         result['value'] = result.pop('_value')  # Return _value as value, value is the same
         return result
+
+    def randomize_agents(self):
+        """Randomize the agent initial values"""
+        # import here to avoid circular reference
+        from agents import player_names
+        v = []
+        for i in player_names:
+            v = {
+                i: random.random() / len(player_names) for i in player_names
+            }
+        # total should be < 1, dividing by total should make total 1.
+        total = sum(v[i] for i in v)
+        for item in v:
+            self._value[item] = v[item] / total
