@@ -363,7 +363,7 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transferred_fiat_received(quantity)
+        qty = self.model.fee_manager.transferred_fiat_received(quantity*price)
         return self.model.market_manager.curit_fiat_market.bid(price, qty, self)
 
     def place_curit_fiat_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
@@ -379,7 +379,7 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transferred_fiat_received(quantity)
+        qty = self.model.fee_manager.transferred_fiat_received(quantity*price)
         return self.model.market_manager.nomin_fiat_market.bid(price, qty, self)
 
     def place_nomin_fiat_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
@@ -395,7 +395,7 @@ class MarketPlayer(Agent):
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
-        qty = self.model.fee_manager.transferred_nomins_received(quantity)
+        qty = self.model.fee_manager.transferred_nomins_received(quantity*price)
         return self.model.market_manager.curit_nomin_market.bid(price, qty, self)
 
     def place_curit_nomin_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":

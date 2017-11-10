@@ -371,7 +371,10 @@ class OrderBook:
         Optionally buy at a premium a certain fraction above the market price.
         """
         price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity))
-        return self.bid(price, quantity, agent)
+        bid = self.bid(price, quantity, agent)
+        if bid:
+            bid.cancel()
+        return bid
 
     def sell(self, quantity: Dec, agent: "ag.MarketPlayer") -> Ask:
         """
@@ -379,7 +382,10 @@ class OrderBook:
         Optionally sell at a discount a certain fraction below the market price.
         """
         price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity))
-        return self.ask(price, quantity, agent)
+        ask = self.ask(price, quantity, agent)
+        if ask:
+            ask.cancel()
+        return ask
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """
