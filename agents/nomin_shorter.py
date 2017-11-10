@@ -31,7 +31,8 @@ class NominShorter(MarketPlayer):
     def step(self) -> None:
         # get rid of curits, as that isn't the point of this player
         if self.available_curits:
-            self.sell_curits_for_nomins(self.available_curits)
+            self.escrow_curits(self.available_curits)
+            self.issue_nomins(self.max_issuance_rights())
 
         if self.available_nomins > 0:
             trade = self._find_best_nom_fiat_trade()

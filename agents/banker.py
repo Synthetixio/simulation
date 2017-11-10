@@ -15,6 +15,7 @@ class Banker(MarketPlayer):
         self.fiat_curit_order: Optional["ob.Bid"] = None
         self.nomin_curit_order: Optional["ob.Bid"] = None
         self.rate: Dec = hm.round_decimal(Dec(random.random() * 0.05))
+        self.step()
 
     def step(self) -> None:
         if hm.round_decimal(self.available_fiat) > 0:
@@ -25,7 +26,7 @@ class Banker(MarketPlayer):
         if hm.round_decimal(self.available_nomins) > 0:
             if self.nomin_curit_order:
                 self.nomin_curit_order.cancel()
-            self.nomin_curit_order = self.sell_nomins_for_curits_with_fee(self.available_nomins)
+            self.nomin_curit_order = self.sell_nomins_for_fiat_with_fee(self.available_nomins)
 
         if hm.round_decimal(self.available_curits) > 0:
             self.escrow_curits(self.available_curits)

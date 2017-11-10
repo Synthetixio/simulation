@@ -66,20 +66,26 @@ class AgentManager:
                     total_players += 1
                 elif ag.player_names[item] == ag.NominShorter:
                     nomin_shorter = ag.NominShorter(total_players, self.havven,
-                                                    nomins=HavvenManager.round_decimal(init_value * Dec(2)))
+                                                    curits=HavvenManager.round_decimal(init_value * Dec(3)))
                     self.havven.schedule.add(nomin_shorter)
                     self.agents[item].append(nomin_shorter)
                     total_players += 1
                 elif ag.player_names[item] == ag.CuritEscrowNominShorter:
                     escrow_nomin_shorter = ag.CuritEscrowNominShorter(
                         total_players, self.havven,
-                        curits=HavvenManager.round_decimal(init_value * Dec(2))
                     )
+                    self.havven.endow_curits(escrow_nomin_shorter, HavvenManager.round_decimal(init_value * Dec(2)))
                     self.havven.schedule.add(escrow_nomin_shorter)
                     self.agents[item].append(escrow_nomin_shorter)
                     total_players += 1
                 elif ag.player_names[item] == ag.Speculator:
-                    speculator = ag.Speculator(total_players, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(5)))
+                    speculator = ag.Speculator(total_players, self.havven)
+                    if speculator.primary_currency == "fiat":
+                        speculator.fiat = HavvenManager.round_decimal(init_value*Dec(3))
+                    elif speculator.primary_currency == "nomins":
+                        speculator.nomins = 0
+                    elif speculator.primary_currency == "curits":
+                        self.havven.endow_curits(speculator, HavvenManager.round_decimal(init_value * Dec(3)))
                     self.havven.schedule.add(speculator)
                     total_players += 1
                 elif ag.player_names[item] == ag.Merchant:
@@ -93,14 +99,14 @@ class AgentManager:
                     self.agents[item].append(buyer)
                     total_players += 1
 
-        central_bank = ag.CentralBank(
-            total_players, self.havven, fiat=Dec(num_agents * init_value),
-            nomin_target=Dec('1.0')
-        )
-        self.havven.endow_curits(central_bank,
-                                 Dec(num_agents * init_value))
-        self.havven.schedule.add(central_bank)
-        self.agents["others"].append(central_bank)
+        # central_bank = ag.CentralBank(
+        #     total_players, self.havven, fiat=Dec(num_agents * init_value),
+        #     nomin_target=Dec('1.0')
+        # )
+        # self.havven.endow_curits(central_bank,
+        #                          Dec(num_agents * init_value))
+        # self.havven.schedule.add(central_bank)
+        # self.agents["others"].append(central_bank)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven.schedule.agents:
