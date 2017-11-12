@@ -45,31 +45,31 @@ class Randomizer(MarketPlayer):
                 break
 
     def _curit_fiat_bid_(self) -> "ob.Bid":
-        price = self.model.market_manager.curit_fiat_market.price
+        price = self.curit_fiat_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_curit_fiat_bid(self._fraction_(self.available_fiat, Dec(10)), price + movement)
 
     def _curit_fiat_ask_(self) -> "ob.Ask":
-        price = self.model.market_manager.curit_fiat_market.price
+        price = self.curit_fiat_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_curit_fiat_ask(self._fraction_(self.available_curits, Dec(10)), price + movement)
 
     def _nomin_fiat_bid_(self) -> "ob.Bid":
-        price = self.model.market_manager.nomin_fiat_market.price
+        price = self.nomin_fiat_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_nomin_fiat_bid(self._fraction_(self.available_fiat, Dec(10)), price + movement)
 
     def _nomin_fiat_ask_(self) -> "ob.Ask":
-        price = self.model.market_manager.nomin_fiat_market.price
+        price = self.nomin_fiat_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_nomin_fiat_ask(self._fraction_(self.available_nomins, Dec(10)), price + movement)
 
     def _curit_nomin_bid_(self) -> "ob.Bid":
-        price = self.model.market_manager.curit_nomin_market.price
+        price = self.curit_nomin_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_curit_nomin_bid(self._fraction_(self.available_nomins, Dec(10)), price + movement)
 
     def _curit_nomin_ask_(self) -> "ob.Ask":
-        price = self.model.market_manager.curit_nomin_market.price
+        price = self.curit_nomin_market.price
         movement = hm.round_decimal(Dec(2*random.random() - 1) * price * self.variance)
         return self.place_curit_nomin_ask(self._fraction_(self.available_curits, Dec(10)), price + movement)

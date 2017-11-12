@@ -42,7 +42,7 @@ class CentralBank(MarketPlayer):
         self.cancel_orders()
 
         if self.curit_target is not None:
-            curit_price = self.model.market_manager.curit_fiat_market.price
+            curit_price = self.curit_fiat_market.price
             # Price is too high, it should decrease: we will sell curits at a discount.
             if curit_price > hm.round_decimal(self.curit_target * (Dec(1) + self.tolerance)):
                 # If we have curits, sell them.
@@ -84,7 +84,7 @@ class CentralBank(MarketPlayer):
                                 self.issue_nomins(issuance_rights)
 
         if self.nomin_target is not None:
-            nomin_price = self.model.market_manager.nomin_fiat_market.price
+            nomin_price = self.nomin_fiat_market.price
             # Price is too high, it should decrease: we will sell nomins at a discount.
             if nomin_price > hm.round_decimal(self.nomin_target * (Dec(1) + self.tolerance)):
                 if self.available_nomins > 0:
