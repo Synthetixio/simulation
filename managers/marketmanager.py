@@ -92,7 +92,7 @@ class MarketManager:
         # This will remove the amount that was transferred from issuers' used value.
         bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
         ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
-        return ob.TradeRecord(bid.issuer, ask.issuer,
+        return ob.TradeRecord(bid.issuer, ask.issuer, ask.book,
                               price, quantity, bid_fee, ask_fee, self.model_manager.time)
 
     def curit_nomin_match(self, bid: "ob.Bid",
