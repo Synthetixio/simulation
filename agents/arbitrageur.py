@@ -101,18 +101,18 @@ class Arbitrageur(MarketPlayer):
         The value multiple after one forward arbitrage cycle, neglecting fees.
         """
         # cur -> fiat -> nom -> cur
-        return hm.round_decimal(self.model.market_manager.curit_fiat_market.highest_bid_price() / \
-                                (self.model.market_manager.nomin_fiat_market.lowest_ask_price() *
-                                 self.model.market_manager.curit_nomin_market.lowest_ask_price()))
+        return hm.round_decimal(self.curit_fiat_market.highest_bid_price() / \
+                                (self.nomin_fiat_market.lowest_ask_price() *
+                                 self.curit_nomin_market.lowest_ask_price()))
 
     def _reverse_multiple_no_fees_(self) -> Dec:
         """
         The value multiple after one reverse arbitrage cycle, neglecting fees.
         """
         # cur -> nom -> fiat -> cur
-        return hm.round_decimal((self.model.market_manager.curit_nomin_market.highest_bid_price() *
-                                 self.model.market_manager.nomin_fiat_market.highest_bid_price()) / \
-                                self.model.market_manager.curit_fiat_market.lowest_ask_price())
+        return hm.round_decimal((self.curit_nomin_market.highest_bid_price() *
+                                 self.nomin_fiat_market.highest_bid_price()) / \
+                                self.curit_fiat_market.lowest_ask_price())
 
     def _forward_multiple_(self) -> Dec:
         """The return after one forward arbitrage cycle."""

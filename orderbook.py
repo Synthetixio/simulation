@@ -142,10 +142,11 @@ class Ask(LimitOrder):
 
 class TradeRecord:
     """A record of a single trade."""
-    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
+    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer", book: "OrderBook",
                  price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int) -> None:
         self.buyer = buyer
         self.seller = seller
+        self.book = book
         self.price = price
         self.quantity = quantity
         self.bid_fee = bid_fee
@@ -154,7 +155,7 @@ class TradeRecord:
 
     def __str__(self) -> str:
         return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
-               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time}"
+               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time} {self.book.name}"
 
 
 # A type for matching functions in the order book.
