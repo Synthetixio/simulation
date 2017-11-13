@@ -701,6 +701,8 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
+                trade.buyer.notify_trade(trade)
+                trade.seller.notify_trade(trade)
 
             spread = self.spread()
 
@@ -713,6 +715,8 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
+                trade.buyer.notify_trade(trade)
+                trade.seller.notify_trade(trade)
 
             return trade
 

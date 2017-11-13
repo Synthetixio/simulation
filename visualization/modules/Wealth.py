@@ -165,7 +165,6 @@ class PastOrdersModule(BarGraphModule):
             ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
             [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
         )
-
         try:
             agents = sorted(
                 data_collector.agent_vars["Agents"][-1],
@@ -174,7 +173,7 @@ class PastOrdersModule(BarGraphModule):
 
             for item in agents:
                 vals[3].append(item[1].name)
-                orders = item[1].trades
+                trades = item[1].trades
                 nom_fiat_ask_tot = 0
                 nom_fiat_bid_tot = 0
                 cur_fiat_ask_tot = 0
@@ -182,24 +181,24 @@ class PastOrdersModule(BarGraphModule):
                 nom_cur_ask_tot = 0
                 nom_cur_bid_tot = 0
 
-                for order in orders:
-                    if order.book.quote == "fiat":
-                        if order.book.base == "nomins":
+                for trade in trades:
+                    if trade.book.quote == "fiat":
+                        if trade.book.base == "nomins":
                             # FIAT/NOM
-                            if type(order) == Ask:
-                                nom_fiat_ask_tot += order.quantity
-                            if type(order) == Bid:
-                                nom_fiat_bid_tot += order.quantity*order.price
-                        if order.book.base == "curits":
-                            if type(order) == Ask:
-                                cur_fiat_ask_tot += order.quantity
-                            if type(order) == Bid:
-                                cur_fiat_bid_tot += order.quantity*order.price
-                    elif order.book.quote == "nomins":
-                        if type(order) == Ask:
-                            nom_cur_ask_tot += order.quantity
-                        if type(order) == Bid:
-                            nom_cur_bid_tot += order.quantity*order.price
+                            if trade.buyer == item[1]:
+                                nom_fiat_ask_tot += trade.quantity
+                            elif trade.seller == item[1]:
+                                nom_fiat_bid_tot += trade.quantity*trade.price
+                        if trade.book.base == "curits":
+                            if trade.buyer == item[1]:
+                                cur_fiat_ask_tot += trade.quantity
+                            elif trade.seller == item[1]:
+                                cur_fiat_bid_tot += trade.quantity*trade.price
+                    elif trade.book.quote == "nomins":
+                        if trade.buyer == item[1]:
+                            nom_cur_ask_tot += trade.quantity
+                        elif trade.seller == item[1]:
+                            nom_cur_bid_tot += trade.quantity*trade.price
 
                 vals[4].append(float(nom_fiat_ask_tot))
                 vals[5].append(-float(nom_fiat_bid_tot))

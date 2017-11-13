@@ -3,7 +3,8 @@
 from typing import List
 import random
 
-from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule, CurrentOrderModule
+from visualization.modules import ChartModule, OrderBookModule, WealthModule, \
+    PortfolioModule, CurrentOrderModule, PastOrdersModule
 from visualization.UserParam import UserSettableParameter
 from visualization.ModularVisualization import ModularServer, VisualizationElement
 
@@ -105,6 +106,8 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         WealthModule([{"Label": "Wealth"}]),
 
         CurrentOrderModule([{"Label": "PlayerBidAskVolume"}]),
+
+        PastOrdersModule([{"Label": "TotalMarketVolume"}]),
 
         OrderBookModule([{"Label": "NominFiatOrderBook"}]),
 
