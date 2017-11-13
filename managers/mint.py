@@ -80,7 +80,7 @@ class Mint:
         Issue a positive value of nomins against currently escrowed curits,
           up to the utilisation ratio maximum.
         """
-        remaining = self.max_issuance_rights(agent) - agent.issued_nomins
+        remaining = self.remaining_issuance_rights(agent)
         if 0 <= value <= remaining:
             agent.issued_nomins += value
             agent.nomins += value
