@@ -27,10 +27,10 @@ class CandleStickModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         self.js_code = f"""elements.push(
-            new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})
+            new CandleStickModule(\"{series[0]['Label']}\",{width},{height})
         );"""
 
-    def render(self, model: Havven) -> List[List[Tuple[float, float]]]:
+    def render(self, model: Havven) -> List[List[float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
@@ -38,24 +38,19 @@ class CandleStickModule(VisualizationElement):
             model, self.data_collector_name
         )
         price = 1.0
-        bids: List[Tuple[Dec, Dec]] = []
-        asks: List[Tuple[Dec, Dec]] = []
+        data: List[Dec] = []
 
         for s in self.series:  # TODO: not use series, as it should only really be one graph
-            name: str = s['Label']
+            name: str = s['orderbook']
 
             # get the buy and sell orders of the named market and add together
             # the quantities or orders with the same rates
 
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
-                price = order_book.price
-                bids = order_book.bid_price_buckets.items()
-                asks = order_book.ask_price_buckets.items()
+                data = order_book.candle_data
             except Exception:
-                bids = []
-                asks = []
+                data = []
 
         # convert decimals to floats
-
-        return [float(price), [(float(i[0]), float(i[1])) for i in bids], [(float(i[0]), float(i[1])) for i in asks]]
+        return [list(map(lambda x: float(x) if x else -1, i)) for i in data]

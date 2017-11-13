@@ -1,5 +1,5 @@
-var CandleStickModule = function(series, width, height) {
-	let graph_id = (series[0].Label).replace(/[^a-zA-Z]/g, "");
+var CandleStickModule = function(label, width, height) {
+	let graph_id = (label).replace(/[^a-zA-Z]/g, "");
 	// Create the elements
 	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
     var div = $("<div id='"+graph_id+"' class=''></div>");
@@ -17,7 +17,7 @@ var CandleStickModule = function(series, width, height) {
 	var context = canvas.getContext("2d");
 
 	// Prep the chart properties and series:
-	var datasets = [];
+	var datasets = [{label: "Graph", data: []}];
 
 	var data = {
 		labels: [],
@@ -40,7 +40,7 @@ var CandleStickModule = function(series, width, height) {
 		},
 		scales: {
 			xAxes: [{
-				display: true,
+				display: false,
 			}],
 			yAxes: [{
 				display: true
@@ -57,20 +57,31 @@ var CandleStickModule = function(series, width, height) {
 	var chart = new Chart(context, {type: 'financial', data: data, options: options});
 
 	this.render = function(step, data) {
-		chart.data.labels.push(step);
-		chart.data.datasets = [];
+
+		chart.data.labels = [];
+		chart.data.datasets[0].data = [];
 		for (let i=0; i<data.length; i++) {
-			chart.data.datasets.push({data: []});
-            for (let j = 0; j < data[i].length; j++) {
-                chart.data.datasets[i].data.push({
-                    h: data[i][j][0],
-                    l: data[i][j][1],
-                    o: data[i][j][2],
-                    c: data[i][j][3]
-                });
-        	}
+			if (data[i][3] < 0) {
+				if (i > 0) {
+					data[i][1] = data[i-1][1];
+					data[i][2] = data[i-1][2];
+					data[i][3] = data[i-1][3]
+				} else {
+					break;
+				}
+			}
+			chart.data.labels.push(i+1);
+			chart.data.datasets[0].data.push({
+				o: data[i][0],
+				c: data[i][1],
+				h: data[i][2],
+				l: data[i][3],
+				t: i+1
+			});
+
 		}
 		chart.update();
+		console.log(chart.data)
 	};
 
 	this.reset = function() {

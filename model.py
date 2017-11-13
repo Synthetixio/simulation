@@ -73,6 +73,10 @@ class Havven(Model):
         # Agents submit trades.
         self.schedule.step()
 
+        self.market_manager.curit_nomin_market.step_history()
+        self.market_manager.curit_fiat_market.step_history()
+        self.market_manager.nomin_fiat_market.step_history()
+
         # Resolve outstanding trades.
         if not self.manager.match_on_order:
             self.market_manager.curit_nomin_market.match()

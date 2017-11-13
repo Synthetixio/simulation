@@ -276,6 +276,15 @@ class OrderBook:
         """
         self.time += 1
 
+    def step_history(self) -> None:
+        """Add new data points to update"""
+
+        if len(self.candle_data) > 1 and self.candle_data[-1][3] is None:
+            self.candle_data[-1][1] = self.candle_data[-1][0]
+            self.candle_data[-1][2] = self.candle_data[-1][0]
+            self.candle_data[-1][3] = self.candle_data[-1][0]
+        self.candle_data.append([self.candle_data[-1][1], None, None, None])
+
     def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
         Add a quantity to the bid bucket for a price,
@@ -703,7 +712,18 @@ class OrderBook:
 
             # If a trade was made, then save it in the history.
             if trade is not None:
-                self.history.append(trade)
+                # if no closing data yet, initialise
+                if not self.candle_data[-1][1]:
+                    self.candle_data[-1][2] = trade.price
+                    self.candle_data[-1][3] = trade.price
+
+                self.candle_data[-1][1] = trade.price
+
+                if trade.price > self.candle_data[-1][2]:
+                    self.candle_data[-1][2] = trade.price
+
+                if trade.price < self.candle_data[-1][3]:
+                    self.candle_data[-1][3] = trade.price
 
             spread = self.spread()
 
