@@ -207,6 +207,9 @@ class OrderBook:
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
+        # A list keeping track of each tick's high, low, open, close
+        self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
+
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
 
