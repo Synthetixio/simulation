@@ -208,6 +208,11 @@ class OrderBook:
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
+        # A list keeping track of each tick's high, low, open, close
+        self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
+        self.price_data: List[Dec] = [self.cached_price]
+        self.volume_data: List[Dec] = [Dec(0)]
+
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
 
@@ -272,6 +277,23 @@ class OrderBook:
         Advance the time on this order book by one step.
         """
         self.time += 1
+
+    def step_history(self) -> None:
+        """Add new data points to update"""
+
+        if len(self.candle_data) > 1 and self.candle_data[-1][3] is None:
+            self.candle_data[-1][1] = self.candle_data[-1][0]
+            self.candle_data[-1][2] = self.candle_data[-1][0]
+            self.candle_data[-1][3] = self.candle_data[-1][0]
+        self.candle_data.append([self.candle_data[-1][1], None, None, None])
+
+        self.volume_data.append(Dec(0))
+        for item in reversed(self.history):
+            if item.completion_time != self.model_manager.time:
+                break
+            self.volume_data[-1] += item.quantity
+
+        self.price_data.append(self.cached_price)
 
     def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
@@ -703,6 +725,19 @@ class OrderBook:
                 self.history.append(trade)
                 trade.buyer.notify_trade(trade)
                 trade.seller.notify_trade(trade)
+
+                # if no closing data yet, initialise
+                if not self.candle_data[-1][1]:
+                    self.candle_data[-1][2] = trade.price
+                    self.candle_data[-1][3] = trade.price
+
+                self.candle_data[-1][1] = trade.price
+
+                if trade.price > self.candle_data[-1][2]:
+                    self.candle_data[-1][2] = trade.price
+
+                if trade.price < self.candle_data[-1][3]:
+                    self.candle_data[-1][3] = trade.price
 
             spread = self.spread()
 

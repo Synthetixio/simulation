@@ -297,7 +297,6 @@ ws.onmessage = function(message) {
             $(playPauseButton.children()[0]).text("Done");
             break;
         case "model_params":
-            console.log(msg["params"]);
             model_params = msg["params"];
             initGUI();
             break;

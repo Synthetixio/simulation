@@ -89,14 +89,14 @@ class AgentManager:
                     self.agents[item].append(buyer)
                     total_players += 1
 
-        central_bank = ag.CentralBank(
-            total_players, self.havven, fiat=Dec(num_agents * init_value),
-            nomin_target=Dec('1.0')
-        )
-        self.havven.endow_curits(central_bank,
-                                 Dec(num_agents * init_value))
-        self.havven.schedule.add(central_bank)
-        self.agents["others"].append(central_bank)
+        # central_bank = ag.CentralBank(
+        #     total_players, self.havven, fiat=Dec(num_agents * init_value),
+        #     nomin_target=Dec('1.0')
+        # )
+        # self.havven.endow_curits(central_bank,
+        #                          Dec(num_agents * init_value))
+        # self.havven.schedule.add(central_bank)
+        # self.agents["others"].append(central_bank)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven.schedule.agents:
