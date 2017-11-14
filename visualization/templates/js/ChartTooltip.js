@@ -29,7 +29,6 @@ Chart.defaults.global.tooltips.custom = function(tooltipModel) {
     function getBody(bodyItem) {
         return bodyItem.lines;
     }
-    console.log(tooltipModel)
 
     // Set Text
     if (tooltipModel.body) {

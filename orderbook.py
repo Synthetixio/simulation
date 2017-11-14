@@ -210,6 +210,8 @@ class OrderBook:
 
         # A list keeping track of each tick's high, low, open, close
         self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
+        self.price_data: List[Dec] = [self.cached_price]
+        self.volume_data: List[Dec] = [Dec(0)]
 
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
@@ -284,6 +286,14 @@ class OrderBook:
             self.candle_data[-1][2] = self.candle_data[-1][0]
             self.candle_data[-1][3] = self.candle_data[-1][0]
         self.candle_data.append([self.candle_data[-1][1], None, None, None])
+
+        self.volume_data.append(Dec(0))
+        for item in reversed(self.history):
+            if item.completion_time != self.model_manager.time:
+                break
+            self.volume_data[-1] += item.quantity
+
+        self.price_data.append(self.cached_price)
 
     def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
@@ -712,6 +722,8 @@ class OrderBook:
 
             # If a trade was made, then save it in the history.
             if trade is not None:
+                self.history.append(trade)
+
                 # if no closing data yet, initialise
                 if not self.candle_data[-1][1]:
                     self.candle_data[-1][2] = trade.price

@@ -27,18 +27,24 @@ class CandleStickModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         self.js_code = f"""elements.push(
-            new CandleStickModule(\"{series[0]['Label']}\",{width},{height})
+            new CandleStickModule(
+                \"{series[0]['Label']}\",{width},{height},
+                "{series[0]['AvgColor']}","{series[0]['VolumeColor']}"
+            )
         );"""
 
-    def render(self, model: Havven) -> List[List[float]]:
+        self.chart_length = 85
+
+    def render(self, model: Havven) -> Tuple[List[float], List[float], List[float], List[float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
-        price = 1.0
-        data: List[Dec] = []
+        price_data: List[Dec] = []
+        candle_data: List[Dec] = []
+        vol_data: List[Dec] = []
 
         for s in self.series:  # TODO: not use series, as it should only really be one graph
             name: str = s['orderbook']
@@ -48,9 +54,24 @@ class CandleStickModule(VisualizationElement):
 
             try:
                 order_book: "ob.OrderBook" = data_collector.model_vars[name][-1]
-                data = order_book.candle_data
+                candle_data = order_book.candle_data[:-1]
+                price_data = order_book.price_data[1:]
+                vol_data = order_book.volume_data[1:]
             except Exception:
-                data = []
+                candle_data = []
+                price_data = []
+                vol_data = []
+
+        old_len = len(candle_data)
+        if len(candle_data) > self.chart_length:
+            candle_data = candle_data[-self.chart_length:]
+            price_data = price_data[-self.chart_length:]
+            vol_data = vol_data[-self.chart_length:]
 
         # convert decimals to floats
-        return [list(map(lambda x: float(x) if x else -1, i)) for i in data]
+        return (
+            list(map(lambda x: (float(x[0]), float(x[1]), float(x[2]), float(x[3])) if x[1] else -1.0, candle_data)),
+            [float(i) for i in price_data],
+            [float(i) for i in vol_data],
+            [i for i in range(old_len-len(vol_data), old_len+1)]
+        )

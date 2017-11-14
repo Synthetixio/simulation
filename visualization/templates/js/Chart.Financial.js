@@ -26,12 +26,20 @@ module.exports = function(Chart) {
             position: "nearest",
 			callbacks: {
 				label: function(tooltipItem, data) {
-					var o = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].o.toFixed(4);
-					var h = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].h.toFixed(4);
-					var l = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].l.toFixed(4);
-					var c = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].c.toFixed(4);
+					if (data.datasets[tooltipItem.datasetIndex].type === 'financial') {
+						let index = tooltipItem.index;
+                        let o = data.datasets[tooltipItem.datasetIndex].data[index].o.toFixed(4);
+                        let h = data.datasets[tooltipItem.datasetIndex].data[index].h.toFixed(4);
+                        let l = data.datasets[tooltipItem.datasetIndex].data[index].l.toFixed(4);
+                        let c = data.datasets[tooltipItem.datasetIndex].data[index].c.toFixed(4);
+                        let v = data.datasets[tooltipItem.datasetIndex].data[index].v.toFixed(4);
+                        let p = data.datasets[tooltipItem.datasetIndex].data[index].p.toFixed(4);
 
-					return '<br/>Open: ' + o + '<br/>High: ' + h + '<br/>Low: ' + l + '<br/>Close: ' + c;
+                        return '<br/>Open: ' + o + '<br/>High: ' + h + '<br/>Low: ' + l + '<br/>Close: ' + c +
+							'<br/>Volume: '+ v + '<br/>Rolling Price: ' + p;
+                    } else {
+						return ''
+					}
 				}
 			}
 		},
@@ -50,7 +58,7 @@ module.exports = function(Chart) {
 					format: 'll'
 				},
 				ticks: {
-					source: 'labels'
+					source: 'data'
 				}
 			}],
 			yAxes: [{
@@ -230,7 +238,7 @@ module.exports = function(Chart) {
 			ctx.lineTo(x, l);
 			ctx.stroke();
 			ctx.fillRect(x - vm.width / 2, c, vm.width, o - c);
-			ctx.strokeRect(x - vm.width / 2, c, vm.width, o - c);
+			//ctx.strokeRect(x - vm.width / 2, c, vm.width, o - c);
 			ctx.closePath();
 		},
 		height: function() {
