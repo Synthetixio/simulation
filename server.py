@@ -1,13 +1,12 @@
 """server.py: Functions for setting up the simulation/visualisation server."""
 
 from typing import List
-import random
 
-from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule, CurrentOrderModule
+from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule, \
+    CurrentOrderModule, CandleStickModule
 from visualization.UserParam import UserSettableParameter
 from visualization.ModularVisualization import ModularServer, VisualizationElement
 
-import agents as ag
 import model
 
 
@@ -23,25 +22,19 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     ref_colour = "lightgrey"
 
     charts: List[VisualizationElement] = [
-        ChartModule([
-            {"Label": "Nomin Price", "Color": "deepskyblue"},
-            {"Label": "Nomin Ask", "Color": "deepskyblue"},
-            {"Label": "Nomin Bid", "Color": "deepskyblue"},
-            {"Label": "1", "Color": ref_colour}
+        CandleStickModule([
+            {"Label": "NominFiatPriceData", "orderbook": "NominFiatOrderBook",
+             "AvgColor": "rgba(0,191,255,0.6)", "VolumeColor": "rgba(0,191,255,0.3)"}  # deepskyblue
         ]),
 
-        ChartModule([
-            {"Label": "Curit Price", "Color": "red"},
-            {"Label": "Curit Ask", "Color": "red"},
-            {"Label": "Curit Bid", "Color": "red"},
-            {"Label": "1", "Color": ref_colour}
+        CandleStickModule([
+            {"Label": "CuritFiatPriceData", "orderbook": "CuritFiatOrderBook",
+             "AvgColor": "rgba(255,0,0,0.6)", "VolumeColor": "rgba(255,0,0,0.3)"}  # red
         ]),
 
-        ChartModule([
-            {"Label": "Curit/Nomin Price", "Color": "darkorchid"},
-            {"Label": "Curit/Nomin Ask", "Color": "darkorchid"},
-            {"Label": "Curit/Nomin Bid", "Color": "darkorchid"},
-            {"Label": "1", "Color": ref_colour}
+        CandleStickModule([
+            {"Label": "CuritNominPriceData", "orderbook": "CuritNominOrderBook",
+             "AvgColor": "rgba(153,50,204,0.6)", "VolumeColor": "rgba(153,50,204,0.3)"}  # darkorchid
         ]),
 
         ChartModule([
