@@ -42,7 +42,7 @@ class ChartModule(VisualizationElement):
         the same way that "Color" is currently.
 
     """
-    package_includes = ["Chart.min.js", "ChartModule.js"]
+    package_includes = ["ChartModule.js"]
 
     def __init__(self, series, canvas_height=150, canvas_width=500,
                  data_collector_name="datacollector"):

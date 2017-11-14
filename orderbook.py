@@ -142,10 +142,11 @@ class Ask(LimitOrder):
 
 class TradeRecord:
     """A record of a single trade."""
-    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer",
+    def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer", book: "OrderBook",
                  price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int) -> None:
         self.buyer = buyer
         self.seller = seller
+        self.book = book
         self.price = price
         self.quantity = quantity
         self.bid_fee = bid_fee
@@ -154,7 +155,7 @@ class TradeRecord:
 
     def __str__(self) -> str:
         return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \
-               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time}"
+               f" + ({self.bid_fee}, {self.ask_fee}) t:{self.completion_time} {self.book.name}"
 
 
 # A type for matching functions in the order book.
@@ -206,6 +207,11 @@ class OrderBook:
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
+
+        # A list keeping track of each tick's high, low, open, close
+        self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
+        self.price_data: List[Dec] = [self.cached_price]
+        self.volume_data: List[Dec] = [Dec(0)]
 
         # Try to match orders after each trade is submitted
         self.match_on_order: bool = match_on_order
@@ -271,6 +277,23 @@ class OrderBook:
         Advance the time on this order book by one step.
         """
         self.time += 1
+
+    def step_history(self) -> None:
+        """Add new data points to update"""
+
+        if len(self.candle_data) > 1 and self.candle_data[-1][3] is None:
+            self.candle_data[-1][1] = self.candle_data[-1][0]
+            self.candle_data[-1][2] = self.candle_data[-1][0]
+            self.candle_data[-1][3] = self.candle_data[-1][0]
+        self.candle_data.append([self.candle_data[-1][1], None, None, None])
+
+        self.volume_data.append(Dec(0))
+        for item in reversed(self.history):
+            if item.completion_time != self.model_manager.time:
+                break
+            self.volume_data[-1] += item.quantity
+
+        self.price_data.append(self.cached_price)
 
     def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
@@ -706,6 +729,19 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
+
+                # if no closing data yet, initialise
+                if not self.candle_data[-1][1]:
+                    self.candle_data[-1][2] = trade.price
+                    self.candle_data[-1][3] = trade.price
+
+                self.candle_data[-1][1] = trade.price
+
+                if trade.price > self.candle_data[-1][2]:
+                    self.candle_data[-1][2] = trade.price
+
+                if trade.price < self.candle_data[-1][3]:
+                    self.candle_data[-1][3] = trade.price
 
             spread = self.spread()
 

@@ -39,9 +39,26 @@ class MarketPlayer(Agent):
         self.initial_wealth: Dec = self.wealth()
 
         self.orders: List["ob.LimitOrder"] = []
+        self.trades: List["ob.TradeRecord"] = []
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def curit_fiat_market(self) -> "ob.OrderBook":
+        """The curit-fiat market this player trades on."""
+        return self.model.market_manager.curit_fiat_market
+
+    @property
+    def nomin_fiat_market(self) -> "ob.OrderBook":
+        """The nomin-fiat market this player trades on."""
+        return self.model.market_manager.nomin_fiat_market
+
+    @property
+    def curit_nomin_market(self) -> "ob.OrderBook":
+        """The curit-nomin market this player trades on."""
+        return self.model.market_manager.curit_nomin_market
+
 
     @property
     def name(self) -> str:
@@ -325,37 +342,37 @@ class MarketPlayer(Agent):
         """
         Place a bid for a quantity of curits, at a price in fiat.
         """
-        return self.model.market_manager.curit_fiat_market.bid(price, quantity, self)
+        return self.curit_fiat_market.bid(price, quantity, self)
 
     def place_curit_fiat_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
         Place an ask for fiat with a quantity of curits, at a price in fiat.
         """
-        return self.model.market_manager.curit_fiat_market.ask(price, quantity, self)
+        return self.curit_fiat_market.ask(price, quantity, self)
 
     def place_nomin_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
         Place a bid for a quantity of nomins, at a price in fiat.
         """
-        return self.model.market_manager.nomin_fiat_market.bid(price, quantity, self)
+        return self.nomin_fiat_market.bid(price, quantity, self)
 
     def place_nomin_fiat_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
         Place an ask for fiat with a quantity of nomins, at a price in fiat.
         """
-        return self.model.market_manager.nomin_fiat_market.ask(price, quantity, self)
+        return self.nomin_fiat_market.ask(price, quantity, self)
 
     def place_curit_nomin_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
         Place a bid for a quantity of curits, at a price in nomins.
         """
-        return self.model.market_manager.curit_nomin_market.bid(price, quantity, self)
+        return self.curit_nomin_market.bid(price, quantity, self)
 
     def place_curit_nomin_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
         Place an ask for nomins with a quantity of curits, at a price in nomins.
         """
-        return self.model.market_manager.curit_nomin_market.ask(price, quantity, self)
+        return self.curit_nomin_market.ask(price, quantity, self)
 
     def place_curit_fiat_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
@@ -371,7 +388,7 @@ class MarketPlayer(Agent):
         Place an ask for fiat with a quantity of curits, including the fee, at a price in fiat.
         """
         qty = self.model.fee_manager.transferred_curits_received(quantity)
-        return self.model.market_manager.curit_fiat_market.ask(price, qty, self)
+        return self.curit_fiat_market.ask(price, qty, self)
 
     def place_nomin_fiat_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
@@ -387,7 +404,7 @@ class MarketPlayer(Agent):
         Place an ask for fiat with a quantity of nomins, including the fee, at a price in fiat.
         """
         qty = self.model.fee_manager.transferred_nomins_received(quantity)
-        return self.model.market_manager.nomin_fiat_market.ask(price, qty, self)
+        return self.nomin_fiat_market.ask(price, qty, self)
 
     def place_curit_nomin_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
@@ -403,7 +420,7 @@ class MarketPlayer(Agent):
         Place an ask for nomins with a quantity of curits, including the fee, at a price in nomins.
         """
         qty = self.model.fee_manager.transferred_curits_received(quantity)
-        return self.model.market_manager.curit_nomin_market.ask(price, qty, self)
+        return self.curit_nomin_market.ask(price, qty, self)
 
     @property
     def available_fiat(self) -> Dec:
@@ -437,11 +454,11 @@ class MarketPlayer(Agent):
         """
         pass
 
-    def notify_filled(self, order: "ob.LimitOrder") -> None:
+    def notify_trade(self, record: "ob.TradeRecord") -> None:
         """
         Notify this agent that its order was filled.
         """
-        pass
+        self.trades.append(record)
 
     def step(self) -> None:
         pass
