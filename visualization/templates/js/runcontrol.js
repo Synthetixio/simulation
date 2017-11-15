@@ -46,7 +46,7 @@ var agent_settings = $("#agent_settings");
 var agent_values = {};
 
 // WebSocket Stuff
-var ws = new WebSocket("ws://127.0.0.1:" + port + "/ws"); // Open the websocket connection
+var ws = new WebSocket("ws://" + location.host + "/ws"); // Open the websocket connection
 ws.onopen = function() {
     console.log("Connection opened!");
     send({"type": "get_params"}); // Request model parameters when websocket is ready

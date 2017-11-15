@@ -18,8 +18,6 @@ provided by each element.
 
 This file consists of the following classes:
 
-VisualizationElement: Parent class for all other visualization elements, with
-                      the minimal necessary options.
 PageHandler: The handler for the visualization page, generated from a template
              and built from the various visualization elements.
 SocketHandler: Handles the websocket connection between the client page and
@@ -110,55 +108,9 @@ import time
 
 from visualization.UserParam import UserSettableParameter
 
-# Suppress several pylint warnings for this file.
-# Attributes being defined outside of init is a Tornado feature.
-# pylint: disable=attribute-defined-outside-init
-
-
-class VisualizationElement:
-    """
-    Defines an element of the visualization.
-
-    Attributes:
-        package_includes: A list of external JavaScript files to include that
-                          are part of the Mesa packages.
-        local_includes: A list of JavaScript files that are local to the
-                        directory that the server is being run in.
-        js_code: A JavaScript code string to instantiate the element.
-
-    Methods:
-        render: Takes a model object, and produces JSON data which can be sent
-                to the client.
-
-    """
-
-    package_includes = []
-    local_includes = []
-    js_code = ''
-    render_args = {}
-
-    def __init__(self):
-        pass
-
-    def render(self, model):
-        """ Build visualization data from a model object.
-
-        Args:
-            model: A model object
-
-        Returns:
-            A JSON-ready object.
-
-        """
-        return "<b>VisualizationElement goes here</b>."
-
-# =============================================================================
-# Actual Tornado code starts here:
-
 
 class PageHandler(tornado.web.RequestHandler):
     """ Handler for the HTML template which holds the visualization. """
-
     def get(self):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
@@ -179,6 +131,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.step = 0
 
     def open(self):
+        # self is the connection, not a single socket object
+        self.model = ModelHandler(
+            self.application.threaded,
+            self.application.model_name,
+            copy.deepcopy(self.application.model_cls),
+            copy.deepcopy(self.application.model_params),
+            copy.deepcopy(self.application.visualization_elements)
+        )
         if self.application.verbose:
             print("Socket opened!")
 
@@ -228,7 +188,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         elif msg["type"] == "reset":
             # on_message is async, so lock here as well when resetting
             with self.resetlock:
-                # calculate the step here, so it doesn't skip TODO: check why it skips
+                # calculate the step here, so it doesn't skip
                 self.step = 1
                 self.application.reset_model()
             self.write_message(self.viz_state_message)
@@ -384,10 +344,10 @@ class ModularServer(tornado.web.Application):
         startLoop = not tornado.ioloop.IOLoop.initialized()
         if port is not None:
             self.port = port
-        url = 'http://127.0.0.1:{PORT}'.format(PORT=self.port)
+        url = 'http://localhost:{PORT}'.format(PORT=self.port)
         print('Interface starting at {url}'.format(url=url))
         self.listen(self.port)
-        webbrowser.open(url)
+        # webbrowser.open(url)
         tornado.autoreload.start()
         if startLoop:
             tornado.ioloop.IOLoop.instance().start()

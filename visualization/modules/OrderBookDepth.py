@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict
 from decimal import Decimal as Dec
 
 from mesa.datacollection import DataCollector
-from visualization.ModularVisualization import VisualizationElement
+from visualization.VisualizationElement import VisualizationElement
 
 from model import Havven
 import orderbook as ob
