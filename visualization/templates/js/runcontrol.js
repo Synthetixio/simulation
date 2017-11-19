@@ -19,6 +19,7 @@ var MesaVisualizationControl = function() {
     this.running = false; // Whether there is currently a model running
     this.done = false;
     this.fps = 3; // Frames per second
+    this.data = []
 };
 
 var player; // Variable to store the continuous player
@@ -51,6 +52,8 @@ ws.onopen = function() {
     console.log("Connection opened!");
     send({"type": "get_params"}); // Request model parameters when websocket is ready
     reset();
+    single_step();
+    control.tick -= 1; // leave tick at -1 for now
 };
 
 // Add model parameters that can be edited prior to a model run
@@ -284,8 +287,8 @@ ws.onmessage = function(message) {
         case "viz_state":
             var data = msg["data"];
             var step = msg["step"];
-            for (var i in elements) {
-                elements[i].render(step, data[i]);
+            for (var i in data) {
+                control.data.push(data[i]);
             }
             break;
         case "end":
@@ -316,28 +319,32 @@ var send = function(message) {
 var reset = function($e) {
     if ($e !== undefined)
         $e.preventDefault();
-    control.tick = 0;
-    send({"type": "reset"});
 
+    send({"type": "reset"});
+    control.tick = -1;
+    control.done = false;
+    control.data = [];
+    control.running = false;
     // Reset all the visualizations
     for (var i in elements) {
         elements[i].reset();
     }
-    control.done = false;
-    if (!control.running)
-        $(playPauseButton.children()[0]).text("Start");
+    $(playPauseButton.children()[0]).text("Start");
     return false;
 };
 
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
     control.tick += 1;
-    send({"type": "get_step", "step": control.tick});
+    if (control.tick > control.data.length - this.fps*2) {
+        send({"type": "get_steps", "step": control.data.length, "fps": fpsControl.value});
+    }
 };
 
 /** Step the model forward. */
 var step = function($e) {
-    $e.preventDefault();
+    if ($e !== undefined) $e.preventDefault();
+
     if (!control.running & !control.done) {single_step()}
     else if (!control.done) {run()};
     return false;
@@ -345,8 +352,9 @@ var step = function($e) {
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
 var run = function($e) {
-    if ($e !== undefined)
-        $e.preventDefault();
+    // stop the page scrolling on function call
+    if ($e !== undefined) $e.preventDefault();
+
     var anchor = $(playPauseButton.children()[0]);
     if (control.running) {
         control.running = false;
@@ -365,9 +373,11 @@ var run = function($e) {
 };
 
 var updateFPS = function($e) {
-    $e.preventDefault();
+    if ($e !== undefined) $e.preventDefault();
+
     control.fps = Number(fpsControl.val());
     if (control.running) {
+        // run twice to set interval, and clear it
         run();
         run();
     }
@@ -380,8 +390,30 @@ stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
 
+function update_graphs() {
+    if (control.tick < control.data.length) {
+        for (var i in elements) {
+            let to_render = [];
+            for (let j=0; j<=control.tick; j++) {
+                to_render.push(data[i][j])
+            }
+            // send all data up to current tick to be rendered
+            // its all local with mutable arrays, so its not that inefficient
+            elements[i].render(step, to_render);
+        }
+    }
+}
+
+function clear_graphs() {
+    // Reset all the visualizations
+    for (var i in elements) {
+        elements[i].reset();
+    }
+}
 
 // function to hide graph divs
+// don't bother stopping the data coming in, as the graph should always have
+//   the data ready to show...
 function toggle_graph(div) {
     let doc = document.documentElement;
     let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
@@ -397,6 +429,7 @@ function toggle_graph(div) {
 }
 
 function toggle_all(btn) {
+  // if someone manually hides all the graphs, it will still say hide all... oh well
     if (btn.innerHTML === "Hide all") {
         $(".btn-pad").each(function() {
             $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");

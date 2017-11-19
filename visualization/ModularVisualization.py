@@ -105,6 +105,7 @@ import webbrowser
 import threading
 import queue
 import time
+import copy
 
 from visualization.UserParam import UserSettableParameter
 
@@ -116,8 +117,8 @@ class PageHandler(tornado.web.RequestHandler):
         for i, element in enumerate(elements):
             element.index = i
         self.render("modular_template.html", port=self.application.port,
-                    model_name=self.application.model_handler.model_name,
-                    description=self.application.model_handler.description,
+                    model_name=self.application.model_name,
+                    description=self.application.description,
                     package_includes=self.application.package_includes,
                     local_includes=self.application.local_includes,
                     scripts=self.application.js_code)
@@ -132,7 +133,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
         # self is the connection, not a single socket object
-        self.model = ModelHandler(
+        self.model_handler = ModelHandler(
             self.application.threaded,
             self.application.model_name,
             copy.deepcopy(self.application.model_cls),
@@ -147,59 +148,54 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        if self.application.threaded:
-            with self.resetlock:
-                # block=True makes the program wait for data to be added
-                data = self.application.model_handler.data_queue.get(block=True)
-                return {
-                    "type": "viz_state",
-                    "step": self.step,
-                    "data": data[1]
-                }
-        else:
-            self.application.model_handler.step()
-            data = self.application.model_handler.render_model()
+        with self.resetlock:
+            # block=True makes the program wait for data to be added
             return {
                 "type": "viz_state",
-                "step": self.step,
-                "data": data[1]
+                "data": []
             }
+
+    def collect_data_from_step(self, step, fps=None):
+        with self.model_handler.data_lock:
+            if fps is None:
+                data = copy.deepcopy(self.model_handler.data[step:])
+            else:
+                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+        return data
+
 
     def on_message(self, message):
         """
         Receiving a message from the websocket, parse, and act accordingly.
         """
         if self.application.verbose:
-            print(message, self.application.model_handler.data_queue.qsize())
+            print(message, len(self.model_handler.data))
         msg = tornado.escape.json_decode(message)
 
-        if msg["type"] == "get_step":
-            if not self.application.model_handler.running:
-                self.write_message({"type": "end"})
-            else:
-                if self.application.threaded:
-                    while self.application.model_handler.resetting:
-                        time.sleep(0.05)
-                # self.application.model_handler.step()
-                message = self.viz_state_message
-                self.write_message(message)
-                self.step += 1
+        if msg["type"] == "get_steps":
+            while self.resetlock.locked():
+                # reset in progress, wait a bit
+                time.sleep(0.05)
+
+            client_current_step = msg['step']
+            if client_current_step == -1:
+                print("okie")
+            client_fps = msg['fps']
+            message = self.viz_state_message
+            message['data'] = collect_data_from_step(client_current_step, client_fps)
+            self.write_message(message)
 
         elif msg["type"] == "reset":
             # on_message is async, so lock here as well when resetting
             with self.resetlock:
-                # calculate the step here, so it doesn't skip
-                self.step = 1
                 self.application.reset_model()
-            self.write_message(self.viz_state_message)
-            self.step += 1
 
         elif msg["type"] == "submit_params":
             param = msg["param"]
             value = msg["value"]
             # as this is local, don't worry about invalid inputs
-            # but should be sanitised if this ever goes online
-            self.application.model_handler.set_model_kwargs(param, value)
+            # but should be sanitised if this goes online TODO
+            self.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
             self.write_message({
@@ -230,17 +226,15 @@ class ModelHandler:
         self.resetting = False
 
         self.running = True
-        self.data_queue = queue.Queue()
+        self.data = []
+        self.data_lock = threading.Lock()
         self.lock = threading.Lock()
 
     def reset_model(self):
-        if self.threaded:
-            self.resetting = True
-            with self.lock:
-                self.create_model()
-            self.resetting = False
-        else:
+        self.resetting = True
+        with self.lock:
             self.create_model()
+        self.resetting = False
 
     def create_model(self):
         """Create a new model, with changed parameters"""
@@ -254,10 +248,8 @@ class ModelHandler:
                 model_params[key] = val
         self.model = self.model_cls(**model_params)
         # clear the data queue
-        with self.data_queue.mutex:
-            self.data_queue.queue.clear()
-            self.data_queue.all_tasks_done.notify_all()
-            self.data_queue.unfinished_tasks = 0
+        with self.data_lock:
+            self.data = []
 
     def render_model(self):
         """collect the data from the model and put it in the queue to be sent for rendering"""
@@ -265,14 +257,52 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        return self.model.manager.time-1, visualization_state
+        with self.data_lock:
+            self.data.append(copy.deepcopy((self.model.manager.time, visualization_state)))
 
     def step(self):
         self.model.step()
+        self.render_model()
 
     def set_model_kwargs(self, key, val):
         self.model_kwargs[key] = val
 
+    @staticmethod
+    def run_model(model_handler):
+        try:
+            while model_handler.running:
+                # allow the model to reset if it hasn't already
+                # TODO: does this cause the lag?
+                while model_handler.resetting:
+                    time.sleep(0.05)
+
+                # slow it down significantly if the data isn't being used
+                # higher value causes lag when the page is first created
+                while len(model_handler.data) > 10:
+                    time.sleep(0.1)
+
+                start = time.time()
+
+                with model_handler.lock:
+                    model_handler.step()
+
+
+                end = time.time()
+                # if calculated faster than 20 step/sec allow it some time to sleep
+                # TODO: base this on max_fps, i.e. 6
+                if end - start < (1.0/20):
+                    time.sleep(end-start)
+
+        except Exception as e:
+            print(e)
+            print("Model run thread closed.")
+            return
+
+    def set_model_params(self, param, value):
+        if isinstance(self.model_kwargs[param], UserSettableParameter):
+            self.model_kwargs[param].value = value
+        else:
+            self.model_kwargs[param] = value
 
 class ModularServer(tornado.web.Application):
     """ Main visualization application. """
@@ -302,6 +332,15 @@ class ModularServer(tornado.web.Application):
         # Prep visualization elements:
         self.threaded = threaded
         self.visualization_elements = visualization_elements
+        self.model_name = name
+        self.model_cls = model_cls
+        self.model_params = model_params
+        if hasattr(model_cls, 'description'):
+            self.description = model_cls.description
+        elif model_cls.__doc__ is not None:
+            self.description = model_cls.__doc__
+
+        self.visualization_elements = visualization_elements
         self.package_includes = set()
         self.local_includes = set()
         self.js_code = []
@@ -311,12 +350,6 @@ class ModularServer(tornado.web.Application):
             for include_file in element.local_includes:
                 self.local_includes.add(include_file)
             self.js_code.append(element.js_code)
-
-        # Initializing the model
-        self.model_handler = ModelHandler(threaded, name, model_cls, model_params, visualization_elements)
-        self.model_handler.create_model()
-        if self.threaded:
-            threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
 
         # Initializing the application itself:
         super().__init__(self.handlers, **self.settings)
@@ -333,12 +366,6 @@ class ModularServer(tornado.web.Application):
         """ Reinstantiate the model object, using the current parameters. """
         self.model_handler.reset_model()
 
-    def set_model_params(self, param, value):
-        if isinstance(self.model_handler.model_kwargs[param], UserSettableParameter):
-            self.model_handler.model_kwargs[param].value = value
-        else:
-            self.model_handler.model_kwargs[param] = value
-
     def launch(self, port=None):
         """ Run the app. """
         startLoop = not tornado.ioloop.IOLoop.initialized()
@@ -351,32 +378,3 @@ class ModularServer(tornado.web.Application):
         tornado.autoreload.start()
         if startLoop:
             tornado.ioloop.IOLoop.instance().start()
-
-    @staticmethod
-    def run_model(model_handler):
-        try:
-            while model_handler.running:
-                # allow the model to reset if it hasn't already
-                if model_handler.resetting:
-                    time.sleep(0.1)
-                    continue
-
-                # slow it down significantly if the data isn't being used
-                # higher value causes lag when the page is first created
-                if model_handler.data_queue.qsize() > 50:
-                    time.sleep(0.5)
-                start = time.time()
-
-                with model_handler.lock:
-                    model_handler.step()
-                    data = model_handler.render_model()
-                    model_handler.data_queue.put(data)
-
-                end = time.time()
-                # if calculated faster than 33 step/sec allow it some time to sleep
-                if end - start < 0.03:
-                    time.sleep(end-start)
-        except Exception as e:
-            print(e)
-            print("Model run thread closed.")
-            return

@@ -6,7 +6,7 @@ from visualization.modules import ChartModule, OrderBookModule, WealthModule, Po
     CurrentOrderModule, CandleStickModule, PastOrdersModule
 
 from visualization.UserParam import UserSettableParameter
-from visualization.ModularVisualization import ModularServer, VisualizationElement
+from visualization.ModularVisualization import ModularServer
 
 import model
 
