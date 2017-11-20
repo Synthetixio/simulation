@@ -140,7 +140,6 @@ var initGUI = function() {
             var choice = $("<li role='presentation'><a role='menuitem' tabindex='-1' href='#'>" + obj.choices[i] + "</a></li>")[0];
             $(choice).on('click', function() {
                 var value = $(this).children()[0].text;
-                console.log(value);
                $(button).text(value + ' ');
                onSubmitCallback(param, value);
             });
@@ -226,8 +225,6 @@ var initGUI = function() {
                     return_val[item.id] = parseFloat(item.value)/max_val;
                 });
 
-                console.log(return_val);
-
                 onSubmitCallback(param, return_val);
             })
         }
@@ -286,9 +283,13 @@ ws.onmessage = function(message) {
     switch (msg["type"]) {
         case "viz_state":
             var data = msg["data"];
-            var step = msg["step"];
+            console.log(data);
             for (var i in data) {
-                control.data.push(data[i]);
+                let step = data[i][0];
+                let dataset = data[i][1];
+                if (control.data.length <= step) {
+                    control.data.push(dataset);
+                }
             }
             break;
         case "end":
@@ -336,17 +337,24 @@ var reset = function($e) {
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
     control.tick += 1;
-    if (control.tick > control.data.length - this.fps*2) {
-        send({"type": "get_steps", "step": control.data.length, "fps": fpsControl.value});
+    let fps = parseInt(fpsControl[0].value);
+    if (control.tick > control.data.length - fps*2) {
+        send({"type": "get_steps", "step": control.data.length-1, "fps": fps});
     }
+    clear_graphs();
+    update_graphs();
 };
 
 /** Step the model forward. */
 var step = function($e) {
     if ($e !== undefined) $e.preventDefault();
 
-    if (!control.running & !control.done) {single_step()}
-    else if (!control.done) {run()};
+    if (!control.running & !control.done) {
+        single_step()
+    }
+    else if (!control.done) {
+        run();
+    }
     return false;
 };
 
@@ -354,7 +362,6 @@ var step = function($e) {
 var run = function($e) {
     // stop the page scrolling on function call
     if ($e !== undefined) $e.preventDefault();
-
     var anchor = $(playPauseButton.children()[0]);
     if (control.running) {
         control.running = false;
@@ -395,8 +402,9 @@ function update_graphs() {
         for (var i in elements) {
             let to_render = [];
             for (let j=0; j<=control.tick; j++) {
-                to_render.push(data[i][j])
+                to_render.push(control.data[j][i])
             }
+            console.log(to_render);
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
             elements[i].render(step, to_render);

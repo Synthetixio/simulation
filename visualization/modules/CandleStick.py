@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from decimal import Decimal as Dec
 
 from mesa.datacollection import DataCollector
@@ -35,7 +35,7 @@ class CandleStickModule(VisualizationElement):
 
         self.chart_length = 85
 
-    def render(self, model: Havven) -> Tuple[List[float], List[float], List[float], List[float]]:
+    def render(self, model: Havven) -> Optional[Tuple[Tuple[float, float, float, float], float, float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
@@ -61,17 +61,15 @@ class CandleStickModule(VisualizationElement):
                 candle_data = []
                 price_data = []
                 vol_data = []
-
-        old_len = len(candle_data)
-        if len(candle_data) > self.chart_length:
-            candle_data = candle_data[-self.chart_length:]
-            price_data = price_data[-self.chart_length:]
-            vol_data = vol_data[-self.chart_length:]
-
+                return []
         # convert decimals to floats
         return (
-            list(map(lambda x: (float(x[0]), float(x[1]), float(x[2]), float(x[3])) if x[1] else -1.0, candle_data)),
-            [float(i) for i in price_data],
-            [float(i) for i in vol_data],
-            [i for i in range(old_len-len(vol_data), old_len+1)]
+            (
+                float(candle_data[-1][0]),
+                float(candle_data[-1][1]),
+                float(candle_data[-1][2]),
+                float(candle_data[-1][3])
+            ),
+            float(price_data[-1]),
+            float(vol_data[-1])
         )

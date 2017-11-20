@@ -140,6 +140,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             copy.deepcopy(self.application.model_params),
             copy.deepcopy(self.application.visualization_elements)
         )
+        self.model_handler.reset_model()
+        self.model_run_thread = threading.Thread(target=self.model_handler.run_model, args=(self.model_handler,)).start()
         if self.application.verbose:
             print("Socket opened!")
 
@@ -156,13 +158,13 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             }
 
     def collect_data_from_step(self, step, fps=None):
+
         with self.model_handler.data_lock:
             if fps is None:
-                data = copy.deepcopy(self.model_handler.data[step:])
+                data = copy.deepcopy(self.model_handler.data[step+1:])
             else:
-                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+                data = copy.deepcopy(self.model_handler.data[step+1:(step+1+fps*2)])
         return data
-
 
     def on_message(self, message):
         """
@@ -178,17 +180,15 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 time.sleep(0.05)
 
             client_current_step = msg['step']
-            if client_current_step == -1:
-                print("okie")
             client_fps = msg['fps']
             message = self.viz_state_message
-            message['data'] = collect_data_from_step(client_current_step, client_fps)
+            message['data'] = self.collect_data_from_step(client_current_step, client_fps)
             self.write_message(message)
 
         elif msg["type"] == "reset":
             # on_message is async, so lock here as well when resetting
             with self.resetlock:
-                self.application.reset_model()
+                self.model_handler.reset_model()
 
         elif msg["type"] == "submit_params":
             param = msg["param"]
@@ -275,7 +275,6 @@ class ModelHandler:
                 # TODO: does this cause the lag?
                 while model_handler.resetting:
                     time.sleep(0.05)
-
                 # slow it down significantly if the data isn't being used
                 # higher value causes lag when the page is first created
                 while len(model_handler.data) > 10:
@@ -294,8 +293,10 @@ class ModelHandler:
                     time.sleep(end-start)
 
         except Exception as e:
-            print(e)
+            print("==========-ERROR-==========")
+            print(__import__('traceback').print_tb(e))
             print("Model run thread closed.")
+            print("=========-END ERR-=========")
             return
 
     def set_model_params(self, param, value):
@@ -308,7 +309,7 @@ class ModularServer(tornado.web.Application):
     """ Main visualization application. """
     verbose = True
 
-    port = 8521  # Default port to listen on
+    port = 3000  # Default port to listen on
 
     # Handlers and other globals:
     page_handler = (r'/', PageHandler)
@@ -357,14 +358,10 @@ class ModularServer(tornado.web.Application):
     @property
     def user_params(self):
         result = {}
-        for param, val in self.model_handler.model_kwargs.items():
+        for param, val in self.model_params.items():
             if isinstance(val, UserSettableParameter):
                 result[param] = val.json
         return result
-
-    def reset_model(self):
-        """ Reinstantiate the model object, using the current parameters. """
-        self.model_handler.reset_model()
 
     def launch(self, port=None):
         """ Run the app. """
@@ -374,7 +371,6 @@ class ModularServer(tornado.web.Application):
         url = 'http://localhost:{PORT}'.format(PORT=self.port)
         print('Interface starting at {url}'.format(url=url))
         self.listen(self.port)
-        # webbrowser.open(url)
         tornado.autoreload.start()
         if startLoop:
             tornado.ioloop.IOLoop.instance().start()
