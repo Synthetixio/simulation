@@ -339,7 +339,7 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model",
+    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model (Alpha)",
                  model_params={}):
         """ Create a new visualization server with the given elements. """
         # Prep visualization elements:
@@ -348,10 +348,8 @@ class ModularServer(tornado.web.Application):
         self.model_name = name
         self.model_cls = model_cls
         self.model_params = model_params
-        if hasattr(model_cls, 'description'):
-            self.description = model_cls.description
-        elif model_cls.__doc__ is not None:
-            self.description = model_cls.__doc__
+
+        self.description = ""
 
         self.visualization_elements = visualization_elements
         self.package_includes = set()

@@ -10,6 +10,16 @@
     <!-- This is the Tornado template for the Modular Visualization. The Javascript code opens a WebSocket connection to
     the server (the port is set via the template). On every step, it receives inputs, one per module, and sends
     them to the associated function to render. -->
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105320791-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-105320791-2');
+    </script>
+
 </head>
 <body>
 
@@ -44,7 +54,7 @@
 <div class="container" style="padding-top: 100px">
     <!--<div class="col-lg-4 col-md-4 col-sm-4 col-xs-3" id="sidebar"></div>-->
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="elements">
-        <p style="font-style: italic">Scrolling in some browsers (Chrome) causes lag. In those cases, use the page scrollbar.</p>
+<!--        <p style="font-style: italic">Scrolling in some browsers (Chrome) causes lag. In those cases, use the page scrollbar.</p>-->
         <div id="elements-topbar" class="container">
             <div class="input-group input-group-lg">
                 <label class="label label-primary" for="fps" style="margin-right: 15px">Frames Per Second</label>
@@ -65,7 +75,10 @@
                 <h4 class="modal-title">About {{ model_name }}</h4>
             </div>
             <div class="modal-body">
-                <div>{{ description }}</div>
+                <!--<div>{{ description }}</div>-->
+                <div>
+                    {% include ./havven_description.html %}
+                </div>
                 <div>&nbsp;</div>
                 <div style="clear: both;"></div>
             </div>
