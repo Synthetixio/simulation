@@ -61,7 +61,7 @@ class CandleStickModule(VisualizationElement):
                 candle_data = []
                 price_data = []
                 vol_data = []
-                return []
+                return (1., 1., 1., 1.), 1., 1.
         # convert decimals to floats
         return (
             (

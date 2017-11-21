@@ -161,9 +161,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         with self.model_handler.data_lock:
             if fps is None:
-                data = copy.deepcopy(self.model_handler.data[step+1:])
+                self.model_handler.max_calc_step = step + 16
+                data = copy.deepcopy(self.model_handler.data[step:])
             else:
-                data = copy.deepcopy(self.model_handler.data[step+1:(step+1+fps*2)])
+                self.model_handler.max_calc_step = step + max(16, fps * 2)
+                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
         return data
 
     def on_message(self, message):
@@ -224,6 +226,7 @@ class ModelHandler:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
         self.resetting = False
+        self.max_calc_step = 10
 
         self.running = True
         self.data = []
@@ -277,7 +280,7 @@ class ModelHandler:
                     time.sleep(0.05)
                 # slow it down significantly if the data isn't being used
                 # higher value causes lag when the page is first created
-                while len(model_handler.data) > 10:
+                while len(model_handler.data) > model_handler.max_calc_step:
                     time.sleep(0.1)
 
                 start = time.time()

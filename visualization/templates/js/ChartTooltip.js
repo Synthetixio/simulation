@@ -7,7 +7,7 @@ Chart.defaults.global.tooltips.custom = function(tooltipModel) {
     if (!tooltipEl) {
         tooltipEl = document.createElement('div');
         tooltipEl.id = 'chartjs-tooltip';
-        tooltipEl.innerHTML = "<table></table>"
+        tooltipEl.innerHTML = "<table></table>";
         document.body.appendChild(tooltipEl);
     }
 
@@ -37,9 +37,14 @@ Chart.defaults.global.tooltips.custom = function(tooltipModel) {
 
         var innerHtml = '<thead>';
 
-        titleLines.forEach(function(title) {
-            innerHtml += '<tr><th>' + title + '</th></tr>';
-        });
+        for (let i in titleLines) {
+            // don't show tooltips for filler data
+            if (titleLines[i] < 0) {
+                return;
+            }
+            innerHtml += '<tr><th>' + titleLines[i] + '</th></tr>';
+        }
+
         innerHtml += '</thead><tbody>';
 
         bodyLines.forEach(function(body, i) {

@@ -69,17 +69,29 @@ var ChartModule = function(series, width, height) {
 	var chart = new Chart(context, {type: 'line', data: data, options: options});
 
 	this.render = function(step, data) {
-		chart.data.labels.push(step);
-		for (let i=0; i<data.length; i++) {
-			chart.data.datasets[i].data.push(data[i]);
+        chart.data.labels = [];
+		for (let i in chart.data.datasets) {
+            chart.data.datasets[i].data = []
+        }
+
+        for (let j in data) {
+			chart.data.labels.push(j);
 		}
+
+        for (let i in chart.data.datasets) {
+			for (let j in data) {
+				chart.data.datasets[i].data.push(data[j][i])
+			}
+		}
+
 		chart.update();
 	};
 
 	this.reset = function() {
-		data.labels = [];
-		for (let i=0; i<chart.data.datasets.length; i++) {
-			chart.data.datasets[i].data = [];
-		}
+		chart.data.labels = [];
+		for (let i in chart.data.datasets) {
+            chart.data.datasets[i].data = []
+        }
+        chart.update();
 	};
 };

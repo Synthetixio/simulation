@@ -22,6 +22,11 @@ var MesaVisualizationControl = function() {
     this.data = []
 };
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 var player; // Variable to store the continuous player
 var control = new MesaVisualizationControl();
 var elements = [];  // List of Element objects
@@ -33,10 +38,10 @@ var stepButton = $('#step');
 var resetButton = $('#reset');
 var fpsControl = $('#fps').slider({
     max: 20,
-    min: 0,
+    min: 1,
     value: 3,
-    ticks: [0, 20],
-    ticks_labels: [0, 20],
+    ticks: [1, 20],
+    ticks_labels: [1, 20],
     ticks_position: [0, 100]
 });
 
@@ -283,7 +288,6 @@ ws.onmessage = function(message) {
     switch (msg["type"]) {
         case "viz_state":
             var data = msg["data"];
-            console.log(data);
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
@@ -321,16 +325,15 @@ var reset = function($e) {
     if ($e !== undefined)
         $e.preventDefault();
 
-    send({"type": "reset"});
     control.tick = -1;
     control.done = false;
     control.data = [];
-    control.running = false;
+    send({"type": "reset"});
     // Reset all the visualizations
-    for (var i in elements) {
-        elements[i].reset();
-    }
-    $(playPauseButton.children()[0]).text("Start");
+    clear_graphs();
+    if (!control.running) $(playPauseButton.children()[0]).text("Start");
+    send({"type": "get_steps", "step": control.data.length, "fps": 10});
+
     return false;
 };
 
@@ -339,9 +342,8 @@ var single_step = function() {
     control.tick += 1;
     let fps = parseInt(fpsControl[0].value);
     if (control.tick > control.data.length - fps*2) {
-        send({"type": "get_steps", "step": control.data.length-1, "fps": fps});
+        send({"type": "get_steps", "step": control.data.length, "fps": fps});
     }
-    clear_graphs();
     update_graphs();
 };
 
@@ -349,7 +351,7 @@ var single_step = function() {
 var step = function($e) {
     if ($e !== undefined) $e.preventDefault();
 
-    if (!control.running & !control.done) {
+    if (!control.running && !control.done) {
         single_step()
     }
     else if (!control.done) {
@@ -404,10 +406,9 @@ function update_graphs() {
             for (let j=0; j<=control.tick; j++) {
                 to_render.push(control.data[j][i])
             }
-            console.log(to_render);
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step, to_render);
+            elements[i].render(step+1, to_render);
         }
     }
 }
@@ -451,3 +452,23 @@ function toggle_all(btn) {
     }
 
 }
+
+
+
+
+function throttle(fn, wait) {
+  var time = Date.now();
+  return function() {
+    if ((time + wait - Date.now()) < 0) {
+      fn();
+      time = Date.now();
+    }
+  }
+}
+
+
+function callback () {
+    console.count("Throttled");
+}
+
+window.addEventListener('scroll', throttle(callback, 1000));
