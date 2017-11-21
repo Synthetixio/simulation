@@ -40,7 +40,7 @@ class AgentManager:
         # create each agent with custom
         total_players = 0
         for item in result:
-            total = int(num_agents*agent_fractions[item]) if item in agent_fractions else 0
+            total = max(1, int(num_agents*agent_fractions[item]) if item in agent_fractions else 0)
             if item == 'Merchant' and total == 0:
                 total = 1
             for i in range(total):
