@@ -11,14 +11,14 @@ import orderbook as ob
 class Randomizer(MarketPlayer):
     """Places random bids and asks near current market prices."""
 
-    def __init__(self, unique_id: int, havven: "model.HavvenModel",
+    def __init__(self, unique_id: int, havven_model: "model.HavvenModel",
                  fiat: Dec = Dec(0),
                  curits: Dec = Dec(0.0),
                  nomins: Dec = Dec(0),
                  variance: Dec = Dec(0.02),
                  order_lifetime: int = 30,
                  max_orders: int = 10) -> None:
-        super().__init__(unique_id, havven, fiat, curits, nomins)
+        super().__init__(unique_id, havven_model, fiat, curits, nomins)
         self.variance = variance
         """This agent will place orders within (+/-)variance*price of the going rate."""
 

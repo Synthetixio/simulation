@@ -1,4 +1,4 @@
-"""model.py: The havven model itself lives here."""
+"""model.py: The Havven model itself lives here."""
 
 from typing import Dict, Optional
 from decimal import Decimal as Dec

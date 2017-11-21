@@ -5,68 +5,68 @@ import model
 
 
 def test_fiat_value():
-    havven = model.HavvenModel(10)
-    assert(isinstance(havven.fiat_value(), Dec))
-    assert(havven.fiat_value() == Dec(0))
-    assert(havven.fiat_value(Dec(1), Dec(1), Dec(1)) > Dec(0))
-    assert(havven.fiat_value(curits=Dec(0),
+    havven_model = model.HavvenModel(10)
+    assert(isinstance(havven_model.fiat_value(), Dec))
+    assert(havven_model.fiat_value() == Dec(0))
+    assert(havven_model.fiat_value(Dec(1), Dec(1), Dec(1)) > Dec(0))
+    assert(havven_model.fiat_value(curits=Dec(0),
                              nomins=Dec(0),
                              fiat=Dec(1)) == Dec(1))
-    assert(havven.fiat_value(curits=Dec(1)) <
-           havven.fiat_value(curits=Dec(2)))
-    assert(havven.fiat_value(nomins=Dec(1)) <
-           havven.fiat_value(nomins=Dec(2)))
-    assert(havven.fiat_value(fiat=Dec(1)) <
-           havven.fiat_value(fiat=Dec(2)))
+    assert(havven_model.fiat_value(curits=Dec(1)) <
+           havven_model.fiat_value(curits=Dec(2)))
+    assert(havven_model.fiat_value(nomins=Dec(1)) <
+           havven_model.fiat_value(nomins=Dec(2)))
+    assert(havven_model.fiat_value(fiat=Dec(1)) <
+           havven_model.fiat_value(fiat=Dec(2)))
 
 
 def test_endowment():
-    havven = model.HavvenModel(10)
-    agent = havven.schedule.agents[0]
+    havven_model = model.HavvenModel(10)
+    agent = havven_model.schedule.agents[0]
     agent_pre_cur = agent.curits
-    havven_pre_cur = havven.manager.curits
+    havven_pre_cur = havven_model.manager.curits
 
-    havven.endow_curits(agent, Dec(0))
-    havven.endow_curits(agent, Dec(-10))
+    havven_model.endow_curits(agent, Dec(0))
+    havven_model.endow_curits(agent, Dec(-10))
     assert(agent.curits == agent_pre_cur)
-    assert(havven.manager.curits == havven_pre_cur)
+    assert(havven_model.manager.curits == havven_pre_cur)
 
     endowment = Dec(100)
-    havven.endow_curits(agent, endowment)
+    havven_model.endow_curits(agent, endowment)
     assert(agent.curits == agent_pre_cur + endowment)
-    assert(havven.manager.curits == havven_pre_cur - endowment)
+    assert(havven_model.manager.curits == havven_pre_cur - endowment)
 
 
 def test_step():
-    havven = model.HavvenModel(20)
-    assert(havven.manager.time == 1)
-    havven.step()
-    assert(havven.manager.time == 2)
+    havven_model = model.HavvenModel(20)
+    assert(havven_model.manager.time == 1)
+    havven_model.step()
+    assert(havven_model.manager.time == 2)
 
     time_delta = 100
     for _ in range(time_delta):
-        havven.step()
-    assert(havven.manager.time == time_delta + 2)
+        havven_model.step()
+    assert(havven_model.manager.time == time_delta + 2)
 
 
 def test_fee_distribution_period():
-    havven = model.HavvenModel(20)
-    assert(havven.fee_manager.fees_distributed == Dec(0))
-    assert(havven.manager.nomins == Dec(0))
+    havven_model = model.HavvenModel(20)
+    assert(havven_model.fee_manager.fees_distributed == Dec(0))
+    assert(havven_model.manager.nomins == Dec(0))
 
-    for _ in range(havven.fee_manager.fee_period - 1):
-        havven.step()
+    for _ in range(havven_model.fee_manager.fee_period - 1):
+        havven_model.step()
 
-    prenomins = havven.manager.nomins
-    predistrib = havven.fee_manager.fees_distributed
+    prenomins = havven_model.manager.nomins
+    predistrib = havven_model.fee_manager.fees_distributed
     assert(prenomins > Dec(0))
     assert(predistrib == Dec(0))
 
-    havven.step()
+    havven_model.step()
 
-    postnomins = havven.manager.nomins
-    postdistrib = havven.fee_manager.fees_distributed
+    postnomins = havven_model.manager.nomins
+    postdistrib = havven_model.fee_manager.fees_distributed
     assert(postnomins == Dec(0))
     assert(prenomins <= postdistrib)
-    assert(havven.manager.nomins == Dec(0))
+    assert(havven_model.manager.nomins == Dec(0))
 

@@ -157,17 +157,17 @@ def place_nom_fiat_limit_sell_setup(alice_initial):
     Have the model match_on_order be False, to test that the
     bids/asks are created correctly
     """
-    havven = make_model_without_agents(match_on_order=False)
-    alice = add_market_player(havven)
+    havven_model = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven_model)
     alice.nomins = Dec(alice_initial)
-    bob = add_market_player(havven)
+    bob = add_market_player(havven_model)
     bob.fiat = Dec(10000)
-    charlie = add_market_player(havven)
+    charlie = add_market_player(havven_model)
     charlie.fiat = Dec(10000)
-    return havven, alice, bob, charlie
+    return havven_model, alice, bob, charlie
 
 
-def place_nomin_fiat_ask(havven, player, order_quant, order_price, success):
+def place_nomin_fiat_ask(havven_model, player, order_quant, order_price, success):
     """
     Place an nomin fiat limit sell (Ask) and check it's correctness
     matching on order should be disabled.
@@ -176,13 +176,13 @@ def place_nomin_fiat_ask(havven, player, order_quant, order_price, success):
     if success:
         assert ask is not None
         assert ask.quantity == order_quant
-        assert ask.fee == havven.fee_manager.transferred_nomins_fee(order_quant)
+        assert ask.fee == havven_model.fee_manager.transferred_nomins_fee(order_quant)
     else:
         assert ask is None
     return ask
 
 
-def place_nomin_fiat_bid(havven, player, order_quant, order_price, success):
+def place_nomin_fiat_bid(havven_model, player, order_quant, order_price, success):
     """
     Place an nomin fiat limit sell (Ask) and check it's correctness
     matching on order should be disabled.
@@ -191,7 +191,7 @@ def place_nomin_fiat_bid(havven, player, order_quant, order_price, success):
     if success:
         assert bid is not None
         assert bid.quantity == order_quant
-        assert bid.fee == havven.fee_manager.transferred_fiat_fee(order_quant*order_price)
+        assert bid.fee == havven_model.fee_manager.transferred_fiat_fee(order_quant*order_price)
     else:
         assert bid is None
     return bid
@@ -242,26 +242,26 @@ def test_nomin_fiat_ask_scenarios(initial, quantity, price, success):
 
 
 def nomin_fiat_ask_placement_check(initial, quantity, price, success):
-    havven = make_model_without_agents(match_on_order=False)
-    alice = add_market_player(havven)
+    havven_model = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven_model)
     alice.nomins = Dec(initial)
 
-    ask = place_nomin_fiat_ask(havven, alice, quantity, price, success)
+    ask = place_nomin_fiat_ask(havven_model, alice, quantity, price, success)
     if success:
         assert ask is not None
         assert alice.orders[0] == ask
         # test to check matching to nothing raises an exception
         with pytest.raises(Exception):
             ask.book.do_single_match()
-        assert alice.available_nomins == havven.manager.round_decimal(initial - (ask.quantity + ask.fee))
-        assert alice.available_nomins == initial - quantity - havven.fee_manager.transferred_nomins_fee(quantity)
+        assert alice.available_nomins == havven_model.manager.round_decimal(initial - (ask.quantity + ask.fee))
+        assert alice.available_nomins == initial - quantity - havven_model.fee_manager.transferred_nomins_fee(quantity)
         assert alice.nomins == initial
         ask.cancel()
-        assert alice.available_nomins == havven.manager.round_decimal(initial)
-        assert alice.nomins == havven.manager.round_decimal(initial)
+        assert alice.available_nomins == havven_model.manager.round_decimal(initial)
+        assert alice.nomins == havven_model.manager.round_decimal(initial)
     else:
         assert ask is None
-        assert alice.nomins == havven.manager.round_decimal(initial)
+        assert alice.nomins == havven_model.manager.round_decimal(initial)
         assert alice.fiat == 0
 
 
@@ -316,26 +316,26 @@ def test_nomin_fiat_bid_scenarios(initial, quantity, price, success):
 
 
 def nomin_fiat_bid_placement_check(initial, quantity, price, success):
-    havven = make_model_without_agents(match_on_order=False)
-    alice = add_market_player(havven)
+    havven_model = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven_model)
     alice.fiat = Dec(initial)
 
-    bid = place_nomin_fiat_bid(havven, alice, quantity, price, success)
+    bid = place_nomin_fiat_bid(havven_model, alice, quantity, price, success)
     if success:
         assert bid is not None
         assert alice.orders[0] == bid
         # test to check matching to nothing raises an exception
         with pytest.raises(Exception):
             bid.book.do_single_match()
-        assert alice.available_fiat == havven.manager.round_decimal(initial - (bid.quantity*bid.price + bid.fee))
-        assert alice.available_fiat == initial - quantity*price - havven.fee_manager.transferred_nomins_fee(quantity*price)
+        assert alice.available_fiat == havven_model.manager.round_decimal(initial - (bid.quantity*bid.price + bid.fee))
+        assert alice.available_fiat == initial - quantity*price - havven_model.fee_manager.transferred_nomins_fee(quantity*price)
         assert alice.fiat == initial
         bid.cancel()
-        assert alice.available_fiat == havven.manager.round_decimal(initial)
-        assert alice.fiat == havven.manager.round_decimal(initial)
+        assert alice.available_fiat == havven_model.manager.round_decimal(initial)
+        assert alice.fiat == havven_model.manager.round_decimal(initial)
     else:
         assert bid is None
-        assert alice.fiat == havven.manager.round_decimal(initial)
+        assert alice.fiat == havven_model.manager.round_decimal(initial)
         assert alice.nomins == 0
 
 
@@ -473,8 +473,8 @@ def nomin_fiat_ask_match_check(player_info):
     a_price = Dec(a_info[2])
     a_type = a_info[3]
 
-    havven = make_model_without_agents(match_on_order=False)
-    alice = add_market_player(havven)
+    havven_model = make_model_without_agents(match_on_order=False)
+    alice = add_market_player(havven_model)
     alice.nomins = Dec(a_initial)
 
     others = []
@@ -485,9 +485,9 @@ def nomin_fiat_ask_match_check(player_info):
             'price': Dec(item[2]),
             'type': item[3]
         }
-        player = add_market_player(havven)
+        player = add_market_player(havven_model)
         player.fiat = data['initial']
-        bid = place_nomin_fiat_bid(havven, player, data['quant'], data['price'], True)
+        bid = place_nomin_fiat_bid(havven_model, player, data['quant'], data['price'], True)
         assert bid is not None
         assert player.orders[-1] == bid
         with pytest.raises(Exception):
@@ -498,14 +498,14 @@ def nomin_fiat_ask_match_check(player_info):
 
     others.sort(key=lambda x: (-x['price'], x['bid'].time))
 
-    ask = place_nomin_fiat_ask(havven, alice, a_quant, a_price, True)
+    ask = place_nomin_fiat_ask(havven_model, alice, a_quant, a_price, True)
     assert ask is not None
     assert alice.orders[-1] == ask
 
     a_last_nom = a_initial
     a_last_fiat = Dec(0)
-    last_havven_nomins = havven.manager.nomins
-    last_havven_fiat = havven.manager.fiat
+    last_havven_nomins = havven_model.manager.nomins
+    last_havven_fiat = havven_model.manager.fiat
 
     while True:
 
@@ -560,10 +560,10 @@ def nomin_fiat_ask_match_check(player_info):
                 assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
                 assert alice.fiat == a_last_fiat + trade.quantity * trade.price
-                assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
-                assert havven.manager.fiat == last_havven_fiat + trade.bid_fee
-                last_havven_nomins = havven.manager.nomins
-                last_havven_fiat = havven.manager.fiat
+                assert havven_model.manager.nomins == last_havven_nomins + trade.ask_fee
+                assert havven_model.manager.fiat == last_havven_fiat + trade.bid_fee
+                last_havven_nomins = havven_model.manager.nomins
+                last_havven_fiat = havven_model.manager.fiat
                 a_last_nom = alice.nomins
                 a_last_fiat = alice.fiat
                 continue
@@ -579,8 +579,8 @@ def nomin_fiat_ask_match_check(player_info):
                 assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
                 assert alice.fiat == trade.quantity * trade.price
-                assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
-                assert havven.manager.fiat == last_havven_fiat + trade.bid_fee
+                assert havven_model.manager.nomins == last_havven_nomins + trade.ask_fee
+                assert havven_model.manager.fiat == last_havven_fiat + trade.bid_fee
                 break
             else:
                 # both bid and ask were completely filled
@@ -591,12 +591,12 @@ def nomin_fiat_ask_match_check(player_info):
                 assert alice.nomins == a_last_nom - trade.quantity - trade.ask_fee
                 assert bob.fiat == b_initial - trade.quantity*trade.price - trade.bid_fee
                 assert bob.fiat == hm.round_decimal(
-                    b_initial - (b_quant * hm.round_decimal(b_price) * (1 + havven.fee_manager.fiat_fee_rate))
+                    b_initial - (b_quant * hm.round_decimal(b_price) * (1 + havven_model.fee_manager.fiat_fee_rate))
                 )
                 assert alice.fiat == a_last_fiat + b_quant * b_price
                 assert alice.fiat == a_last_fiat + trade.quantity * trade.price
-                assert havven.manager.nomins == last_havven_nomins + trade.ask_fee
-                assert havven.manager.fiat == last_havven_fiat + trade.bid_fee
+                assert havven_model.manager.nomins == last_havven_nomins + trade.ask_fee
+                assert havven_model.manager.fiat == last_havven_fiat + trade.bid_fee
                 break
 
     if a_type == 1:

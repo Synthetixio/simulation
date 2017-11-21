@@ -10,7 +10,7 @@ from managers import HavvenManager as hm
 class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
 
-    def __init__(self, unique_id: int, havven: "model.HavvenModel",
+    def __init__(self, unique_id: int, havven_model: "model.HavvenModel",
                  fiat: Dec = Dec(0), curits: Dec = Dec(0),
                  nomins: Dec = Dec(0),
                  curit_target: Optional[Dec] = None,
@@ -18,7 +18,7 @@ class CentralBank(MarketPlayer):
                  curit_nomin_target: Optional[Dec] = None,
                  tolerance: Dec = Dec('0.01')) -> None:
 
-        super().__init__(unique_id, havven, fiat=fiat,
+        super().__init__(unique_id, havven_model, fiat=fiat,
                          curits=curits, nomins=nomins)
 
         # Note: it only really makes sense to target one of these at a time.
