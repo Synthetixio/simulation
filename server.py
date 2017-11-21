@@ -7,6 +7,7 @@ from visualization.modules import ChartModule, OrderBookModule, WealthModule, Po
 
 from visualization.UserParam import UserSettableParameter
 from visualization.ModularVisualization import ModularServer
+from visualization.VisualizationElement import VisualizationElement
 
 import model
 
@@ -110,7 +111,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     ]
 
     n_slider = UserSettableParameter(
-        'slider', "Number of agents", n_agents, 20, 2000, 1
+        'slider', "Number of agents", n_agents, 20, 175, 1
     )
 
     ur_slider = UserSettableParameter(

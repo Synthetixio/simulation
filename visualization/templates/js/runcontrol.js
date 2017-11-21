@@ -37,11 +37,11 @@ var playPauseButton = $('#play-pause');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 var fpsControl = $('#fps').slider({
-    max: 20,
+    max: 6,
     min: 1,
     value: 3,
-    ticks: [1, 20],
-    ticks_labels: [1, 20],
+    ticks: [1, 6],
+    ticks_labels: [1, 6],
     ticks_position: [0, 100]
 });
 
@@ -322,6 +322,7 @@ var send = function(message) {
 
 /** Reset the model, and rest the appropriate local variables. */
 var reset = function($e) {
+    console.log("reset called");
     if ($e !== undefined)
         $e.preventDefault();
 
@@ -453,28 +454,3 @@ function toggle_all(btn) {
 
 }
 
-
-
-function rateLimit(func, time){
-    var callback = func,
-            waiting = false,
-            context = this;
-    var rtn = function(){
-        if(waiting) return;
-        waiting = true;
-        var args = arguments;
-        setTimeout(function(){
-            waiting = false;
-            callback.apply(context, args);
-        }, time);
-    };
-    return rtn;
-}
-
-function onWheel(e){
-  console.log(control.data.length)
-}
-
-// will only fire a maximum of 10 times a second
-var debouncedOnWheel = rateLimit(onWheel, 100);
-window.addEventListener("scroll", debouncedOnWheel);

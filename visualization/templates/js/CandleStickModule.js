@@ -78,7 +78,8 @@ var CandleStickModule = function(label, width, height, line_colour, bar_colour) 
         },
 		animation: false
 	};
-	var graph_length = 20;
+	var graph_start_length = 20;
+	var graph_max_length = 65;
 	var chart = new Chart(context, {type: 'financial', data: data, options: options});
 	chart.last_ticks = ['0', '2'];
 
@@ -107,9 +108,22 @@ var CandleStickModule = function(label, width, height, line_colour, bar_colour) 
                 vol_percentages.push(data[i][2] / max_vol);
             }
 		}
+		chart.data.datasets[0].data.push({
+			o: 1,
+			c: 1,
+			h: 1,
+			l: 1,
+			t: -2000,
+			v: 0,
+			p: 0
+		});
+		chart.data.datasets[1].data.push(NaN);
+		chart.data.datasets[2].data.push(0);
+		chart.data.labels.push(-2000);
 
-		let start = data.length - graph_length;
-		if (start < 0) {
+		let start;
+		if (data.length < graph_start_length) {
+			start = data.length - graph_start_length;
 			for (let i=start; i<0; i++) {
 				// use filler data of 1 or 0
 				chart.data.datasets[0].data.push({
@@ -126,6 +140,10 @@ var CandleStickModule = function(label, width, height, line_colour, bar_colour) 
 				chart.data.labels.push(i);
 			}
 			start = 0;
+		} else if (data.length < graph_max_length) {
+			start = 0;
+		} else {
+			start = data.length - graph_max_length;
 		}
 		for (let i=start; i<data.length; i++) {
 			let candle_data = data[i][0];
@@ -158,6 +176,20 @@ var CandleStickModule = function(label, width, height, line_colour, bar_colour) 
 			chart.data.datasets[2].data.push(min + ((max-min) * vol_percentages[i]));
 
 		}
+
+		// add filler data to the end, 54321 is used as trying NaN or a negative number causes the graph to break...
+		chart.data.datasets[0].data.push({
+			o: 1,
+			c: 1,
+			h: 1,
+			l: 1,
+			t: 54321,
+			v: 0,
+			p: 0
+		});
+		chart.data.datasets[1].data.push(NaN);
+		chart.data.datasets[2].data.push(0);
+		chart.data.labels.push(54321);
 
 		chart.update();
 		chart.last_ticks = chart.scales['y-axis-0'].ticks;
