@@ -87,13 +87,16 @@ var CandleStickModule = function(label, width, height, line_colour, bar_colour) 
 		if (data.length < 1) {
 			return false;
 		}
-
+		// data is in the format [[[candle_data],price,vol],...]
 		chart.data.labels = [];
+		// candle data
 		chart.data.datasets[0].data = [];
+		// price data
 		chart.data.datasets[1].data = [];
+		// vol data
 		chart.data.datasets[2].data = [];
 
-		max_vol = 0;
+		let max_vol = 0;
 		for (let i in data) {
 			if (data[i][2] > max_vol) {
 				max_vol = data[i][2];

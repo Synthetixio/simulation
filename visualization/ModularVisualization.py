@@ -56,7 +56,8 @@ Server -> Client:
     "data": [{0:[ {"Shape": "circle", "x": 0, "y": 0, "r": 0.5,
                 "Color": "#AAAAAA", "Filled": "true", "Layer": 0,
                 "text": 'A', "text_color": "white" }]},
-            "Shape Count: 1"]
+            "Shape Count: 1"],
+    "run_num": current model's run
     }
 
     Informs the client that the model is over.
@@ -70,22 +71,24 @@ Server -> Client:
 
 Client -> Server:
     Reset the model.
-    TODO: Allow this to come with parameters
     {
-    "type": "reset"
+    "type": "reset",
+    "run_num": reset count.
     }
 
     Get a given state.
     {
     "type": "get_step",
-    "step:" index of the step to get.
+    "step": index of the step to get from,
+    "run_num": reset count,
+    "fps": current user fps for having a calculation buffer.
     }
 
     Submit model parameter updates
     {
     "type": "submit_params",
-    "param": name of model parameter
-    "value": new value for 'param'
+    "param": name of model parameter,
+    "value": new value for 'param'.
     }
 
     Get the model's parameters
@@ -133,6 +136,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.current_run_num = 0
 
     def open(self):
+        """
+        When a new user connects to the server via websocket create a new model
+        i.e. same IP can have multiple models
+        """
         # self is the connection, not a single socket object
         self.model_handler = ModelHandler(
             self.application.threaded,
@@ -149,24 +156,22 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         if self.application.verbose:
             print("Socket opened:", self)
 
-    def check_origin(self, origin):
-        return True
-
-    @property
-    def viz_state_message(self):
-        return {
-            "type": "viz_state",
-            "data": []
-        }
-
     def collect_data_from_step(self, step, fps=None):
-
+        """
+        Get the data from the model_handler from step to step+fps*2
+        """
         with self.model_handler.data_lock:
             if fps is None:
-                self.model_handler.max_calc_step = step + 16
+                self.model_handler.max_calc_step = min(
+                    step + self.application.calculation_buffer,
+                    self.application.max_steps
+                )
                 data = copy.deepcopy(self.model_handler.data[step:])
             else:
-                self.model_handler.max_calc_step = step + max(16, fps * 2)
+                self.model_handler.max_calc_step = min(
+                    step + max(self.application.calculation_buffer, fps * 2),
+                    self.application.max_steps
+                )
                 data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
         return data
 
@@ -179,44 +184,50 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         msg = tornado.escape.json_decode(message)
 
         if msg["type"] == "get_steps":
+            # message format: {'type':'get_steps', 'run_num':int, 'step':int, 'fps':int}
             with self.resetlock:
                 # ignore old messages...
                 if msg['run_num'] != self.model_handler.current_run_num:
                     return
                 client_current_step = msg['step']
                 client_fps = msg['fps']
-                message = self.viz_state_message
-                message['data'] = self.collect_data_from_step(client_current_step, client_fps)
-                message['run_num'] = self.model_handler.current_run_num
+                message = {
+                    "type": "viz_state",
+                    "data": self.collect_data_from_step(client_current_step, client_fps),
+                    "run_num":  self.model_handler.current_run_num
+                }
                 self.write_message(message)
 
         elif msg["type"] == "reset":
+            # message format: {'type':'reset', 'run_num':int}
             with self.resetlock:
                 self.current_run_num = msg["run_num"]
                 self.model_handler.reset_model(self.current_run_num)
 
         elif msg["type"] == "submit_params":
+            # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
             param = msg["param"]
             value = msg["value"]
-            # as this is local, don't worry about invalid inputs
-            # but should be sanitised if this goes online TODO
+            # TODO: should be sanitised
             self.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
+            # message format: {'type':'get_params'}
             self.write_message({
                 "type": "model_params",
                 "params": self.application.user_params
             })
-
         else:
             if self.application.verbose:
                 print("Unexpected message!")
 
     def on_close(self):
+        """When the user closes the connection destroy the model"""
         if self.application.verbose:
             print("Connection closed:", self)
         del self.model_handler
         del self
+
 
 class ModelHandler:
     """
@@ -242,6 +253,7 @@ class ModelHandler:
         self.lock = threading.Lock()
 
     def reset_model(self, run_num):
+        """Clear old and create a new model"""
         self.resetting = True
         with self.lock:
             self.create_model()
@@ -317,6 +329,7 @@ class ModelHandler:
         else:
             self.model_kwargs[param] = value
 
+
 class ModularServer(tornado.web.Application):
     """ Main visualization application. """
     verbose = True
@@ -339,7 +352,7 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model (Alpha)",
+    def __init__(self, threaded, model_cls, visualization_elements, name,
                  model_params={}):
         """ Create a new visualization server with the given elements. """
         # Prep visualization elements:
@@ -348,6 +361,8 @@ class ModularServer(tornado.web.Application):
         self.model_name = name
         self.model_cls = model_cls
         self.model_params = model_params
+        self.max_steps = 1500
+        self.calculation_buffer = 16
 
         self.description = ""
 

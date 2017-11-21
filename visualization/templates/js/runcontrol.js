@@ -329,7 +329,6 @@ var send = function(message) {
 
 /** Reset the model, and rest the appropriate local variables. */
 var reset = function($e) {
-    console.log("reset called");
     if ($e !== undefined)
         $e.preventDefault();
 

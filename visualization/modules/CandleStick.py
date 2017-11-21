@@ -35,9 +35,10 @@ class CandleStickModule(VisualizationElement):
 
         self.chart_length = 85
 
-    def render(self, model: Havven) -> Optional[Tuple[Tuple[float, float, float, float], float, float]]:
+    def render(self, model: Havven) -> Tuple[Tuple[float, float, float, float], float, float]:
         """
         return the data to be sent to the websocket to be rendered on the page
+        in the format of [[candle data (hi,lo,open,close)], rolling price, volume]
         """
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
@@ -58,9 +59,6 @@ class CandleStickModule(VisualizationElement):
                 price_data = order_book.price_data[1:]
                 vol_data = order_book.volume_data[1:]
             except Exception:
-                candle_data = []
-                price_data = []
-                vol_data = []
                 return (1., 1., 1., 1.), 1., 1.
         # convert decimals to floats
         return (
