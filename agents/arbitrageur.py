@@ -10,7 +10,7 @@ class Arbitrageur(MarketPlayer):
 
     def step(self) -> None:
         """Find an exploitable arbitrage cycle."""
-        # The only cycles that exist are CUR -> FIAT -> NOM -> CUR,
+        # The only cycles that exist are HAV -> FIAT -> NOM -> HAV,
         # its rotations, and the reverse cycles.
         # The bot will act to place orders in all markets at once,
         # if there is an arbitrage opportunity, taking into account
