@@ -16,6 +16,7 @@
  */
 var MesaVisualizationControl = function() {
     this.tick = -1; // Counts at which tick of the model we are.
+    this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
     this.fps = 3; // Frames per second
@@ -287,6 +288,12 @@ ws.onmessage = function(message) {
     var msg = JSON.parse(message.data);
     switch (msg["type"]) {
         case "viz_state":
+            // ignore any old data
+            var run_num = msg["run_num"];
+            if (parseInt(run_num) !== control.run_number) {
+                break;
+            }
+
             var data = msg["data"];
             for (var i in data) {
                 let step = data[i][0];
@@ -329,7 +336,8 @@ var reset = function($e) {
     control.tick = -1;
     control.done = false;
     control.data = [];
-    send({"type": "reset"});
+    control.run_number += 1;
+    send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
     if (!control.running) $(playPauseButton.children()[0]).text("Start");

@@ -130,6 +130,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
         self.step = 0
+        self.current_run_num = 0
 
     def open(self):
         # self is the connection, not a single socket object
@@ -140,8 +141,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             copy.deepcopy(self.application.model_params),
             copy.deepcopy(self.application.visualization_elements)
         )
-        self.model_handler.reset_model()
-        self.model_run_thread = threading.Thread(target=self.model_handler.run_model, args=(self.model_handler,)).start()
+        self.model_handler.reset_model(self.current_run_num)
+        self.model_run_thread = threading.Thread(
+            target=self.model_handler.run_model,
+            args=(self.model_handler,)
+        ).start()
         if self.application.verbose:
             print("Socket opened!")
 
@@ -150,12 +154,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     @property
     def viz_state_message(self):
-        with self.resetlock:
-            # block=True makes the program wait for data to be added
-            return {
-                "type": "viz_state",
-                "data": []
-            }
+        return {
+            "type": "viz_state",
+            "data": []
+        }
 
     def collect_data_from_step(self, step, fps=None):
 
@@ -177,20 +179,19 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         msg = tornado.escape.json_decode(message)
 
         if msg["type"] == "get_steps":
-            while self.resetlock.locked():
-                # reset in progress, wait a bit
-                time.sleep(0.05)
-
-            client_current_step = msg['step']
-            client_fps = msg['fps']
-            message = self.viz_state_message
-            message['data'] = self.collect_data_from_step(client_current_step, client_fps)
-            self.write_message(message)
+            with self.resetlock:
+                client_current_step = msg['step']
+                client_fps = msg['fps']
+                message = self.viz_state_message
+                message['data'] = self.collect_data_from_step(client_current_step, client_fps)
+                message['run_num'] = self.model_handler.current_run_num
+                self.write_message(message)
 
         elif msg["type"] == "reset":
+            self.current_run_num = msg["run_num"]
             # on_message is async, so lock here as well when resetting
             with self.resetlock:
-                self.model_handler.reset_model()
+                self.model_handler.reset_model(self.current_run_num)
 
         elif msg["type"] == "submit_params":
             param = msg["param"]
@@ -233,10 +234,11 @@ class ModelHandler:
         self.data_lock = threading.Lock()
         self.lock = threading.Lock()
 
-    def reset_model(self):
+    def reset_model(self, run_num):
         self.resetting = True
         with self.lock:
             self.create_model()
+        self.current_run_num = run_num
         self.resetting = False
 
     def create_model(self):
