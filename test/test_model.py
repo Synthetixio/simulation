@@ -9,11 +9,11 @@ def test_fiat_value():
     assert(isinstance(havven_model.fiat_value(), Dec))
     assert(havven_model.fiat_value() == Dec(0))
     assert(havven_model.fiat_value(Dec(1), Dec(1), Dec(1)) > Dec(0))
-    assert(havven_model.fiat_value(curits=Dec(0),
+    assert(havven_model.fiat_value(havvens=Dec(0),
                              nomins=Dec(0),
                              fiat=Dec(1)) == Dec(1))
-    assert(havven_model.fiat_value(curits=Dec(1)) <
-           havven_model.fiat_value(curits=Dec(2)))
+    assert(havven_model.fiat_value(havvens=Dec(1)) <
+           havven_model.fiat_value(havvens=Dec(2)))
     assert(havven_model.fiat_value(nomins=Dec(1)) <
            havven_model.fiat_value(nomins=Dec(2)))
     assert(havven_model.fiat_value(fiat=Dec(1)) <
@@ -23,18 +23,18 @@ def test_fiat_value():
 def test_endowment():
     havven_model = model.HavvenModel(10)
     agent = havven_model.schedule.agents[0]
-    agent_pre_cur = agent.curits
-    havven_pre_cur = havven_model.manager.curits
+    agent_pre_cur = agent.havvens
+    havven_pre_cur = havven_model.manager.havvens
 
-    havven_model.endow_curits(agent, Dec(0))
-    havven_model.endow_curits(agent, Dec(-10))
-    assert(agent.curits == agent_pre_cur)
-    assert(havven_model.manager.curits == havven_pre_cur)
+    havven_model.endow_havvens(agent, Dec(0))
+    havven_model.endow_havvens(agent, Dec(-10))
+    assert(agent.havvens == agent_pre_cur)
+    assert(havven_model.manager.havvens == havven_pre_cur)
 
     endowment = Dec(100)
-    havven_model.endow_curits(agent, endowment)
-    assert(agent.curits == agent_pre_cur + endowment)
-    assert(havven_model.manager.curits == havven_pre_cur - endowment)
+    havven_model.endow_havvens(agent, endowment)
+    assert(agent.havvens == agent_pre_cur + endowment)
+    assert(havven_model.manager.havvens == havven_pre_cur - endowment)
 
 
 def test_step():

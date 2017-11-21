@@ -65,15 +65,15 @@ def transfer_nomins_checks(initial, transfer_amt, success):
     # if the transfer should happen
     if success:
         # check alice's nomins manually, and using the function
-        assert (alice.nomins == Dec(initial - transfer_amt * (1 + havven.fee_manager.nom_fee_rate)))
+        assert (alice.nomins == Dec(initial - transfer_amt * (1 + havven.fee_manager.nomin_fee_rate)))
         assert (alice.nomins == Dec(initial - transfer_amt - havven.fee_manager.transferred_nomins_fee(transfer_amt)))
         # check bob's received nomins
         assert (bob.nomins == Dec(transfer_amt))
         assert (bob.nomins == havven.fee_manager.transferred_nomins_received(
-            transfer_amt * (1 + havven.fee_manager.nom_fee_rate)
+            transfer_amt * (1 + havven.fee_manager.nomin_fee_rate)
         ))
         # check havven's fees
-        assert (havven.manager.nomins == transfer_amt * havven.fee_manager.nom_fee_rate)
+        assert (havven.manager.nomins == transfer_amt * havven.fee_manager.nomin_fee_rate)
 
     # if the transfer should fail
     else:

@@ -9,31 +9,31 @@ import orderbook as ob
 from managers import HavvenManager as hm
 
 Portfolio = namedtuple(
-    "Portfolio", ["fiat", "escrowed_curits", "curits", "nomins", "issued_nomins"])
+    "Portfolio", ["fiat", "escrowed_havvens", "havvens", "nomins", "issued_nomins"])
 
 
 class MarketPlayer(Agent):
     """
     A generic agent with a fixed initial wealth in fiat,
     with which it must buy into the market.
-    The agent may escrow curits in order to issue nomins,
+    The agent may escrow havvens in order to issue nomins,
     and use various strategies in order to trade in the marketplace.
     Its aim is to increase its own wealth.
     """
 
     def __init__(self, unique_id: int, havven_model: "model.HavvenModel",
-                 fiat: Dec = Dec(0), curits: Dec = Dec(0),
+                 fiat: Dec = Dec(0), havvens: Dec = Dec(0),
                  nomins: Dec = Dec(0)) -> None:
         super().__init__(unique_id, havven_model)
         self.fiat: Dec = Dec(fiat)
-        self.curits: Dec = Dec(curits)
+        self.havvens: Dec = Dec(havvens)
         self.nomins: Dec = Dec(nomins)
-        self.escrowed_curits: Dec = Dec(0)
+        self.escrowed_havvens: Dec = Dec(0)
         self.issued_nomins: Dec = Dec(0)
 
         # values that are currently used in orders
         self.unavailable_fiat: Dec = Dec(0)
-        self.unavailable_curits: Dec = Dec(0)
+        self.unavailable_havvens: Dec = Dec(0)
         self.unavailable_nomins: Dec = Dec(0)
 
         self.initial_wealth: Dec = self.wealth()
@@ -45,9 +45,9 @@ class MarketPlayer(Agent):
         return self.name
 
     @property
-    def curit_fiat_market(self) -> "ob.OrderBook":
-        """The curit-fiat market this player trades on."""
-        return self.model.market_manager.curit_fiat_market
+    def havven_fiat_market(self) -> "ob.OrderBook":
+        """The havven-fiat market this player trades on."""
+        return self.model.market_manager.havven_fiat_market
 
     @property
     def nomin_fiat_market(self) -> "ob.OrderBook":
@@ -55,9 +55,9 @@ class MarketPlayer(Agent):
         return self.model.market_manager.nomin_fiat_market
 
     @property
-    def curit_nomin_market(self) -> "ob.OrderBook":
-        """The curit-nomin market this player trades on."""
-        return self.model.market_manager.curit_nomin_market
+    def havven_nomin_market(self) -> "ob.OrderBook":
+        """The havven-nomin market this player trades on."""
+        return self.model.market_manager.havven_nomin_market
 
 
     @property
@@ -86,7 +86,7 @@ class MarketPlayer(Agent):
         """
         Return the total wealth of this agent at current fiat prices.
         """
-        return self.model.fiat_value(curits=(self.curits + self.escrowed_curits),
+        return self.model.fiat_value(havvens=(self.havvens + self.escrowed_havvens),
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=self.fiat)
 
@@ -98,19 +98,19 @@ class MarketPlayer(Agent):
         """
 
         fiat = self.fiat
-        curits = self.curits
-        escrowed_curits = self.escrowed_curits
+        havvens = self.havvens
+        escrowed_havvens = self.escrowed_havvens
         nomins = self.nomins
         issued_nomins = self.issued_nomins
 
         if fiat_values:
             v_f = self.model.fiat_value
-            curits = v_f(curits=curits)
-            escrowed_curits = v_f(curits=escrowed_curits)
+            havvens = v_f(havvens=havvens)
+            escrowed_havvens = v_f(havvens=escrowed_havvens)
             nomins = v_f(nomins=nomins)
             issued_nomins = v_f(nomins=issued_nomins)
 
-        return Portfolio(fiat=fiat, curits=curits, escrowed_curits=escrowed_curits,
+        return Portfolio(fiat=fiat, havvens=havvens, escrowed_havvens=escrowed_havvens,
                          nomins=nomins, issued_nomins=issued_nomins)
 
     def reset_initial_wealth(self) -> Dec:
@@ -146,13 +146,13 @@ class MarketPlayer(Agent):
         """
         return self.model.market_manager.transfer_fiat(self, recipient, value)
 
-    def transfer_curits_to(self, recipient: "MarketPlayer",
+    def transfer_havvens_to(self, recipient: "MarketPlayer",
                            value: Dec) -> bool:
         """
-        Transfer a positive value of curits to the recipient,
+        Transfer a positive value of havvens to the recipient,
         if balance is sufficient. Return True on success.
         """
-        return self.model.market_manager.transfer_curits(self, recipient, value)
+        return self.model.market_manager.transfer_havvens(self, recipient, value)
 
     def transfer_nomins_to(self, recipient: "MarketPlayer",
                            value: Dec) -> bool:
@@ -162,34 +162,34 @@ class MarketPlayer(Agent):
         """
         return self.model.market_manager.transfer_nomins(self, recipient, value)
 
-    def escrow_curits(self, value: Dec) -> bool:
+    def escrow_havvens(self, value: Dec) -> bool:
         """
-        Escrow a positive value of curits in order to be able to issue
+        Escrow a positive value of havvens in order to be able to issue
         nomins against them.
         """
-        return self.model.mint.escrow_curits(self, value)
+        return self.model.mint.escrow_havvens(self, value)
 
-    def unescrow_curits(self, value: Dec) -> bool:
+    def unescrow_havvens(self, value: Dec) -> bool:
         """
-        Unescrow a quantity of curits, if there are not too many
+        Unescrow a quantity of havvens, if there are not too many
         issued nomins locking it.
         """
-        return self.model.mint.unescrow_curits(self, value)
+        return self.model.mint.unescrow_havvens(self, value)
 
-    def available_escrowed_curits(self) -> Dec:
+    def available_escrowed_havvens(self) -> Dec:
         """
-        Return the quantity of escrowed curits which is not
+        Return the quantity of escrowed havvens which is not
         locked by issued nomins. May be negative.
         """
-        return self.model.mint.available_escrowed_curits(self)
+        return self.model.mint.available_escrowed_havvens(self)
 
-    def unavailable_escrowed_curits(self) -> Dec:
+    def unavailable_escrowed_havvens(self) -> Dec:
         """
-        Return the quantity of locked escrowed curits,
+        Return the quantity of locked escrowed havvens,
         having had nomins issued against it.
-        May be greater than total escrowed curits.
+        May be greater than total escrowed havvens.
         """
-        return self.model.mint.unavailable_escrowed_curits(self)
+        return self.model.mint.unavailable_escrowed_havvens(self)
 
     def max_issuance_rights(self) -> Dec:
         """
@@ -200,20 +200,20 @@ class MarketPlayer(Agent):
     def remaining_issuance_rights(self) -> Dec:
         """
         Return the remaining quantity of tokens this agent can issued on the back of their
-        escrowed curits. May be negative.
+        escrowed havvens. May be negative.
         """
         return self.model.mint.remaining_issuance_rights(self)
 
     def issue_nomins(self, value: Dec) -> bool:
         """
-        Issue a positive value of nomins against currently escrowed curits,
+        Issue a positive value of nomins against currently escrowed havvens,
         up to the utilisation ratio maximum.
         """
         return self.model.mint.issue_nomins(self, value)
 
     def burn_nomins(self, value: Dec) -> bool:
         """
-        Burn a positive value of issued nomins, which frees up curits.
+        Burn a positive value of issued nomins, which frees up havvens.
         """
         return self.model.mint.burn_nomins(self, value)
 
@@ -230,32 +230,32 @@ class MarketPlayer(Agent):
         """
         return book.sell(quantity, self)
 
-    def sell_nomins_for_curits(self, quantity: Dec) -> "ob.Bid":
+    def sell_nomins_for_havvens(self, quantity: Dec) -> "ob.Bid":
         """
-        Sell a quantity of nomins to buy curits.
+        Sell a quantity of nomins to buy havvens.
         """
-        return self._sell_quoted_(self.model.market_manager.curit_nomin_market,
+        return self._sell_quoted_(self.model.market_manager.havven_nomin_market,
                                   quantity)
 
-    def sell_curits_for_nomins(self, quantity: Dec) -> "ob.Ask":
+    def sell_havvens_for_nomins(self, quantity: Dec) -> "ob.Ask":
         """
-        Sell a quantity of curits to buy nomins.
+        Sell a quantity of havvens to buy nomins.
         """
-        return self._sell_base_(self.model.market_manager.curit_nomin_market,
+        return self._sell_base_(self.model.market_manager.havven_nomin_market,
                                 quantity)
 
-    def sell_fiat_for_curits(self, quantity: Dec) -> "ob.Bid":
+    def sell_fiat_for_havvens(self, quantity: Dec) -> "ob.Bid":
         """
-        Sell a quantity of fiat to buy curits.
+        Sell a quantity of fiat to buy havvens.
         """
-        return self._sell_quoted_(self.model.market_manager.curit_fiat_market,
+        return self._sell_quoted_(self.model.market_manager.havven_fiat_market,
                                   quantity)
 
-    def sell_curits_for_fiat(self, quantity: Dec) -> "ob.Ask":
+    def sell_havvens_for_fiat(self, quantity: Dec) -> "ob.Ask":
         """
-        Sell a quantity of curits to buy fiat.
+        Sell a quantity of havvens to buy fiat.
         """
-        return self._sell_base_(self.model.market_manager.curit_fiat_market,
+        return self._sell_base_(self.model.market_manager.havven_fiat_market,
                                 quantity)
 
     def sell_fiat_for_nomins(self, quantity: Dec) -> "ob.Bid":
@@ -289,36 +289,36 @@ class MarketPlayer(Agent):
         """
         return book.sell(received_qty_fn(quantity), self)
 
-    def sell_nomins_for_curits_with_fee(self, quantity: Dec) -> "ob.Bid":
+    def sell_nomins_for_havvens_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
-        Sell a quantity of nomins (including fee) to buy curits.
+        Sell a quantity of nomins (including fee) to buy havvens.
         """
         return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_nomins_received,
-                                           self.model.market_manager.curit_nomin_market,
+                                           self.model.market_manager.havven_nomin_market,
                                            quantity)
 
-    def sell_curits_for_nomins_with_fee(self, quantity: Dec) -> "ob.Ask":
+    def sell_havvens_for_nomins_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
-        Sell a quantity of curits (including fee) to buy nomins.
+        Sell a quantity of havvens (including fee) to buy nomins.
         """
-        return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
-                                         self.model.market_manager.curit_nomin_market,
+        return self._sell_base_with_fee_(self.model.fee_manager.transferred_havvens_received,
+                                         self.model.market_manager.havven_nomin_market,
                                          quantity)
 
-    def sell_fiat_for_curits_with_fee(self, quantity: Dec) -> "ob.Bid":
+    def sell_fiat_for_havvens_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
-        Sell a quantity of fiat (including fee) to buy curits.
+        Sell a quantity of fiat (including fee) to buy havvens.
         """
         return self._sell_quoted_with_fee_(self.model.fee_manager.transferred_fiat_received,
-                                           self.model.market_manager.curit_fiat_market,
+                                           self.model.market_manager.havven_fiat_market,
                                            quantity)
 
-    def sell_curits_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
+    def sell_havvens_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
-        Sell a quantity of curits (including fee) to buy fiat.
+        Sell a quantity of havvens (including fee) to buy fiat.
         """
-        return self._sell_base_with_fee_(self.model.fee_manager.transferred_curits_received,
-                                         self.model.market_manager.curit_fiat_market,
+        return self._sell_base_with_fee_(self.model.fee_manager.transferred_havvens_received,
+                                         self.model.market_manager.havven_fiat_market,
                                          quantity)
 
     def sell_fiat_for_nomins_with_fee(self, quantity: Dec) -> "ob.Bid":
@@ -338,17 +338,17 @@ class MarketPlayer(Agent):
                                          self.model.market_manager.nomin_fiat_market,
                                          quantity)
 
-    def place_curit_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
+    def place_havven_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
-        Place a bid for a quantity of curits, at a price in fiat.
+        Place a bid for a quantity of havvens, at a price in fiat.
         """
-        return self.curit_fiat_market.bid(price, quantity, self)
+        return self.havven_fiat_market.bid(price, quantity, self)
 
-    def place_curit_fiat_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
+    def place_havven_fiat_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
-        Place an ask for fiat with a quantity of curits, at a price in fiat.
+        Place an ask for fiat with a quantity of havvens, at a price in fiat.
         """
-        return self.curit_fiat_market.ask(price, quantity, self)
+        return self.havven_fiat_market.ask(price, quantity, self)
 
     def place_nomin_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
@@ -362,33 +362,33 @@ class MarketPlayer(Agent):
         """
         return self.nomin_fiat_market.ask(price, quantity, self)
 
-    def place_curit_nomin_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
+    def place_havven_nomin_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
-        Place a bid for a quantity of curits, at a price in nomins.
+        Place a bid for a quantity of havvens, at a price in nomins.
         """
-        return self.curit_nomin_market.bid(price, quantity, self)
+        return self.havven_nomin_market.bid(price, quantity, self)
 
-    def place_curit_nomin_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
+    def place_havven_nomin_ask(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
-        Place an ask for nomins with a quantity of curits, at a price in nomins.
+        Place an ask for nomins with a quantity of havvens, at a price in nomins.
         """
-        return self.curit_nomin_market.ask(price, quantity, self)
+        return self.havven_nomin_market.ask(price, quantity, self)
 
-    def place_curit_fiat_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
+    def place_havven_fiat_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
-        Place a bid for a quantity of curits, at a price in fiat, including the fee.
+        Place a bid for a quantity of havvens, at a price in fiat, including the fee.
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
         qty = self.model.fee_manager.transferred_fiat_received(quantity)
-        return self.curit_fiat_market.bid(price, qty, self)
+        return self.havven_fiat_market.bid(price, qty, self)
 
-    def place_curit_fiat_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
+    def place_havven_fiat_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
-        Place an ask for fiat with a quantity of curits, including the fee, at a price in fiat.
+        Place an ask for fiat with a quantity of havvens, including the fee, at a price in fiat.
         """
-        qty = self.model.fee_manager.transferred_curits_received(quantity)
-        return self.curit_fiat_market.ask(price, qty, self)
+        qty = self.model.fee_manager.transferred_havvens_received(quantity)
+        return self.havven_fiat_market.ask(price, qty, self)
 
     def place_nomin_fiat_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
@@ -406,21 +406,21 @@ class MarketPlayer(Agent):
         qty = self.model.fee_manager.transferred_nomins_received(quantity)
         return self.nomin_fiat_market.ask(price, qty, self)
 
-    def place_curit_nomin_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
+    def place_havven_nomin_bid_with_fee(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """
-        Place a bid for a quantity of curits, at a price in nomins, including the fee.
+        Place a bid for a quantity of havvens, at a price in nomins, including the fee.
         """
         # Note, only works because the fee is multiplicative, we're calculating the fee not
         # on the quantity we are actually transferring, which is (quantity*price)
         qty = self.model.fee_manager.transferred_nomins_received(quantity)
-        return self.curit_nomin_market.bid(price, qty, self)
+        return self.havven_nomin_market.bid(price, qty, self)
 
-    def place_curit_nomin_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
+    def place_havven_nomin_ask_with_fee(self, quantity: Dec, price: Dec) -> "ob.Ask":
         """
-        Place an ask for nomins with a quantity of curits, including the fee, at a price in nomins.
+        Place an ask for nomins with a quantity of havvens, including the fee, at a price in nomins.
         """
-        qty = self.model.fee_manager.transferred_curits_received(quantity)
-        return self.curit_nomin_market.ask(price, qty, self)
+        qty = self.model.fee_manager.transferred_havvens_received(quantity)
+        return self.havven_nomin_market.ask(price, qty, self)
 
     @property
     def available_fiat(self) -> Dec:
@@ -430,11 +430,11 @@ class MarketPlayer(Agent):
         return self.model.manager.round_decimal(self.fiat - self.unavailable_fiat)
 
     @property
-    def available_curits(self) -> Dec:
+    def available_havvens(self) -> Dec:
         """
-        This agent's quantity of curits not being tied up in orders.
+        This agent's quantity of havvens not being tied up in orders.
         """
-        return self.model.manager.round_decimal(self.curits - self.unavailable_curits)
+        return self.model.manager.round_decimal(self.havvens - self.unavailable_havvens)
 
     @property
     def available_nomins(self) -> Dec:
@@ -446,7 +446,7 @@ class MarketPlayer(Agent):
     def round_values(self):
         self.nomins = hm.round_decimal(self.nomins)
         self.fiat = hm.round_decimal(self.fiat)
-        self.curits = hm.round_decimal(self.curits)
+        self.havvens = hm.round_decimal(self.havvens)
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """

@@ -52,14 +52,14 @@ class AgentManager:
                     total_players += 1
                 elif ag.player_names[item] == ag.Randomizer:
                     randomizer = ag.Randomizer(total_players, self.havven_model, fiat=init_value)
-                    self.havven_model.endow_curits(randomizer, Dec(3) * init_value)
+                    self.havven_model.endow_havvens(randomizer, Dec(3) * init_value)
                     self.havven_model.schedule.add(randomizer)
                     self.agents[item].append(randomizer)
                     total_players += 1
                 elif ag.player_names[item] == ag.Arbitrageur:
                     arbitrageur = ag.Arbitrageur(total_players, self.havven_model,
                                                  fiat=HavvenManager.round_decimal(init_value / Dec(2)))
-                    self.havven_model.endow_curits(arbitrageur,
+                    self.havven_model.endow_havvens(arbitrageur,
                                              HavvenManager.round_decimal(init_value / Dec(2)))
                     self.havven_model.schedule.add(arbitrageur)
                     self.agents[item].append(arbitrageur)
@@ -70,10 +70,10 @@ class AgentManager:
                     self.havven_model.schedule.add(nomin_shorter)
                     self.agents[item].append(nomin_shorter)
                     total_players += 1
-                elif ag.player_names[item] == ag.CuritEscrowNominShorter:
-                    escrow_nomin_shorter = ag.CuritEscrowNominShorter(
+                elif ag.player_names[item] == ag.HavvenEscrowNominShorter:
+                    escrow_nomin_shorter = ag.HavvenEscrowNominShorter(
                         total_players, self.havven_model,
-                        curits=HavvenManager.round_decimal(init_value * Dec(2))
+                        havvens=HavvenManager.round_decimal(init_value * Dec(2))
                     )
                     self.havven_model.schedule.add(escrow_nomin_shorter)
                     self.agents[item].append(escrow_nomin_shorter)
@@ -93,7 +93,7 @@ class AgentManager:
         #     total_players, self.havven_model, fiat=Dec(num_agents * init_value),
         #     nomin_target=Dec('1.0')
         # )
-        # self.havven_model.endow_curits(central_bank,
+        # self.havven_model.endow_havvens(central_bank,
         #                          Dec(num_agents * init_value))
         # self.havven_model.schedule.add(central_bank)
         # self.agents["others"].append(central_bank)

@@ -32,7 +32,7 @@ There are three major components to this simulation:
 * The agents themselves. possible future players:
     - [x] random players
     - [x] arbitrageurs
-    - [x] curit bankers
+    - [x] havven bankers
     - [x] central bankers
     - [x] merchants / consumers
     - [ ] market makers

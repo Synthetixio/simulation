@@ -19,8 +19,8 @@ class FeeManager:
         self.fee_period: int = 50
 
         # Multiplicative transfer fee rates
-        self.nom_fee_rate: Dec = Dec('0.005')
-        self.cur_fee_rate: Dec = Dec('0.005')
+        self.nomin_fee_rate: Dec = Dec('0.005')
+        self.havven_fee_rate: Dec = Dec('0.005')
         self.fiat_fee_rate: Dec = Dec('0.005')
 
         # Multiplicative issuance fee rates
@@ -38,14 +38,14 @@ class FeeManager:
         """
         return HavvenManager.round_decimal(quantity / (Dec(1) + self.fiat_fee_rate))
 
-    def transferred_curits_received(self, quantity: Dec) -> Dec:
+    def transferred_havvens_received(self, quantity: Dec) -> Dec:
         """
-        Returns the curits received by the recipient of a given quantity (with fee)
+        Returns the havvens received by the recipient of a given quantity (with fee)
           is transferred.
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return HavvenManager.round_decimal(quantity / (Dec(1) + self.cur_fee_rate))
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.havven_fee_rate))
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
@@ -54,7 +54,7 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
-        return HavvenManager.round_decimal(quantity / (Dec(1) + self.nom_fee_rate))
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.nomin_fee_rate))
 
     def transferred_fiat_fee(self, quantity: Dec) -> Dec:
         """
@@ -62,25 +62,25 @@ class FeeManager:
         """
         return HavvenManager.round_decimal(quantity * self.fiat_fee_rate)
 
-    def transferred_curits_fee(self, quantity: Dec) -> Dec:
+    def transferred_havvens_fee(self, quantity: Dec) -> Dec:
         """
-        Return the fee charged for transferring a quantity of curits.
+        Return the fee charged for transferring a quantity of havvens.
         """
-        return HavvenManager.round_decimal(quantity * self.cur_fee_rate)
+        return HavvenManager.round_decimal(quantity * self.havven_fee_rate)
 
     def transferred_nomins_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of nomins.
         """
-        return HavvenManager.round_decimal(quantity * self.nom_fee_rate)
+        return HavvenManager.round_decimal(quantity * self.nomin_fee_rate)
 
     def distribute_fees(self, schedule_agents: List["agents.MarketPlayer"]) -> None:
         """
-        Distribute currently held nomins to holders of curits.
+        Distribute currently held nomins to holders of havvens.
         """
         # Different fee modes:
-        #  * distributed by held curits
-        # TODO: * distribute by escrowed curits
+        #  * distributed by held havvens
+        # TODO: * distribute by escrowed havvens
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
