@@ -462,3 +462,12 @@ function toggle_all(btn) {
 
 }
 
+
+if(window.chrome){
+    // apply niceScroll only if chrome to avoid freezes from scroll events.
+    $(function() {
+        $("body").niceScroll();
+    });
+}
+
+
