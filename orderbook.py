@@ -729,6 +729,8 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
+                trade.buyer.notify_trade(trade)
+                trade.seller.notify_trade(trade)
 
                 # if no closing data yet, initialise
                 if not self.candle_data[-1][1]:
@@ -754,6 +756,8 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
+                trade.buyer.notify_trade(trade)
+                trade.seller.notify_trade(trade)
 
             return trade
 

@@ -150,3 +150,63 @@ class CurrentOrderModule(BarGraphModule):
         except Exception:
             vals = []
         return vals
+
+
+class PastOrdersModule(BarGraphModule):
+    def render(self, model: Havven) -> OrderbookValueTuple:
+        data_collector: "DataCollector" = getattr(
+            model, self.data_collector_name
+        )
+
+        # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
+
+        vals: OrderbookValueTuple = (
+            ["NomFiatAsk",  "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
+            ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
+            [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
+        )
+        try:
+            agents = sorted(
+                data_collector.agent_vars["Agents"][-1],
+                key=lambda x: x[0]
+            )[:-1]
+
+            for item in agents:
+                vals[3].append(item[1].name)
+                trades = item[1].trades
+                nom_fiat_ask_tot = 0
+                nom_fiat_bid_tot = 0
+                cur_fiat_ask_tot = 0
+                cur_fiat_bid_tot = 0
+                nom_cur_ask_tot = 0
+                nom_cur_bid_tot = 0
+
+                for trade in trades:
+                    if trade.book.quote == "fiat":
+                        if trade.book.base == "nomins":
+                            # FIAT/NOM
+                            if trade.buyer == item[1]:
+                                nom_fiat_ask_tot += trade.quantity
+                            elif trade.seller == item[1]:
+                                nom_fiat_bid_tot += trade.quantity*trade.price
+                        if trade.book.base == "curits":
+                            if trade.buyer == item[1]:
+                                cur_fiat_ask_tot += trade.quantity
+                            elif trade.seller == item[1]:
+                                cur_fiat_bid_tot += trade.quantity*trade.price
+                    elif trade.book.quote == "nomins":
+                        if trade.buyer == item[1]:
+                            nom_cur_ask_tot += trade.quantity
+                        elif trade.seller == item[1]:
+                            nom_cur_bid_tot += trade.quantity*trade.price
+
+                vals[4].append(float(nom_fiat_ask_tot))
+                vals[5].append(-float(nom_fiat_bid_tot))
+                vals[6].append(float(cur_fiat_ask_tot))
+                vals[7].append(-float(cur_fiat_bid_tot))
+                vals[8].append(float(nom_cur_ask_tot))
+                vals[9].append(-float(nom_cur_bid_tot))
+
+        except Exception:
+            vals = []
+        return vals
