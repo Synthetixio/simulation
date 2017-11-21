@@ -18,8 +18,6 @@ provided by each element.
 
 This file consists of the following classes:
 
-VisualizationElement: Parent class for all other visualization elements, with
-                      the minimal necessary options.
 PageHandler: The handler for the visualization page, generated from a template
              and built from the various visualization elements.
 SocketHandler: Handles the websocket connection between the client page and
@@ -58,7 +56,8 @@ Server -> Client:
     "data": [{0:[ {"Shape": "circle", "x": 0, "y": 0, "r": 0.5,
                 "Color": "#AAAAAA", "Filled": "true", "Layer": 0,
                 "text": 'A', "text_color": "white" }]},
-            "Shape Count: 1"]
+            "Shape Count: 1"],
+    "run_num": current model's run
     }
 
     Informs the client that the model is over.
@@ -72,22 +71,24 @@ Server -> Client:
 
 Client -> Server:
     Reset the model.
-    TODO: Allow this to come with parameters
     {
-    "type": "reset"
+    "type": "reset",
+    "run_num": reset count.
     }
 
     Get a given state.
     {
     "type": "get_step",
-    "step:" index of the step to get.
+    "step": index of the step to get from,
+    "run_num": reset count,
+    "fps": current user fps for having a calculation buffer.
     }
 
     Submit model parameter updates
     {
     "type": "submit_params",
-    "param": name of model parameter
-    "value": new value for 'param'
+    "param": name of model parameter,
+    "value": new value for 'param'.
     }
 
     Get the model's parameters
@@ -107,65 +108,20 @@ import webbrowser
 import threading
 import queue
 import time
+import copy
 
 from visualization.UserParam import UserSettableParameter
-
-# Suppress several pylint warnings for this file.
-# Attributes being defined outside of init is a Tornado feature.
-# pylint: disable=attribute-defined-outside-init
-
-
-class VisualizationElement:
-    """
-    Defines an element of the visualization.
-
-    Attributes:
-        package_includes: A list of external JavaScript files to include that
-                          are part of the Mesa packages.
-        local_includes: A list of JavaScript files that are local to the
-                        directory that the server is being run in.
-        js_code: A JavaScript code string to instantiate the element.
-
-    Methods:
-        render: Takes a model object, and produces JSON data which can be sent
-                to the client.
-
-    """
-
-    package_includes = []
-    local_includes = []
-    js_code = ''
-    render_args = {}
-
-    def __init__(self):
-        pass
-
-    def render(self, model):
-        """ Build visualization data from a model object.
-
-        Args:
-            model: A model object
-
-        Returns:
-            A JSON-ready object.
-
-        """
-        return "<b>VisualizationElement goes here</b>."
-
-# =============================================================================
-# Actual Tornado code starts here:
 
 
 class PageHandler(tornado.web.RequestHandler):
     """ Handler for the HTML template which holds the visualization. """
-
     def get(self):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
             element.index = i
         self.render("modular_template.html", port=self.application.port,
-                    model_name=self.application.model_handler.model_name,
-                    description=self.application.model_handler.description,
+                    model_name=self.application.model_name,
+                    description=self.application.description,
                     package_includes=self.application.package_includes,
                     local_includes=self.application.local_includes,
                     scripts=self.application.js_code)
@@ -177,79 +133,100 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
         self.step = 0
+        self.current_run_num = 0
 
     def open(self):
+        """
+        When a new user connects to the server via websocket create a new model
+        i.e. same IP can have multiple models
+        """
+        # self is the connection, not a single socket object
+        self.model_handler = ModelHandler(
+            self.application.threaded,
+            self.application.model_name,
+            copy.deepcopy(self.application.model_cls),
+            copy.deepcopy(self.application.model_params),
+            copy.deepcopy(self.application.visualization_elements)
+        )
+        self.model_handler.reset_model(self.current_run_num)
+        self.model_run_thread = threading.Thread(
+            target=self.model_handler.run_model,
+            args=(self.model_handler,)
+        ).start()
         if self.application.verbose:
-            print("Socket opened!")
+            print("Socket opened:", self)
 
-    def check_origin(self, origin):
-        return True
-
-    @property
-    def viz_state_message(self):
-        if self.application.threaded:
-            with self.resetlock:
-                # block=True makes the program wait for data to be added
-                data = self.application.model_handler.data_queue.get(block=True)
-                return {
-                    "type": "viz_state",
-                    "step": self.step,
-                    "data": data[1]
-                }
-        else:
-            self.application.model_handler.step()
-            data = self.application.model_handler.render_model()
-            return {
-                "type": "viz_state",
-                "step": self.step,
-                "data": data[1]
-            }
+    def collect_data_from_step(self, step, fps=None):
+        """
+        Get the data from the model_handler from step to step+fps*2
+        """
+        with self.model_handler.data_lock:
+            if fps is None:
+                self.model_handler.max_calc_step = min(
+                    step + self.application.calculation_buffer,
+                    self.application.max_steps
+                )
+                data = copy.deepcopy(self.model_handler.data[step:])
+            else:
+                self.model_handler.max_calc_step = min(
+                    step + max(self.application.calculation_buffer, fps * 2),
+                    self.application.max_steps
+                )
+                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+        return data
 
     def on_message(self, message):
         """
         Receiving a message from the websocket, parse, and act accordingly.
         """
         if self.application.verbose:
-            print(message, self.application.model_handler.data_queue.qsize())
+            print(message, len(self.model_handler.data))
         msg = tornado.escape.json_decode(message)
 
-        if msg["type"] == "get_step":
-            if not self.application.model_handler.running:
-                self.write_message({"type": "end"})
-            else:
-                if self.application.threaded:
-                    while self.application.model_handler.resetting:
-                        time.sleep(0.05)
-                # self.application.model_handler.step()
-                message = self.viz_state_message
+        if msg["type"] == "get_steps":
+            # message format: {'type':'get_steps', 'run_num':int, 'step':int, 'fps':int}
+            with self.resetlock:
+                # ignore old messages...
+                if msg['run_num'] != self.model_handler.current_run_num:
+                    return
+                client_current_step = msg['step']
+                client_fps = msg['fps']
+                message = {
+                    "type": "viz_state",
+                    "data": self.collect_data_from_step(client_current_step, client_fps),
+                    "run_num":  self.model_handler.current_run_num
+                }
                 self.write_message(message)
-                self.step += 1
 
         elif msg["type"] == "reset":
-            # on_message is async, so lock here as well when resetting
+            # message format: {'type':'reset', 'run_num':int}
             with self.resetlock:
-                # calculate the step here, so it doesn't skip TODO: check why it skips
-                self.step = 1
-                self.application.reset_model()
-            self.write_message(self.viz_state_message)
-            self.step += 1
+                self.current_run_num = msg["run_num"]
+                self.model_handler.reset_model(self.current_run_num)
 
         elif msg["type"] == "submit_params":
+            # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
             param = msg["param"]
             value = msg["value"]
-            # as this is local, don't worry about invalid inputs
-            # but should be sanitised if this ever goes online
-            self.application.model_handler.set_model_kwargs(param, value)
+            # TODO: should be sanitised
+            self.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
+            # message format: {'type':'get_params'}
             self.write_message({
                 "type": "model_params",
                 "params": self.application.user_params
             })
-
         else:
             if self.application.verbose:
                 print("Unexpected message!")
+
+    def on_close(self):
+        """When the user closes the connection destroy the model"""
+        if self.application.verbose:
+            print("Connection closed:", self)
+        del self.model_handler
+        del self
 
 
 class ModelHandler:
@@ -268,19 +245,20 @@ class ModelHandler:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
         self.resetting = False
+        self.max_calc_step = 10
 
         self.running = True
-        self.data_queue = queue.Queue()
+        self.data = []
+        self.data_lock = threading.Lock()
         self.lock = threading.Lock()
 
-    def reset_model(self):
-        if self.threaded:
-            self.resetting = True
-            with self.lock:
-                self.create_model()
-            self.resetting = False
-        else:
+    def reset_model(self, run_num):
+        """Clear old and create a new model"""
+        self.resetting = True
+        with self.lock:
             self.create_model()
+        self.current_run_num = run_num
+        self.resetting = False
 
     def create_model(self):
         """Create a new model, with changed parameters"""
@@ -294,10 +272,8 @@ class ModelHandler:
                 model_params[key] = val
         self.model = self.model_cls(**model_params)
         # clear the data queue
-        with self.data_queue.mutex:
-            self.data_queue.queue.clear()
-            self.data_queue.all_tasks_done.notify_all()
-            self.data_queue.unfinished_tasks = 0
+        with self.data_lock:
+            self.data = []
 
     def render_model(self):
         """collect the data from the model and put it in the queue to be sent for rendering"""
@@ -305,20 +281,60 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        return self.model.manager.time-1, visualization_state
+        with self.data_lock:
+            self.data.append(copy.deepcopy((self.model.manager.time, visualization_state)))
 
     def step(self):
         self.model.step()
+        self.render_model()
 
     def set_model_kwargs(self, key, val):
         self.model_kwargs[key] = val
+
+    @staticmethod
+    def run_model(model_handler):
+        try:
+            while model_handler.running:
+                # allow the model to reset if it hasn't already
+                # TODO: does this cause the lag?
+                while model_handler.resetting:
+                    time.sleep(0.05)
+                # slow it down significantly if the data isn't being used
+                # higher value causes lag when the page is first created
+                while len(model_handler.data) > model_handler.max_calc_step:
+                    time.sleep(0.1)
+
+                start = time.time()
+
+                with model_handler.lock:
+                    model_handler.step()
+
+
+                end = time.time()
+                # if calculated faster than 20 step/sec allow it some time to sleep
+                # TODO: base this on max_fps, i.e. 6
+                if end - start < (1.0/20):
+                    time.sleep(end-start)
+
+        except Exception as e:
+            print("==========-ERROR-==========")
+            print(__import__('traceback').print_tb(e))
+            print("Model run thread closed.")
+            print("=========-END ERR-=========")
+            return
+
+    def set_model_params(self, param, value):
+        if isinstance(self.model_kwargs[param], UserSettableParameter):
+            self.model_kwargs[param].value = value
+        else:
+            self.model_kwargs[param] = value
 
 
 class ModularServer(tornado.web.Application):
     """ Main visualization application. """
     verbose = True
 
-    port = 8521  # Default port to listen on
+    port = 3000  # Default port to listen on
 
     # Handlers and other globals:
     page_handler = (r'/', PageHandler)
@@ -336,11 +352,20 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, threaded, model_cls, visualization_elements, name="Mesa Model",
+    def __init__(self, threaded, model_cls, visualization_elements, name,
                  model_params={}):
         """ Create a new visualization server with the given elements. """
         # Prep visualization elements:
         self.threaded = threaded
+        self.visualization_elements = visualization_elements
+        self.model_name = name
+        self.model_cls = model_cls
+        self.model_params = model_params
+        self.max_steps = 1500
+        self.calculation_buffer = 16
+
+        self.description = ""
+
         self.visualization_elements = visualization_elements
         self.package_includes = set()
         self.local_includes = set()
@@ -352,32 +377,16 @@ class ModularServer(tornado.web.Application):
                 self.local_includes.add(include_file)
             self.js_code.append(element.js_code)
 
-        # Initializing the model
-        self.model_handler = ModelHandler(threaded, name, model_cls, model_params, visualization_elements)
-        self.model_handler.create_model()
-        if self.threaded:
-            threading.Thread(target=self.run_model, args=(self.model_handler,)).start()
-
         # Initializing the application itself:
         super().__init__(self.handlers, **self.settings)
 
     @property
     def user_params(self):
         result = {}
-        for param, val in self.model_handler.model_kwargs.items():
+        for param, val in self.model_params.items():
             if isinstance(val, UserSettableParameter):
                 result[param] = val.json
         return result
-
-    def reset_model(self):
-        """ Reinstantiate the model object, using the current parameters. """
-        self.model_handler.reset_model()
-
-    def set_model_params(self, param, value):
-        if isinstance(self.model_handler.model_kwargs[param], UserSettableParameter):
-            self.model_handler.model_kwargs[param].value = value
-        else:
-            self.model_handler.model_kwargs[param] = value
 
     def launch(self, port=None):
         """ Run the app. """
@@ -387,36 +396,6 @@ class ModularServer(tornado.web.Application):
         url = 'http://127.0.0.1:{PORT}'.format(PORT=self.port)
         print('Interface starting at {url}'.format(url=url))
         self.listen(self.port)
-        webbrowser.open(url)
         tornado.autoreload.start()
         if startLoop:
             tornado.ioloop.IOLoop.instance().start()
-
-    @staticmethod
-    def run_model(model_handler):
-        try:
-            while model_handler.running:
-                # allow the model to reset if it hasn't already
-                if model_handler.resetting:
-                    time.sleep(0.1)
-                    continue
-
-                # slow it down significantly if the data isn't being used
-                # higher value causes lag when the page is first created
-                if model_handler.data_queue.qsize() > 50:
-                    time.sleep(0.5)
-                start = time.time()
-
-                with model_handler.lock:
-                    model_handler.step()
-                    data = model_handler.render_model()
-                    model_handler.data_queue.put(data)
-
-                end = time.time()
-                # if calculated faster than 33 step/sec allow it some time to sleep
-                if end - start < 0.03:
-                    time.sleep(end-start)
-        except Exception as e:
-            print(e)
-            print("Model run thread closed.")
-            return

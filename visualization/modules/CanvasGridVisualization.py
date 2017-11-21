@@ -7,7 +7,7 @@ Module for visualizing model objects in grid cells.
 
 """
 from collections import defaultdict
-from visualization.ModularVisualization import VisualizationElement
+from visualization.VisualizationElement import VisualizationElement
 
 
 class CanvasGrid(VisualizationElement):

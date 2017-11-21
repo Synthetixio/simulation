@@ -2,13 +2,21 @@
 Chart.defaults.global.tooltips.custom = function(tooltipModel) {
     // Tooltip Element
     var tooltipEl = document.getElementById('chartjs-tooltip');
-
     // Create element on first render
     if (!tooltipEl) {
         tooltipEl = document.createElement('div');
         tooltipEl.id = 'chartjs-tooltip';
-        tooltipEl.innerHTML = "<table></table>"
+        tooltipEl.innerHTML = "<table></table>";
         document.body.appendChild(tooltipEl);
+    }
+
+    var titleLines = tooltipModel.title || [];
+    for (let i in titleLines) {
+        // don't show tooltips for filler data
+        if (titleLines[i] === 54321 || titleLines[i] < 0) {
+            tooltipEl.style.opacity = 0;
+            return;
+        }
     }
 
     // Hide if no tooltip
@@ -32,14 +40,17 @@ Chart.defaults.global.tooltips.custom = function(tooltipModel) {
 
     // Set Text
     if (tooltipModel.body) {
-        var titleLines = tooltipModel.title || [];
         var bodyLines = tooltipModel.body.map(getBody);
 
         var innerHtml = '<thead>';
 
-        titleLines.forEach(function(title) {
-            innerHtml += '<tr><th>' + title + '</th></tr>';
-        });
+        for (let i in titleLines) {
+            innerHtml += '<tr><th>' + titleLines[i] + '</th></tr>';
+        }
+        if (titleLines.length === 0) {
+            innerHtml += '<tr><th>' + 0 + '</th></tr>';
+        }
+
         innerHtml += '</thead><tbody>';
 
         bodyLines.forEach(function(body, i) {

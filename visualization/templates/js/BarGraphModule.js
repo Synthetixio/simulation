@@ -51,9 +51,13 @@ var BarGraphModule = function (graph_id, width, height) {
 	var chart = new Chart(context, {type: 'bar', data: data, options: options});
 
     this.render = function (step, new_data) {
+        if (new_data.length > 1) {
+        	new_data = new_data[new_data.length - 1];
+    	}
         // data should be in the form:
         // [data_labels, bar_labels, data_colors, dataset1, ...]
-        this.reset();
+        chart.data.datasets = [];
+        chart.data.labels = [];
 
         if (new_data.length >= 3) {
             let data_labels = new_data[0];
@@ -91,6 +95,7 @@ var BarGraphModule = function (graph_id, width, height) {
     this.reset = function () {
         chart.data.datasets = [];
         chart.data.labels = [];
+        chart.update();
     };
 
     this.round = function (value) {
