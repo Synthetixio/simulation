@@ -455,20 +455,26 @@ function toggle_all(btn) {
 
 
 
-
-function throttle(fn, wait) {
-  var time = Date.now();
-  return function() {
-    if ((time + wait - Date.now()) < 0) {
-      fn();
-      time = Date.now();
-    }
-  }
+function rateLimit(func, time){
+    var callback = func,
+            waiting = false,
+            context = this;
+    var rtn = function(){
+        if(waiting) return;
+        waiting = true;
+        var args = arguments;
+        setTimeout(function(){
+            waiting = false;
+            callback.apply(context, args);
+        }, time);
+    };
+    return rtn;
 }
 
-
-function callback () {
-    console.count("Throttled");
+function onWheel(e){
+  console.log(control.data.length)
 }
 
-window.addEventListener('scroll', throttle(callback, 1000));
+// will only fire a maximum of 10 times a second
+var debouncedOnWheel = rateLimit(onWheel, 100);
+window.addEventListener("scroll", debouncedOnWheel);
