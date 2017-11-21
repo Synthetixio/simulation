@@ -4,7 +4,7 @@ from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
 
-from model import Havven
+from model import HavvenModel
 
 from .BarGraph import BarGraphModule
 
@@ -14,7 +14,7 @@ from orderbook import Bid, Ask
 
 
 class WealthModule(BarGraphModule):
-    def render(self, model: Havven) -> Tuple[List[str], List[str], List[float]]:
+    def render(self, model: HavvenModel) -> Tuple[List[str], List[str], List[float]]:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -53,7 +53,7 @@ class PortfolioModule(BarGraphModule):
         super().__init__(series, height, width, data_collector_name)
         self.fiat_values = fiat_values
 
-    def render(self, model: Havven) -> PortfolioTuple:
+    def render(self, model: HavvenModel) -> PortfolioTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -92,7 +92,7 @@ OrderbookValueTuple = Tuple[List[str], List[str], List[int], List[str], List[flo
 
 
 class CurrentOrderModule(BarGraphModule):
-    def render(self, model: Havven) -> OrderbookValueTuple:
+    def render(self, model: HavvenModel) -> OrderbookValueTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -153,7 +153,7 @@ class CurrentOrderModule(BarGraphModule):
 
 
 class PastOrdersModule(BarGraphModule):
-    def render(self, model: Havven) -> OrderbookValueTuple:
+    def render(self, model: HavvenModel) -> OrderbookValueTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )

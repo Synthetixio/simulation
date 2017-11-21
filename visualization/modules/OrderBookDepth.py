@@ -4,7 +4,7 @@ from decimal import Decimal as Dec
 from mesa.datacollection import DataCollector
 from visualization.VisualizationElement import VisualizationElement
 
-from model import Havven
+from model import HavvenModel
 import orderbook as ob
 
 
@@ -30,7 +30,7 @@ class OrderBookModule(VisualizationElement):
             new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})
         );"""
 
-    def render(self, model: Havven) -> List[List[Tuple[float, float]]]:
+    def render(self, model: HavvenModel) -> List[List[Tuple[float, float]]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """

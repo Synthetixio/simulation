@@ -11,7 +11,7 @@ import orderbook as ob
 class Randomizer(MarketPlayer):
     """Places random bids and asks near current market prices."""
 
-    def __init__(self, unique_id: int, havven: "model.Havven",
+    def __init__(self, unique_id: int, havven: "model.HavvenModel",
                  fiat: Dec = Dec(0),
                  curits: Dec = Dec(0.0),
                  nomins: Dec = Dec(0),

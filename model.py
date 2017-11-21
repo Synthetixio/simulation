@@ -13,7 +13,7 @@ from managers import (HavvenManager, MarketManager,
                       AgentManager)
 
 
-class Havven(Model):
+class HavvenModel(Model):
     """
     An agent-based model of the Havven stablecoin system. This class will
       provide the basic market functionality of Havven, an exchange, and a

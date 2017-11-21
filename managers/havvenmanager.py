@@ -4,7 +4,7 @@ from decimal import Decimal as Dec
 
 class HavvenManager:
     """
-    Class to hold Havven's model variables
+    Class to hold the Havven model's variables
     """
 
     currency_precision = 8

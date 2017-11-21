@@ -10,7 +10,7 @@ from managers import HavvenManager as hm
 class CentralBank(MarketPlayer):
     """Attempts to use its cash reserves to stabilise prices at a certain level."""
 
-    def __init__(self, unique_id: int, havven: "model.Havven",
+    def __init__(self, unique_id: int, havven: "model.HavvenModel",
                  fiat: Dec = Dec(0), curits: Dec = Dec(0),
                  nomins: Dec = Dec(0),
                  curit_target: Optional[Dec] = None,

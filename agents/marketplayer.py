@@ -21,7 +21,7 @@ class MarketPlayer(Agent):
     Its aim is to increase its own wealth.
     """
 
-    def __init__(self, unique_id: int, havven: "model.Havven",
+    def __init__(self, unique_id: int, havven: "model.HavvenModel",
                  fiat: Dec = Dec(0), curits: Dec = Dec(0),
                  nomins: Dec = Dec(0)) -> None:
         super().__init__(unique_id, havven)

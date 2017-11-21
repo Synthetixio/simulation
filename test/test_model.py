@@ -5,7 +5,7 @@ import model
 
 
 def test_fiat_value():
-    havven = model.Havven(10)
+    havven = model.HavvenModel(10)
     assert(isinstance(havven.fiat_value(), Dec))
     assert(havven.fiat_value() == Dec(0))
     assert(havven.fiat_value(Dec(1), Dec(1), Dec(1)) > Dec(0))
@@ -21,7 +21,7 @@ def test_fiat_value():
 
 
 def test_endowment():
-    havven = model.Havven(10)
+    havven = model.HavvenModel(10)
     agent = havven.schedule.agents[0]
     agent_pre_cur = agent.curits
     havven_pre_cur = havven.manager.curits
@@ -38,7 +38,7 @@ def test_endowment():
 
 
 def test_step():
-    havven = model.Havven(20)
+    havven = model.HavvenModel(20)
     assert(havven.manager.time == 1)
     havven.step()
     assert(havven.manager.time == 2)
@@ -50,7 +50,7 @@ def test_step():
 
 
 def test_fee_distribution_period():
-    havven = model.Havven(20)
+    havven = model.HavvenModel(20)
     assert(havven.fee_manager.fees_distributed == Dec(0))
     assert(havven.manager.nomins == Dec(0))
 

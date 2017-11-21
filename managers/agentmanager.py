@@ -13,7 +13,7 @@ class AgentManager:
     """Manages agent populations."""
 
     def __init__(self,
-                 havven: "model.Havven",
+                 havven: "model.HavvenModel",
                  num_agents: int,
                  agent_fractions: Dict[str, float],
                  init_value: Dec) -> None:
