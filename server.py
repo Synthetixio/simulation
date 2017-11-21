@@ -6,7 +6,8 @@ from visualization.modules import ChartModule, OrderBookModule, WealthModule, Po
     CurrentOrderModule, CandleStickModule, PastOrdersModule
 
 from visualization.UserParam import UserSettableParameter
-from visualization.ModularVisualization import ModularServer, VisualizationElement
+from visualization.ModularVisualization import ModularServer
+from visualization.VisualizationElement import VisualizationElement
 
 import model
 
@@ -38,21 +39,15 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
              "AvgColor": "rgba(153,50,204,0.6)", "VolumeColor": "rgba(153,50,204,0.3)"}  # darkorchid
         ]),
 
-        ChartModule([
-            {"Label": "Havven Nomins", "Color": "deepskyblue"},
-            {"Label": "Havven Curits", "Color": "red"},
-            {"Label": "Havven Fiat", "Color": "darkgreen"},
-        ]),
 
-        ChartModule([
-            {"Label": "Gini", "Color": "navy"},
-            {"Label": "0", "Color": ref_colour}
-        ]),
+        # ChartModule([
+        #     {"Label": "Max Wealth", "Color": "purple"},
+        #     {"Label": "Min Wealth", "Color": "orange"},
+        # ]),
 
-        ChartModule([
-            {"Label": "Max Wealth", "Color": "purple"},
-            {"Label": "Min Wealth", "Color": "orange"},
-        ]),
+        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
+
+        WealthModule([{"Label": "Wealth"}]),
 
         ChartModule([
             {"Label": "Avg Profit %", "Color": "grey"},
@@ -64,10 +59,9 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": ref_colour}
         ]),
 
-        ChartModule([
-            {"Label": "Nomins", "Color": "deepskyblue"},
-            {"Label": "Escrowed Curits", "Color": "darkred"},
-        ]),
+        CurrentOrderModule([{"Label": "PlayerBidAskVolume"}]),
+
+        PastOrdersModule([{"Label": "TotalMarketVolume"}]),
 
         ChartModule([
             {"Label": "Curit Demand", "Color": "red"},
@@ -85,6 +79,11 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         ]),
 
         ChartModule([
+            {"Label": "Nomins", "Color": "deepskyblue"},
+            {"Label": "Escrowed Curits", "Color": "darkred"},
+        ]),
+
+        ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
             {"Label": "0", "Color": ref_colour}
         ]),
@@ -94,13 +93,16 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "0", "Color": ref_colour}
         ]),
 
-        PortfolioModule([{"Label": "WealthBreakdown"}], fiat_values=False),
+        ChartModule([
+            {"Label": "Havven Nomins", "Color": "deepskyblue"},
+            {"Label": "Havven Curits", "Color": "red"},
+            {"Label": "Havven Fiat", "Color": "darkgreen"},
+        ]),
 
-        WealthModule([{"Label": "Wealth"}]),
-
-        CurrentOrderModule([{"Label": "PlayerBidAskVolume"}]),
-
-        PastOrdersModule([{"Label": "TotalMarketVolume"}]),
+        ChartModule([
+            {"Label": "Gini", "Color": "navy"},
+            {"Label": "0", "Color": ref_colour}
+        ]),
 
         OrderBookModule([{"Label": "NominFiatOrderBook"}]),
 
@@ -110,7 +112,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
     ]
 
     n_slider = UserSettableParameter(
-        'slider', "Number of agents", n_agents, 20, 2000, 1
+        'slider', "Number of agents", n_agents, 20, 175, 1
     )
 
     ur_slider = UserSettableParameter(
@@ -126,7 +128,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'agent_fractions', "Agent fraction selector", None
     )
 
-    server = ModularServer(threaded, model.Havven, charts, "Havven Model",
+    server = ModularServer(threaded, model.Havven, charts, "Havven Model (Alpha)",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
                             "match_on_order": match_checkbox, 'agent_fractions': agent_fraction_selector})
     return server

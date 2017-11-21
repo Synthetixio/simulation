@@ -7,7 +7,7 @@ Module for drawing live-updating line charts using Charts.js
 
 """
 import json
-from visualization.ModularVisualization import VisualizationElement
+from visualization.VisualizationElement import VisualizationElement
 
 
 class ChartModule(VisualizationElement):
@@ -63,7 +63,7 @@ class ChartModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         series_json = json.dumps(self.series)
-        new_element = "new ChartModule({}, {},  {})"
+        new_element = "new ChartModule({}, {}, {})"
         new_element = new_element.format(series_json, canvas_width,
                                          canvas_height)
         self.js_code = "elements.push(" + new_element + ");"

@@ -53,3 +53,44 @@ html {
     height: 10px;
     margin-right: 10px;
 }
+
+
+
+html:after {
+
+  /* common custom values */
+  content: "ALPHA";
+  font-size: 720%;         /* font size */
+  color: rgba(0, 0, 0, .1);
+  /* alpha, could be even rgba(0,0,0,.05) */
+
+  /* rest of the logic */
+  z-index: 9999;
+  cursor: default;
+  display: block;
+  position: fixed;
+  top: 33%;
+  right: 0;
+  bottom: 0;
+  left: 15%;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-style: italic;
+  text-align: center;
+  line-height: 100%;
+
+  pointer-events: none;
+
+  -webkit-transform: rotate(-30deg);
+  -moz-transform: rotate(-30deg);
+  -ms-transform: rotate(-30deg);
+  -o-transform: rotate(-30deg);
+  transform: rotate(-30deg);
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+
+}

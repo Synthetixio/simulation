@@ -73,8 +73,28 @@ var DepthGraphModule = function (graph_id, width, height) {
 
 
     this.render = function (step, new_data) {
+        chart.data = {datasets: [{
+                label: 'Bids',
+                data: [],
+                backgroundColor: "RGBA(255,0,0,0.2)",
+                borderColor: "red",
+                fill: true,
+                pointRadius: 0,
+            },
+            {
+                label: 'Asks',
+                data: [],
+                backgroundColor: "RGBA(0,255,0,0.2)",
+                borderColor: "RGBA(0,255,0,1)",
+                fill: true,
+                pointRadius: 0,
+            }
+        ]};
+        chart.data.labels = [];
 
-        this.reset();
+        if (new_data.length > 0) {
+            new_data = new_data[new_data.length-1]
+        }
         let price_range = 1.0;
         let curr_price = new_data[0];
         let bids = new_data[1];
@@ -176,6 +196,7 @@ var DepthGraphModule = function (graph_id, width, height) {
             }
         ]};
         chart.data.labels = [];
+        chart.update();
     };
 
     this.round = function (value) {
