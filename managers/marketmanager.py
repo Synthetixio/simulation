@@ -22,16 +22,16 @@ class MarketManager:
         # If a book is X_Y_market, then X is the base currency,
         #   Y is the quote currency.
         # That is, buyers hold Y and sellers hold X.
-        self.curit_nomin_market = ob.OrderBook(
-            model_manager, "curits", "nomins", self.curit_nomin_match,
+        self.havven_nomin_market = ob.OrderBook(
+            model_manager, "havvens", "nomins", self.havven_nomin_match,
             self.fee_manager.transferred_nomins_fee,
-            self.fee_manager.transferred_curits_fee,
+            self.fee_manager.transferred_havvens_fee,
             self.model_manager.match_on_order
         )
-        self.curit_fiat_market = ob.OrderBook(
-            model_manager, "curits", "fiat", self.curit_fiat_match,
+        self.havven_fiat_market = ob.OrderBook(
+            model_manager, "havvens", "fiat", self.havven_fiat_match,
             self.fee_manager.transferred_fiat_fee,
-            self.fee_manager.transferred_curits_fee,
+            self.fee_manager.transferred_havvens_fee,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
@@ -95,29 +95,29 @@ class MarketManager:
         return ob.TradeRecord(bid.issuer, ask.issuer, ask.book,
                               price, quantity, bid_fee, ask_fee, self.model_manager.time)
 
-    def curit_nomin_match(self, bid: "ob.Bid",
+    def havven_nomin_match(self, bid: "ob.Bid",
                           ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
-        Buyer offers nomins in exchange for curits from the seller.
+        Buyer offers nomins in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_nomins_success,
-                                      self.transfer_curits_success,
+                                      self.transfer_havvens_success,
                                       self.transfer_nomins,
-                                      self.transfer_curits)
+                                      self.transfer_havvens)
 
-    def curit_fiat_match(self, bid: "ob.Bid",
+    def havven_fiat_match(self, bid: "ob.Bid",
                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
-        Buyer offers fiat in exchange for curits from the seller.
+        Buyer offers fiat in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
         return self.__bid_ask_match__(bid, ask,
                                       self.transfer_fiat_success,
-                                      self.transfer_curits_success,
+                                      self.transfer_havvens_success,
                                       self.transfer_fiat,
-                                      self.transfer_curits)
+                                      self.transfer_havvens)
 
     def nomin_fiat_match(self, bid: "ob.Bid",
                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
@@ -136,10 +136,10 @@ class MarketManager:
         """True iff the sender could successfully send a quantity of fiat."""
         return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.fiat)
 
-    def transfer_curits_success(self, sender: "ag.MarketPlayer",
+    def transfer_havvens_success(self, sender: "ag.MarketPlayer",
                                 quantity: Dec, fee: Dec) -> bool:
-        """True iff the sender could successfully send a quantity of curits."""
-        return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.curits)
+        """True iff the sender could successfully send a quantity of havvens."""
+        return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.havvens)
 
     def transfer_nomins_success(self, sender: "ag.MarketPlayer",
                                 quantity: Dec, fee: Dec) -> bool:
@@ -161,18 +161,18 @@ class MarketManager:
             return True
         return False
 
-    def transfer_curits(self, sender: 'ag.MarketPlayer',
+    def transfer_havvens(self, sender: 'ag.MarketPlayer',
                         recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec] = None) -> bool:
         """
-        Transfer a positive quantity of curits from the sender to the recipient,
+        Transfer a positive quantity of havvens from the sender to the recipient,
           if balance is sufficient. Return True on success.
         """
         if fee is None:
-            fee = self.fee_manager.transferred_curits_fee(quantity)
-        if self.transfer_curits_success(sender, quantity, fee):
-            sender.curits -= quantity + fee
-            recipient.curits += quantity
-            self.model_manager.curits += fee
+            fee = self.fee_manager.transferred_havvens_fee(quantity)
+        if self.transfer_havvens_success(sender, quantity, fee):
+            sender.havvens -= quantity + fee
+            recipient.havvens += quantity
+            self.model_manager.havvens += fee
             return True
         return False
 
@@ -191,25 +191,25 @@ class MarketManager:
             return True
         return False
 
-    def curits_to_nomins(self, quantity: Dec) -> Dec:
-        """Convert a quantity of curits to its equivalent quantity in nomins."""
-        return HavvenManager.round_decimal(quantity * self.curit_nomin_market.price)
+    def havvens_to_nomins(self, quantity: Dec) -> Dec:
+        """Convert a quantity of havvens to its equivalent quantity in nomins."""
+        return HavvenManager.round_decimal(quantity * self.havven_nomin_market.price)
 
-    def curits_to_fiat(self, quantity: Dec) -> Dec:
-        """Convert a quantity of curits to its equivalent quantity in fiat."""
-        return HavvenManager.round_decimal(quantity * self.curit_fiat_market.price)
+    def havvens_to_fiat(self, quantity: Dec) -> Dec:
+        """Convert a quantity of havvens to its equivalent quantity in fiat."""
+        return HavvenManager.round_decimal(quantity * self.havven_fiat_market.price)
 
-    def nomins_to_curits(self, quantity: Dec) -> Dec:
-        """Convert a quantity of nomins to its equivalent quantity in curits."""
-        return HavvenManager.round_decimal(quantity / self.curit_nomin_market.price)
+    def nomins_to_havvens(self, quantity: Dec) -> Dec:
+        """Convert a quantity of nomins to its equivalent quantity in havvens."""
+        return HavvenManager.round_decimal(quantity / self.havven_nomin_market.price)
 
     def nomins_to_fiat(self, quantity: Dec) -> Dec:
         """Convert a quantity of nomins to its equivalent quantity in fiat."""
         return HavvenManager.round_decimal(quantity * self.nomin_fiat_market.price)
 
-    def fiat_to_curits(self, quantity: Dec) -> Dec:
-        """Convert a quantity of fiat to its equivalent quantity in curits."""
-        return HavvenManager.round_decimal(quantity / self.curit_fiat_market.price)
+    def fiat_to_havvens(self, quantity: Dec) -> Dec:
+        """Convert a quantity of fiat to its equivalent quantity in havvens."""
+        return HavvenManager.round_decimal(quantity / self.havven_fiat_market.price)
 
     def fiat_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in nomins."""

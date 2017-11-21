@@ -1,4 +1,4 @@
-"""model.py: The havven model itself lives here."""
+"""model.py: The Havven model itself lives here."""
 
 from typing import Dict, Optional
 from decimal import Decimal as Dec
@@ -13,7 +13,7 @@ from managers import (HavvenManager, MarketManager,
                       AgentManager)
 
 
-class Havven(Model):
+class HavvenModel(Model):
     """
     An agent-based model of the Havven stablecoin system. This class will
       provide the basic market functionality of Havven, an exchange, and a
@@ -49,38 +49,38 @@ class Havven(Model):
                 'Arbitrageur': 0.2,
                 'Randomizer': 0.3,
                 'NominShorter': 0.15,
-                'CuritEscrowNominShorter': 0.15
+                'HavvenEscrowNominShorter': 0.15
             }
 
         self.agent_manager = AgentManager(self, num_agents,
                                           agent_fractions, Dec(init_value))
 
-    def fiat_value(self, curits=Dec('0'), nomins=Dec('0'),
+    def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""
-        return self.market_manager.curits_to_fiat(curits) + \
+        return self.market_manager.havvens_to_fiat(havvens) + \
             self.market_manager.nomins_to_fiat(nomins) + fiat
 
-    def endow_curits(self, agent: ag.MarketPlayer, curits: Dec) -> None:
-        """Grant an agent an endowment of curits."""
-        if curits > 0:
-            value = min(self.manager.curits, curits)
-            agent.curits += value
-            self.manager.curits -= value
+    def endow_havvens(self, agent: ag.MarketPlayer, havvens: Dec) -> None:
+        """Grant an agent an endowment of havvens."""
+        if havvens > 0:
+            value = min(self.manager.havvens, havvens)
+            agent.havvens += value
+            self.manager.havvens -= value
 
     def step(self) -> None:
         """Advance the model by one step."""
         # Agents submit trades.
         self.schedule.step()
 
-        self.market_manager.curit_nomin_market.step_history()
-        self.market_manager.curit_fiat_market.step_history()
+        self.market_manager.havven_nomin_market.step_history()
+        self.market_manager.havven_fiat_market.step_history()
         self.market_manager.nomin_fiat_market.step_history()
 
         # Resolve outstanding trades.
         if not self.manager.match_on_order:
-            self.market_manager.curit_nomin_market.match()
-            self.market_manager.curit_fiat_market.match()
+            self.market_manager.havven_nomin_market.match()
+            self.market_manager.havven_fiat_market.match()
             self.market_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.

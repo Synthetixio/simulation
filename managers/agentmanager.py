@@ -13,12 +13,12 @@ class AgentManager:
     """Manages agent populations."""
 
     def __init__(self,
-                 havven: "model.Havven",
+                 havven_model: "model.HavvenModel",
                  num_agents: int,
                  agent_fractions: Dict[str, float],
                  init_value: Dec) -> None:
         # A reference to the havven sim itself.
-        self.havven = havven
+        self.havven_model = havven_model
 
         # Lists of each type of agent.
         self.agents: Dict[str, List[ag.MarketPlayer]] = {
@@ -46,64 +46,64 @@ class AgentManager:
             for i in range(total):
                 if ag.player_names[item] == ag.Banker:
                     endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100)) * init_value)
-                    banker = ag.Banker(total_players, self.havven, fiat=endowment)
-                    self.havven.schedule.add(banker)
+                    banker = ag.Banker(total_players, self.havven_model, fiat=endowment)
+                    self.havven_model.schedule.add(banker)
                     self.agents[item].append(banker)
                     total_players += 1
                 elif ag.player_names[item] == ag.Randomizer:
-                    randomizer = ag.Randomizer(total_players, self.havven, fiat=init_value)
-                    self.havven.endow_curits(randomizer, Dec(3) * init_value)
-                    self.havven.schedule.add(randomizer)
+                    randomizer = ag.Randomizer(total_players, self.havven_model, fiat=init_value)
+                    self.havven_model.endow_havvens(randomizer, Dec(3) * init_value)
+                    self.havven_model.schedule.add(randomizer)
                     self.agents[item].append(randomizer)
                     total_players += 1
                 elif ag.player_names[item] == ag.Arbitrageur:
-                    arbitrageur = ag.Arbitrageur(total_players, self.havven,
+                    arbitrageur = ag.Arbitrageur(total_players, self.havven_model,
                                                  fiat=HavvenManager.round_decimal(init_value / Dec(2)))
-                    self.havven.endow_curits(arbitrageur,
+                    self.havven_model.endow_havvens(arbitrageur,
                                              HavvenManager.round_decimal(init_value / Dec(2)))
-                    self.havven.schedule.add(arbitrageur)
+                    self.havven_model.schedule.add(arbitrageur)
                     self.agents[item].append(arbitrageur)
                     total_players += 1
                 elif ag.player_names[item] == ag.NominShorter:
-                    nomin_shorter = ag.NominShorter(total_players, self.havven,
+                    nomin_shorter = ag.NominShorter(total_players, self.havven_model,
                                                     nomins=HavvenManager.round_decimal(init_value * Dec(2)))
-                    self.havven.schedule.add(nomin_shorter)
+                    self.havven_model.schedule.add(nomin_shorter)
                     self.agents[item].append(nomin_shorter)
                     total_players += 1
-                elif ag.player_names[item] == ag.CuritEscrowNominShorter:
-                    escrow_nomin_shorter = ag.CuritEscrowNominShorter(
-                        total_players, self.havven,
-                        curits=HavvenManager.round_decimal(init_value * Dec(2))
+                elif ag.player_names[item] == ag.HavvenEscrowNominShorter:
+                    escrow_nomin_shorter = ag.HavvenEscrowNominShorter(
+                        total_players, self.havven_model,
+                        havvens=HavvenManager.round_decimal(init_value * Dec(2))
                     )
-                    self.havven.schedule.add(escrow_nomin_shorter)
+                    self.havven_model.schedule.add(escrow_nomin_shorter)
                     self.agents[item].append(escrow_nomin_shorter)
                     total_players += 1
                 elif ag.player_names[item] == ag.Merchant:
-                    merchant = ag.Merchant(total_players, self.havven, fiat=HavvenManager.round_decimal(init_value))
-                    self.havven.schedule.add(merchant)
+                    merchant = ag.Merchant(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value))
+                    self.havven_model.schedule.add(merchant)
                     self.agents[item].append(merchant)
                     total_players += 1
                 elif ag.player_names[item] == ag.Buyer:
-                    buyer = ag.Buyer(total_players, self.havven, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
-                    self.havven.schedule.add(buyer)
+                    buyer = ag.Buyer(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
+                    self.havven_model.schedule.add(buyer)
                     self.agents[item].append(buyer)
                     total_players += 1
 
         # central_bank = ag.CentralBank(
-        #     total_players, self.havven, fiat=Dec(num_agents * init_value),
+        #     total_players, self.havven_model, fiat=Dec(num_agents * init_value),
         #     nomin_target=Dec('1.0')
         # )
-        # self.havven.endow_curits(central_bank,
+        # self.havven_model.endow_havvens(central_bank,
         #                          Dec(num_agents * init_value))
-        # self.havven.schedule.add(central_bank)
+        # self.havven_model.schedule.add(central_bank)
         # self.agents["others"].append(central_bank)
 
         # Now that each agent has its initial endowment, make them remember it.
-        for agent in self.havven.schedule.agents:
+        for agent in self.havven_model.schedule.agents:
             agent.reset_initial_wealth()
 
     def add(self, agent):
-        self.havven.schedule.add(agent)
+        self.havven_model.schedule.add(agent)
         for name, item in ag.player_names.items():
             if type(agent) == item:
                 self.agents[name].append(agent)

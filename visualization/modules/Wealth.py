@@ -4,7 +4,7 @@ from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
 
-from model import Havven
+from model import HavvenModel
 
 from .BarGraph import BarGraphModule
 
@@ -14,7 +14,7 @@ from orderbook import Bid, Ask
 
 
 class WealthModule(BarGraphModule):
-    def render(self, model: Havven) -> Tuple[List[str], List[str], List[float]]:
+    def render(self, model: HavvenModel) -> Tuple[List[str], List[str], List[float]]:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -44,7 +44,7 @@ PortfolioTuple = Tuple[List[str], List[str], List[int],
 class PortfolioModule(BarGraphModule):
     """
     A bar graph that will show the bars stacked in terms of wealth of different types:
-      escrowed_curits, unescrowed_curits, nomins, fiat
+      escrowed_havvens, unescrowed_havvens, nomins, fiat
     """
 
     def __init__(self, series: List[Dict[str, str]], height: int = 150,
@@ -53,14 +53,14 @@ class PortfolioModule(BarGraphModule):
         super().__init__(series, height, width, data_collector_name)
         self.fiat_values = fiat_values
 
-    def render(self, model: Havven) -> PortfolioTuple:
+    def render(self, model: HavvenModel) -> PortfolioTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
 
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
 
-        vals: PortfolioTuple = (["Fiat", "Escrowed Curits", "Curits", "Nomins", "Issued Nomins"],
+        vals: PortfolioTuple = (["Fiat", "Escrowed Havvens", "Havvens", "Nomins", "Issued Nomins"],
                                 ["darkgreen", "darkred", "red", "deepskyblue", "blue"],
                                 [1, 1, 1, 1, 1], [], [], [], [], [], [])
 
@@ -92,7 +92,7 @@ OrderbookValueTuple = Tuple[List[str], List[str], List[int], List[str], List[flo
 
 
 class CurrentOrderModule(BarGraphModule):
-    def render(self, model: Havven) -> OrderbookValueTuple:
+    def render(self, model: HavvenModel) -> OrderbookValueTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -100,7 +100,7 @@ class CurrentOrderModule(BarGraphModule):
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
 
         vals: OrderbookValueTuple = (
-            ["NomFiatAsk",  "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
+            ["NomFiatAsk",  "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
             ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
             [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
         )
@@ -114,38 +114,38 @@ class CurrentOrderModule(BarGraphModule):
             for item in agents:
                 vals[3].append(item[1].name)
                 orders = item[1].orders
-                nom_fiat_ask_tot = 0
-                nom_fiat_bid_tot = 0
-                cur_fiat_ask_tot = 0
-                cur_fiat_bid_tot = 0
-                nom_cur_ask_tot = 0
-                nom_cur_bid_tot = 0
+                nomin_fiat_ask_tot = 0
+                nomin_fiat_bid_tot = 0
+                havven_fiat_ask_tot = 0
+                havven_fiat_bid_tot = 0
+                nomin_havven_ask_tot = 0
+                nomin_havven_bid_tot = 0
 
                 for order in orders:
                     if order.book.quote == "fiat":
                         if order.book.base == "nomins":
                             # FIAT/NOM
                             if type(order) == Ask:
-                                nom_fiat_ask_tot += order.quantity
+                                nomin_fiat_ask_tot += order.quantity
                             if type(order) == Bid:
-                                nom_fiat_bid_tot += order.quantity*order.price
-                        if order.book.base == "curits":
+                                nomin_fiat_bid_tot += order.quantity*order.price
+                        if order.book.base == "havvens":
                             if type(order) == Ask:
-                                cur_fiat_ask_tot += order.quantity
+                                havven_fiat_ask_tot += order.quantity
                             if type(order) == Bid:
-                                cur_fiat_bid_tot += order.quantity*order.price
+                                havven_fiat_bid_tot += order.quantity*order.price
                     elif order.book.quote == "nomins":
                         if type(order) == Ask:
-                            nom_cur_ask_tot += order.quantity
+                            nomin_havven_ask_tot += order.quantity
                         if type(order) == Bid:
-                            nom_cur_bid_tot += order.quantity*order.price
+                            nomin_havven_bid_tot += order.quantity*order.price
 
-                vals[4].append(float(nom_fiat_ask_tot))
-                vals[5].append(-float(nom_fiat_bid_tot))
-                vals[6].append(float(cur_fiat_ask_tot))
-                vals[7].append(-float(cur_fiat_bid_tot))
-                vals[8].append(float(nom_cur_ask_tot))
-                vals[9].append(-float(nom_cur_bid_tot))
+                vals[4].append(float(nomin_fiat_ask_tot))
+                vals[5].append(-float(nomin_fiat_bid_tot))
+                vals[6].append(float(havven_fiat_ask_tot))
+                vals[7].append(-float(havven_fiat_bid_tot))
+                vals[8].append(float(nomin_havven_ask_tot))
+                vals[9].append(-float(nomin_havven_bid_tot))
 
         except Exception:
             vals = []
@@ -153,7 +153,7 @@ class CurrentOrderModule(BarGraphModule):
 
 
 class PastOrdersModule(BarGraphModule):
-    def render(self, model: Havven) -> OrderbookValueTuple:
+    def render(self, model: HavvenModel) -> OrderbookValueTuple:
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
@@ -161,7 +161,7 @@ class PastOrdersModule(BarGraphModule):
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
 
         vals: OrderbookValueTuple = (
-            ["NomFiatAsk",  "NomFiatBid", "CurFiatAsk", "CurFiatBid", "CurNomAsk", "CurNomBid"],
+            ["NomFiatAsk",  "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
             ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
             [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
         )
@@ -174,38 +174,38 @@ class PastOrdersModule(BarGraphModule):
             for item in agents:
                 vals[3].append(item[1].name)
                 trades = item[1].trades
-                nom_fiat_ask_tot = 0
-                nom_fiat_bid_tot = 0
-                cur_fiat_ask_tot = 0
-                cur_fiat_bid_tot = 0
-                nom_cur_ask_tot = 0
-                nom_cur_bid_tot = 0
+                nomin_fiat_ask_tot = 0
+                nomin_fiat_bid_tot = 0
+                havven_fiat_ask_tot = 0
+                havven_fiat_bid_tot = 0
+                nomin_havven_ask_tot = 0
+                nomin_havven_bid_tot = 0
 
                 for trade in trades:
                     if trade.book.quote == "fiat":
                         if trade.book.base == "nomins":
                             # FIAT/NOM
                             if trade.buyer == item[1]:
-                                nom_fiat_ask_tot += trade.quantity
+                                nomin_fiat_ask_tot += trade.quantity
                             elif trade.seller == item[1]:
-                                nom_fiat_bid_tot += trade.quantity*trade.price
-                        if trade.book.base == "curits":
+                                nomin_fiat_bid_tot += trade.quantity*trade.price
+                        if trade.book.base == "havvens":
                             if trade.buyer == item[1]:
-                                cur_fiat_ask_tot += trade.quantity
+                                havven_fiat_ask_tot += trade.quantity
                             elif trade.seller == item[1]:
-                                cur_fiat_bid_tot += trade.quantity*trade.price
+                                havven_fiat_bid_tot += trade.quantity*trade.price
                     elif trade.book.quote == "nomins":
                         if trade.buyer == item[1]:
-                            nom_cur_ask_tot += trade.quantity
+                            nomin_havven_ask_tot += trade.quantity
                         elif trade.seller == item[1]:
-                            nom_cur_bid_tot += trade.quantity*trade.price
+                            nomin_havven_bid_tot += trade.quantity*trade.price
 
-                vals[4].append(float(nom_fiat_ask_tot))
-                vals[5].append(-float(nom_fiat_bid_tot))
-                vals[6].append(float(cur_fiat_ask_tot))
-                vals[7].append(-float(cur_fiat_bid_tot))
-                vals[8].append(float(nom_cur_ask_tot))
-                vals[9].append(-float(nom_cur_bid_tot))
+                vals[4].append(float(nomin_fiat_ask_tot))
+                vals[5].append(-float(nomin_fiat_bid_tot))
+                vals[6].append(float(havven_fiat_ask_tot))
+                vals[7].append(-float(havven_fiat_bid_tot))
+                vals[8].append(float(nomin_havven_ask_tot))
+                vals[9].append(-float(nomin_havven_bid_tot))
 
         except Exception:
             vals = []

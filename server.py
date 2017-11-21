@@ -30,12 +30,12 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         ]),
 
         CandleStickModule([
-            {"Label": "CuritFiatPriceData", "orderbook": "CuritFiatOrderBook",
+            {"Label": "HavvenFiatPriceData", "orderbook": "HavvenFiatOrderBook",
              "AvgColor": "rgba(255,0,0,0.6)", "VolumeColor": "rgba(255,0,0,0.3)"}  # red
         ]),
 
         CandleStickModule([
-            {"Label": "CuritNominPriceData", "orderbook": "CuritNominOrderBook",
+            {"Label": "HavvenNominPriceData", "orderbook": "HavvenNominOrderBook",
              "AvgColor": "rgba(153,50,204,0.6)", "VolumeColor": "rgba(153,50,204,0.3)"}  # darkorchid
         ]),
 
@@ -64,8 +64,8 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         PastOrdersModule([{"Label": "TotalMarketVolume"}]),
 
         ChartModule([
-            {"Label": "Curit Demand", "Color": "red"},
-            {"Label": "Curit Supply", "Color": "orange"},
+            {"Label": "Havven Demand", "Color": "red"},
+            {"Label": "Havven Supply", "Color": "orange"},
         ]),
 
         ChartModule([
@@ -80,7 +80,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
-            {"Label": "Escrowed Curits", "Color": "darkred"},
+            {"Label": "Escrowed Havvens", "Color": "darkred"},
         ]),
 
         ChartModule([
@@ -95,7 +95,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         ChartModule([
             {"Label": "Havven Nomins", "Color": "deepskyblue"},
-            {"Label": "Havven Curits", "Color": "red"},
+            {"Label": "Havven Havvens", "Color": "red"},
             {"Label": "Havven Fiat", "Color": "darkgreen"},
         ]),
 
@@ -106,9 +106,9 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
 
         OrderBookModule([{"Label": "NominFiatOrderBook"}]),
 
-        OrderBookModule([{"Label": "CuritFiatOrderBook"}]),
+        OrderBookModule([{"Label": "HavvenFiatOrderBook"}]),
 
-        OrderBookModule([{"Label": "CuritNominOrderBook"}])
+        OrderBookModule([{"Label": "HavvenNominOrderBook"}])
     ]
 
     n_slider = UserSettableParameter(
@@ -128,7 +128,7 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
         'agent_fractions', "Agent fraction selector", None
     )
 
-    server = ModularServer(threaded, model.Havven, charts, "Havven Model (Alpha)",
+    server = ModularServer(threaded, model.HavvenModel, charts, "Havven Model (Alpha)",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
                             "match_on_order": match_checkbox, 'agent_fractions': agent_fraction_selector})
     return server

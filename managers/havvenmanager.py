@@ -4,7 +4,7 @@ from decimal import Decimal as Dec
 
 class HavvenManager:
     """
-    Class to hold Havven's model variables
+    Class to hold the Havven model's variables
     """
 
     currency_precision = 8
@@ -29,14 +29,14 @@ class HavvenManager:
         self.match_on_order: bool = match_on_order
 
         # Money Supply
-        self.curit_supply: Dec = Dec('1e9')
+        self.havven_supply: Dec = Dec('1e9')
         self.nomin_supply: Dec = Dec(0)
-        self.escrowed_curits: Dec = Dec(0)
+        self.escrowed_havvens: Dec = Dec(0)
 
         # Havven's own capital supplies
-        self.curits: Dec = self.curit_supply
+        self.havvens: Dec = self.havven_supply
         self.nomins: Dec = self.nomin_supply
-        self.fiat: Dec = self.escrowed_curits
+        self.fiat: Dec = self.escrowed_havvens
 
         self.rolling_avg_time_window: int = 7
         self.volume_weighted_average: bool = False
