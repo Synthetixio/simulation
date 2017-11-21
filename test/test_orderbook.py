@@ -10,11 +10,11 @@ UID = 0
 
 
 def make_model_without_agents(match_on_order=True):
-    havven = model.HavvenModel(0, match_on_order=match_on_order)
-    for item in havven.schedule.agents:
-        havven.schedule.remove(item)
-    havven.agent_manager.agents = {"others": []}
-    return havven
+    havven_model = model.HavvenModel(0, match_on_order=match_on_order)
+    for item in havven_model.schedule.agents:
+        havven_model.schedule.remove(item)
+    havven_model.agent_manager.agents = {"others": []}
+    return havven_model
 
 
 def add_market_player(model):
@@ -42,15 +42,15 @@ TODO: change initial values that are dependant on fee (i.e. where 100.5 is hardc
 
 
 def transfer_nomins_setup(alice_initial: Dec):
-    havven = make_model_without_agents()
-    alice = add_market_player(havven)
+    havven_model = make_model_without_agents()
+    alice = add_market_player(havven_model)
     alice.nomins = alice_initial
-    bob = add_market_player(havven)
+    bob = add_market_player(havven_model)
     assert (bob.nomins == 0)
     assert (alice.nomins == alice_initial)
-    assert (len(havven.schedule.agents) == 2)
-    assert (len(havven.agent_manager.agents['others']) == 2)
-    return havven, alice, bob
+    assert (len(havven_model.schedule.agents) == 2)
+    assert (len(havven_model.agent_manager.agents['others']) == 2)
+    return havven_model, alice, bob
 
 
 def transfer_nomins_checks(initial, transfer_amt, success):
@@ -58,31 +58,31 @@ def transfer_nomins_checks(initial, transfer_amt, success):
     Alice starts with initial, tries to transfer transfer_amt
     success tells the system whether the transfer is expected to pass
     """
-    havven, alice, bob = transfer_nomins_setup(Dec(initial))
+    havven_model, alice, bob = transfer_nomins_setup(Dec(initial))
     assert (alice.nomins == Dec(initial))
     alice.transfer_nomins_to(bob, Dec(transfer_amt))
 
     # if the transfer should happen
     if success:
         # check alice's nomins manually, and using the function
-        assert (alice.nomins == Dec(initial - transfer_amt * (1 + havven.fee_manager.nomin_fee_rate)))
-        assert (alice.nomins == Dec(initial - transfer_amt - havven.fee_manager.transferred_nomins_fee(transfer_amt)))
+        assert (alice.nomins == Dec(initial - transfer_amt * (1 + havven_model.fee_manager.nomin_fee_rate)))
+        assert (alice.nomins == Dec(initial - transfer_amt - havven_model.fee_manager.transferred_nomins_fee(transfer_amt)))
         # check bob's received nomins
         assert (bob.nomins == Dec(transfer_amt))
-        assert (bob.nomins == havven.fee_manager.transferred_nomins_received(
-            transfer_amt * (1 + havven.fee_manager.nomin_fee_rate)
+        assert (bob.nomins == havven_model.fee_manager.transferred_nomins_received(
+            transfer_amt * (1 + havven_model.fee_manager.nomin_fee_rate)
         ))
         # check havven's fees
-        assert (havven.manager.nomins == transfer_amt * havven.fee_manager.nomin_fee_rate)
+        assert (havven_model.manager.nomins == transfer_amt * havven_model.fee_manager.nomin_fee_rate)
 
     # if the transfer should fail
     else:
         assert (alice.nomins == Dec(initial))
         assert (bob.nomins == 0)
-        assert (havven.manager.nomins == 0)
+        assert (havven_model.manager.nomins == 0)
 
     # return objects for additional checks if needed
-    return alice, bob, havven
+    return alice, bob, havven_model
 
 
 nomin_transfer_scenarios = [
