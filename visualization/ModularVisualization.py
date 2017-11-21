@@ -147,7 +147,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             args=(self.model_handler,)
         ).start()
         if self.application.verbose:
-            print("Socket opened!")
+            print("Socket opened:", self)
 
     def check_origin(self, origin):
         return True
@@ -180,6 +180,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         if msg["type"] == "get_steps":
             with self.resetlock:
+                # ignore old messages...
+                if msg['run_num'] != self.model_handler.current_run_num:
+                    return
                 client_current_step = msg['step']
                 client_fps = msg['fps']
                 message = self.viz_state_message
@@ -188,9 +191,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 self.write_message(message)
 
         elif msg["type"] == "reset":
-            self.current_run_num = msg["run_num"]
-            # on_message is async, so lock here as well when resetting
             with self.resetlock:
+                self.current_run_num = msg["run_num"]
                 self.model_handler.reset_model(self.current_run_num)
 
         elif msg["type"] == "submit_params":
@@ -210,6 +212,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if self.application.verbose:
                 print("Unexpected message!")
 
+    def on_close(self):
+        if self.application.verbose:
+            print("Connection closed:", self)
+        del self.model_handler
+        del self
 
 class ModelHandler:
     """

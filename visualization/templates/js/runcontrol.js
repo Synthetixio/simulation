@@ -341,7 +341,7 @@ var reset = function($e) {
     // Reset all the visualizations
     clear_graphs();
     if (!control.running) $(playPauseButton.children()[0]).text("Start");
-    send({"type": "get_steps", "step": control.data.length, "fps": 10});
+    send({"type": "get_steps", "step": control.data.length, "fps": 10, "run_num": control.run_number});
 
     return false;
 };
@@ -351,7 +351,7 @@ var single_step = function() {
     control.tick += 1;
     let fps = parseInt(fpsControl[0].value);
     if (control.tick > control.data.length - fps*2) {
-        send({"type": "get_steps", "step": control.data.length, "fps": fps});
+        send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
     }
     update_graphs();
 };
