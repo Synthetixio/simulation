@@ -12,7 +12,7 @@ class Speculator(MarketPlayer):
     A speculator who comes into the market with one of the three currencies, buys the others,
       hoping the price will go up by profit_goal percent, before the hodl_duration passes
 
-    The speculator places asks after purchasing nom/cur at purchase_price*(1+profit_goal)
+    The speculator places asks after purchasing nom/hav at purchase_price*(1+profit_goal)
     If the market price goes below loss_cutoff, or the hodl_duration passes, and the price is
       below the initial purchase price, sell
     """
