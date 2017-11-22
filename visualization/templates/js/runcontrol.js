@@ -16,6 +16,7 @@
  */
 var MesaVisualizationControl = function() {
     this.tick = -1; // Counts at which tick of the model we are.
+    this.last_sent = -1;
     this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
@@ -295,6 +296,7 @@ ws.onmessage = function(message) {
             }
 
             var data = msg["data"];
+
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
@@ -333,6 +335,7 @@ var reset = function($e) {
         $e.preventDefault();
 
     control.tick = -1;
+    control.last_sent = -1;
     control.done = false;
     control.data = [];
     control.run_number += 1;
@@ -349,7 +352,9 @@ var reset = function($e) {
 var single_step = function() {
     control.tick += 1;
     let fps = parseInt(fpsControl[0].value);
-    if (control.tick > control.data.length - fps*2) {
+
+    if (control.tick > control.data.length - fps*2 && control.last_sent !== control.data.length) {
+        control.last_sent = control.data.length;
         send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
     }
     update_graphs();
@@ -418,6 +423,8 @@ function update_graphs() {
             // its all local with mutable arrays, so its not that inefficient
             elements[i].render(step+1, to_render);
         }
+    } else {
+        control.tick = control.data.length;
     }
 }
 
