@@ -88,6 +88,16 @@ class AgentManager:
                     self.havven_model.schedule.add(buyer)
                     self.agents[item].append(buyer)
                     total_players += 1
+                elif ag.player_names[item] == ag.MarketMaker:
+                    market_maker = ag.MarketMaker(
+                        total_players,
+                        self.havven_model,
+                        fiat=HavvenManager.round_decimal(init_value*Dec(3))
+                    )
+                    self.havven_model.endow_havvens(market_maker, init_value*Dec(3))
+                    self.havven_model.schedule.add(market_maker)
+                    self.agents[item].append(market_maker)
+                    total_players += 1
 
         # central_bank = ag.CentralBank(
         #     total_players, self.havven_model, fiat=Dec(num_agents * init_value),
