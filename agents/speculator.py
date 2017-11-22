@@ -16,7 +16,7 @@ class Speculator(MarketPlayer):
     If the market price goes below loss_cutoff, or the hodl_duration passes, and the price is
       below the initial purchase price, sell
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.risk_factor = Dec(random.random()/5+0.05)
 
@@ -35,9 +35,9 @@ class Speculator(MarketPlayer):
         self.active_trade_a: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
         self.active_trade_b: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
 
-        self.change_currency(random.choice(["nomins", "curits", "fiat"]))
+        self.change_currency(random.choice(["havvens", "fiat"]))  # TODO: add nomins
 
-    def change_currency(self, currency):
+    def change_currency(self, currency) -> None:
         # remove active bids/aks
         if self.active_trade_a:
             self.active_trade_a[2].cancel()
@@ -64,7 +64,7 @@ class Speculator(MarketPlayer):
             self.place_b_function = self.place_havven_nomin_ask_with_fee
             self.sell_b_function = self.sell_havvens_for_nomins_with_fee
 
-        if self.primary_currency == "curits":
+        if self.primary_currency == "havvens":
             self.avail_primary = lambda: self.available_havvens
             self.direction_a = "bid"
             self.a_currency = lambda: self.available_nomins
@@ -92,7 +92,7 @@ class Speculator(MarketPlayer):
             self.place_b_function = self.place_havven_fiat_ask_with_fee
             self.sell_b_function = self.sell_havvens_for_fiat_with_fee
 
-    def step(self):
+    def step(self) -> None:
         if self.active_trade_a:
             if not self._check_trade_profit(*self.active_trade_a, self.direction_a):
                 order = self.active_trade_a[2]
@@ -116,7 +116,8 @@ class Speculator(MarketPlayer):
                 self.b_currency, self.direction_b, self.market_b, self.place_b_function
             )
 
-    def try_trade(self, avail_curr_func, direction, market, place_w_fee_function):
+    def try_trade(self, avail_curr_func, direction, market,
+                  place_w_fee_function) -> Optional[Tuple[Dec, int, 'ob.LimitOrder']]:
         if random.random() < self.risk_factor:
             if direction == "ask":
                 price = market.highest_bid_price()

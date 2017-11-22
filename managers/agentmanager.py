@@ -85,16 +85,22 @@ class AgentManager:
                     elif speculator.primary_currency == "nomins":
                         speculator.nomins = 0
                     elif speculator.primary_currency == "curits":
-                        self.havven_model.endow_havvens(speculator, HavvenManager.round_decimal(init_value * Dec(3)))
+                        self.havven_model.endow_havvens(
+                            speculator, HavvenManager.round_decimal(init_value * Dec(3))
+                        )
                     self.havven_model.schedule.add(speculator)
                     total_players += 1
                 elif ag.player_names[item] == ag.Merchant:
-                    merchant = ag.Merchant(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value))
+                    merchant = ag.Merchant(
+                        total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value)
+                    )
                     self.havven_model.schedule.add(merchant)
                     self.agents[item].append(merchant)
                     total_players += 1
                 elif ag.player_names[item] == ag.Buyer:
-                    buyer = ag.Buyer(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
+                    buyer = ag.Buyer(
+                        total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value*Dec(2))
+                    )
                     self.havven_model.schedule.add(buyer)
                     self.agents[item].append(buyer)
                     total_players += 1
