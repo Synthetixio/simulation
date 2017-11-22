@@ -27,12 +27,12 @@ The -v flag is for verbose, to list every individual test passing.
 
 There are three major components to this simulation:
 
-* The currency environment of Havven itself
-* A virtual exchange to go between `NOM`, `CUR`, and `USD`
+* The currency environment of Havven itself;
+* A virtual exchange to go between nomins, havvens, and fiat;
 * The agents themselves. possible future players:
     - [x] random players
     - [x] arbitrageurs
-    - [x] curit bankers
+    - [x] havven bankers
     - [x] central bankers
     - [x] merchants / consumers
     - [ ] market makers
@@ -42,11 +42,15 @@ There are three major components to this simulation:
     - [ ] attackers
 
 ## Technicals
-It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the following files:
+It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the following files and folders:
 
 * `run.py` - the main entry point for the program
 * `server.py` - the simulation and visualisation server are instantiated here
-* `model.py` - the actual ABM of Havven itself
 * `orderbook.py` - an order book class for constructing markets between the three main currencies
-* `agents.py` - economic actors who will interact with the model and the order book
-* `modelstats.py` - statistical functions for examining interesting economic properties of the Havven model
+* `model.py` - the actual ABM of Havven itself
+* `stats.py` - statistical functions for examining interesting economic properties of the Havven model
+* `managers/` - helper classes for managing the Havven model's various parts
+* `agents/` - economic actors who will interact with the model and the order book
+* `test/` - the test suite
+* `visualization/` - facilities for producing a live visualization web page
+* `experiments.ipynb` - an environment for exploring system dynamics and scenarios in a more-efficient offline fashion.

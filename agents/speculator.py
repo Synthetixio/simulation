@@ -59,24 +59,24 @@ class Speculator(MarketPlayer):
             self.sell_a_function = self.sell_fiat_for_nomins_with_fee
 
             self.direction_b = "ask"
-            self.b_currency = lambda: self.available_curits
-            self.market_b: ob.OrderBook = self.model.market_manager.curit_nomin_market
-            self.place_b_function = self.place_curit_nomin_ask_with_fee
-            self.sell_b_function = self.sell_curits_for_nomins_with_fee
+            self.b_currency = lambda: self.available_havvens
+            self.market_b: ob.OrderBook = self.model.market_manager.havven_nomin_market
+            self.place_b_function = self.place_havven_nomin_ask_with_fee
+            self.sell_b_function = self.sell_havvens_for_nomins_with_fee
 
         if self.primary_currency == "curits":
-            self.avail_primary = lambda: self.available_curits
+            self.avail_primary = lambda: self.available_havvens
             self.direction_a = "bid"
             self.a_currency = lambda: self.available_nomins
-            self.market_a: ob.OrderBook = self.model.market_manager.curit_nomin_market
-            self.place_a_function = self.place_curit_nomin_bid_with_fee
-            self.sell_a_function = self.sell_nomins_for_curits_with_fee
+            self.market_a: ob.OrderBook = self.model.market_manager.havven_nomin_market
+            self.place_a_function = self.place_havven_nomin_bid_with_fee
+            self.sell_a_function = self.sell_nomins_for_havvens_with_fee
 
             self.direction_b = "bid"
             self.b_currency = lambda: self.available_fiat
-            self.market_b: ob.OrderBook = self.model.market_manager.curit_fiat_market
-            self.place_b_function = self.place_curit_fiat_bid_with_fee
-            self.sell_b_function = self.sell_fiat_for_curits_with_fee
+            self.market_b: ob.OrderBook = self.model.market_manager.havven_fiat_market
+            self.place_b_function = self.place_havven_fiat_bid_with_fee
+            self.sell_b_function = self.sell_fiat_for_havvens_with_fee
 
         if self.primary_currency == "fiat":
             self.avail_primary = lambda: self.available_fiat
@@ -87,10 +87,10 @@ class Speculator(MarketPlayer):
             self.sell_a_function = self.sell_nomins_for_fiat_with_fee
 
             self.direction_b = "ask"
-            self.b_currency = lambda: self.available_curits
-            self.market_b: ob.OrderBook = self.model.market_manager.curit_fiat_market
-            self.place_b_function = self.place_curit_fiat_ask_with_fee
-            self.sell_b_function = self.sell_curits_for_fiat_with_fee
+            self.b_currency = lambda: self.available_havvens
+            self.market_b: ob.OrderBook = self.model.market_manager.havven_fiat_market
+            self.place_b_function = self.place_havven_fiat_ask_with_fee
+            self.sell_b_function = self.sell_havvens_for_fiat_with_fee
 
     def step(self):
         if self.active_trade_a:

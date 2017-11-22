@@ -29,10 +29,9 @@ class NominShorter(MarketPlayer):
     """The rate below which the player will buy nomins"""
 
     def step(self) -> None:
-        # get rid of curits, as that isn't the point of this player
-        if self.available_curits:
-            self.escrow_curits(self.available_curits)
-            self.issue_nomins(self.max_issuance_rights())
+        # get rid of havvens, as that isn't the point of this player
+        if self.available_havvens:
+            self.sell_havvens_for_nomins(self.available_havvens)
 
         if self.available_nomins > 0:
             trade = self._find_best_nom_fiat_trade()
@@ -93,24 +92,24 @@ class NominShorter(MarketPlayer):
         return self.place_nomin_fiat_bid(trade_price_quant[1], trade_price_quant[0])
 
 
-class CuritEscrowNominShorter(NominShorter):
+class HavvenEscrowNominShorter(NominShorter):
     """
-    Escrows curits for nomins when the rate of nom->fiat is favourable
+    Escrows havvens for nomins when the rate of nom->fiat is favourable
     then waits for market to stabilise, trusting that nomin price will go back
     to 1
 
-    curits-(issue)->nomins->fiat(and wait)->nomin-(burn)->curits+extra nomins
+    havvens-(issue)->nomins->fiat(and wait)->nomin-(burn)->havvens+extra nomins
 
     This should profit on the issuing and burning mechanics (if they scale
     with the price), the nomin/fiat trade and accruing fees
 
-    In the end this player should hold escrowed curits and nomins left over that he
+    In the end this player should hold escrowed havvens and nomins left over that he
     can't burn
     """
     def step(self) -> None:
-        # keep all curits escrowed to make issuing nomins easier
-        if self.available_curits > 0:
-            self.escrow_curits(self.available_curits)
+        # keep all havvens escrowed to make issuing nomins easier
+        if self.available_havvens > 0:
+            self.escrow_havvens(self.available_havvens)
 
         nomins = self.available_nomins + self.remaining_issuance_rights()
 

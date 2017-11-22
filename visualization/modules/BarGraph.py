@@ -5,7 +5,7 @@ from typing import List, Tuple, Dict
 from mesa.datacollection import DataCollector
 from visualization.VisualizationElement import VisualizationElement
 
-from model import Havven
+from model import HavvenModel
 
 
 class BarGraphModule(VisualizationElement):
@@ -27,7 +27,7 @@ class BarGraphModule(VisualizationElement):
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",{width},{height}));"""
 
-    def render(self, model: Havven) -> List[Tuple[str, float]]:
+    def render(self, model: HavvenModel) -> List[Tuple[str, float]]:
         """
         return the data to be sent to the websocket to be rendered on the page
         """
