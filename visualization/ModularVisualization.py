@@ -134,6 +134,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.resetlock = threading.Lock()
         self.step = 0
         self.current_run_num = 0
+        self.last_run_num = 0
 
     def open(self):
         """
@@ -160,19 +161,23 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         Get the data from the model_handler from step to step+fps*2
         """
-        with self.model_handler.data_lock:
-            if fps is None:
-                self.model_handler.max_calc_step = min(
-                    step + self.application.calculation_buffer,
-                    self.application.max_steps
-                )
-                data = copy.deepcopy(self.model_handler.data[step:])
-            else:
-                self.model_handler.max_calc_step = min(
-                    step + max(self.application.calculation_buffer, fps * 2),
-                    self.application.max_steps
-                )
-                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+        data = []
+        while len(data) < 2:
+            with self.model_handler.data_lock:
+                if fps is None:
+                    self.model_handler.max_calc_step = min(
+                        step + self.application.calculation_buffer,
+                        self.application.max_steps
+                    )
+                    data = copy.deepcopy(self.model_handler.data[step:])
+
+                else:
+                    self.model_handler.max_calc_step = min(
+                        step + max(self.application.calculation_buffer, fps * 2),
+                        self.application.max_steps
+                    )
+                    data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+
         return data
 
     def on_message(self, message):
