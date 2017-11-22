@@ -29,7 +29,7 @@ class Speculator(MarketPlayer):
         self.loss_cutoff = Dec(random.random()/80 + 0.01)
         """At what point does the speculator get rid of a trade"""
 
-        self.investment_fraction = Dec(random.random()/10 + 0.1)
+        self.investment_fraction = Dec(random.random()/10 + 0.4)
         """How much wealth does the speculator throw into a trade"""
 
         self.active_trade_a: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
