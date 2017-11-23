@@ -150,10 +150,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             copy.deepcopy(self.application.visualization_elements)
         )
         self.model_handler.reset_model(self.current_run_num)
-        self.model_run_thread = threading.Thread(
-            target=self.model_handler.run_model,
-            args=(self.model_handler,)
-        ).start()
+        if self.application.threaded:
+            self.model_run_thread = threading.Thread(
+                target=self.model_handler.run_model,
+                args=(self.model_handler,)
+            ).start()
         if self.application.verbose:
             print("Socket opened:", self)
 
@@ -193,14 +194,23 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 # ignore old messages...
                 if msg['run_num'] != self.model_handler.current_run_num:
                     return
-                client_current_step = msg['step']
-                client_fps = msg['fps']
-                data = self.collect_data_from_step(client_current_step, client_fps)
-                message = {
-                    "type": "viz_state",
-                    "data": data,
-                    "run_num":  self.model_handler.current_run_num
-                }
+                if self.model_handler.threaded:
+                    client_current_step = msg['step']
+                    client_fps = msg['fps']
+                    data = self.collect_data_from_step(client_current_step, client_fps)
+                    message = {
+                        "type": "viz_state",
+                        "data": data,
+                        "run_num":  self.model_handler.current_run_num
+                    }
+                else:
+                    self.model_handler.step()
+                    message = {
+                        "type": "viz_state",
+                        "data": [self.model_handler.data[-1]],
+                        "run_num": self.model_handler.current_run_num
+                    }
+
                 self.write_message(message)
 
         elif msg["type"] == "reset":

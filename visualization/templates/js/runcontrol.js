@@ -20,7 +20,7 @@ var MesaVisualizationControl = function() {
     this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
-    this.fps = 3; // Frames per second
+    this.fps = 10; // Frames per second
     this.data = []
 };
 
@@ -39,11 +39,11 @@ var playPauseButton = $('#play-pause');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 var fpsControl = $('#fps').slider({
-    max: 6,
+    max: 20,
     min: 1,
-    value: 3,
-    ticks: [1, 6],
-    ticks_labels: [1, 6],
+    value: 6,
+    ticks: [1, 20],
+    ticks_labels: [1, 20],
     ticks_position: [0, 100]
 });
 
@@ -411,21 +411,21 @@ playPauseButton.on('click', run);
 stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
-
+var last_length = -1;
 function update_graphs() {
-    console.log(control.data.length);
+
     if (control.tick < control.data.length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j=0; j<=control.tick; j++) {
+            for (let j = 0; j < control.tick; j++) {
                 to_render.push(control.data[j][i])
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step+1, to_render);
+            elements[i].render(step + 1, to_render);
         }
     } else {
-        control.tick = control.data.length;
+        control.tick -= 1;
     }
 }
 
