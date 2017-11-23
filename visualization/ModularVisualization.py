@@ -163,7 +163,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         Get the data from the model_handler from step to step+fps*2
         """
         data = []
-        while len(data) < 2:
+        while len(data) < 1:
             time.sleep(0.01)
             if fps is None:
                 self.model_handler.max_calc_step = min(
