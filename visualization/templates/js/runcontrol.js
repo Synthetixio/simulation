@@ -413,6 +413,7 @@ resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
 
 function update_graphs() {
+    console.log(control.data.length);
     if (control.tick < control.data.length) {
         for (var i in elements) {
             let to_render = [];

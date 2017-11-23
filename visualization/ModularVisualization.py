@@ -163,21 +163,20 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         data = []
         while len(data) < 2:
-            with self.model_handler.data_lock:
-                if fps is None:
-                    self.model_handler.max_calc_step = min(
-                        step + self.application.calculation_buffer,
-                        self.application.max_steps
-                    )
-                    data = self.model_handler.data[step:]
-
-                else:
-                    self.model_handler.max_calc_step = min(
-                        step + max(self.application.calculation_buffer, fps * 10),
-                        self.application.max_steps
-                    )
-                    data = self.model_handler.data[step:(step+fps*5)]
-
+            time.sleep(0.01)
+            if fps is None:
+                self.model_handler.max_calc_step = min(
+                    step + self.application.calculation_buffer,
+                    self.application.max_steps
+                )
+                data = self.model_handler.data[step:]
+            else:
+                self.model_handler.max_calc_step = min(
+                    step + max(self.application.calculation_buffer, fps * 10),
+                    self.application.max_steps
+                )
+                data = self.model_handler.data[step:]
+        print([i[0] for i in data])
         return data
 
     def on_message(self, message):
@@ -196,9 +195,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     return
                 client_current_step = msg['step']
                 client_fps = msg['fps']
+                data = self.collect_data_from_step(client_current_step, client_fps)
                 message = {
                     "type": "viz_state",
-                    "data": self.collect_data_from_step(client_current_step, client_fps),
+                    "data": data,
                     "run_num":  self.model_handler.current_run_num
                 }
                 self.write_message(message)
@@ -250,6 +250,7 @@ class ModelHandler:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
         self.resetting = False
+        self.current_step = 0
         self.max_calc_step = 10
 
         self.running = True
@@ -264,6 +265,7 @@ class ModelHandler:
             self.create_model()
         self.current_run_num = run_num
         self.resetting = False
+        self.current_step = 0
 
     def create_model(self):
         """Create a new model, with changed parameters"""
@@ -286,12 +288,12 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        with self.data_lock:
-            self.data.append(copy.deepcopy((self.model.manager.time, visualization_state)))
+        self.data.append((self.current_step, visualization_state))
 
     def step(self):
         self.model.step()
         self.render_model()
+        self.current_step += 1
 
     def set_model_kwargs(self, key, val):
         self.model_kwargs[key] = val
@@ -309,17 +311,9 @@ class ModelHandler:
                 while len(model_handler.data) > model_handler.max_calc_step:
                     time.sleep(0.02)
 
-                start = time.time()
-
-                with model_handler.lock:
+                with model_handler.data_lock:
                     model_handler.step()
 
-
-                end = time.time()
-                # if calculated faster than 20 step/sec allow it some time to sleep
-                # TODO: base this on max_fps, i.e. 6
-                if end - start < (1.0/20):
-                    time.sleep(end-start)
 
         except Exception as e:
             print("==========-ERROR-==========")
