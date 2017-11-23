@@ -169,14 +169,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         step + self.application.calculation_buffer,
                         self.application.max_steps
                     )
-                    data = copy.deepcopy(self.model_handler.data[step:])
+                    data = self.model_handler.data[step:]
 
                 else:
                     self.model_handler.max_calc_step = min(
-                        step + max(self.application.calculation_buffer, fps * 2),
+                        step + max(self.application.calculation_buffer, fps * 10),
                         self.application.max_steps
                     )
-                    data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+                    data = self.model_handler.data[step:(step+fps*5)]
 
         return data
 
@@ -303,11 +303,11 @@ class ModelHandler:
                 # allow the model to reset if it hasn't already
                 # TODO: does this cause the lag?
                 while model_handler.resetting:
-                    time.sleep(0.05)
+                    time.sleep(0.02)
                 # slow it down significantly if the data isn't being used
                 # higher value causes lag when the page is first created
                 while len(model_handler.data) > model_handler.max_calc_step:
-                    time.sleep(0.1)
+                    time.sleep(0.02)
 
                 start = time.time()
 
