@@ -369,7 +369,7 @@ class ModularServer(tornado.web.Application):
         self.model_name = name
         self.model_cls = model_cls
         self.model_params = model_params
-        self.max_steps = 20
+        self.max_steps = 1500
         self.calculation_buffer = 16
 
         self.description = ""
