@@ -143,8 +143,8 @@ class MarketMaker(MarketPlayer):
                 ask_price = (start_price + gradient*self.bet_length)*(2-self.bet_margin)
                 bid_price = start_price*self.bet_margin
             elif gradient < Dec(0.0025):
-                ask_price = start_price*self.bet_margin
-                bid_price = (start_price + gradient*self.bet_length)*(2-self.bet_margin)
+                ask_price = start_price*(2-self.bet_margin)
+                bid_price = (start_price + gradient*self.bet_length)*self.bet_margin
             else:
                 return
             bid = self.place_bid_func(
@@ -183,11 +183,11 @@ class MarketMaker(MarketPlayer):
             price = start_price + gradient * time_in_effect
 
         if self.trade_market == self.nomin_fiat_market:
-            return self.place_nomin_fiat_bid_with_fee(self.available_fiat*self.bet_percentage, price)
+            return self.place_nomin_fiat_bid_with_fee(self.available_fiat*self.bet_percentage/price, price)
         elif self.trade_market == self.havven_fiat_market:
-            return self.place_havven_fiat_bid_with_fee(self.available_fiat*self.bet_percentage, price)
+            return self.place_havven_fiat_bid_with_fee(self.available_fiat*self.bet_percentage/price, price)
         elif self.trade_market == self.havven_nomin_market:
-            return self.place_havven_nomin_bid_with_fee(self.available_havvens*self.bet_percentage, price)
+            return self.place_havven_nomin_bid_with_fee(self.available_havvens*self.bet_percentage/price, price)
 
     def place_ask_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Ask":
         if gradient < 0:
@@ -200,7 +200,7 @@ class MarketMaker(MarketPlayer):
         if self.trade_market == self.nomin_fiat_market:
             return self.place_nomin_fiat_ask_with_fee(self.available_nomins*self.bet_percentage, price)
         elif self.trade_market == self.havven_fiat_market:
-            return self.place_havven_fiat_ask_with_fee(self.available_nomins*self.bet_percentage, price)
+            return self.place_havven_fiat_ask_with_fee(self.available_havvens*self.bet_percentage, price)
         elif self.trade_market == self.havven_nomin_market:
             return self.place_havven_nomin_ask_with_fee(self.available_nomins*self.bet_percentage, price)
 
@@ -210,4 +210,4 @@ class MarketMaker(MarketPlayer):
         """
         if len(trade_market.price_data) < 2:
             return None
-        return trade_market.price_data[-1] - trade_market.price_data[-2]
+        return (trade_market.price_data[-1] - trade_market.price_data[-2])/2

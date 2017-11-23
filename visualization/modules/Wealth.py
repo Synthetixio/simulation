@@ -128,17 +128,17 @@ class CurrentOrderModule(BarGraphModule):
                             if type(order) == Ask:
                                 nomin_fiat_ask_tot += order.quantity
                             if type(order) == Bid:
-                                nomin_fiat_bid_tot += order.quantity*order.price
+                                nomin_fiat_bid_tot += order.quantity
                         if order.book.base == "havvens":
                             if type(order) == Ask:
                                 havven_fiat_ask_tot += order.quantity
                             if type(order) == Bid:
-                                havven_fiat_bid_tot += order.quantity*order.price
+                                havven_fiat_bid_tot += order.quantity
                     elif order.book.quote == "nomins":
                         if type(order) == Ask:
                             nomin_havven_ask_tot += order.quantity
                         if type(order) == Bid:
-                            nomin_havven_bid_tot += order.quantity*order.price
+                            nomin_havven_bid_tot += order.quantity
 
                 vals[4].append(float(nomin_fiat_ask_tot))
                 vals[5].append(-float(nomin_fiat_bid_tot))
@@ -188,17 +188,17 @@ class PastOrdersModule(BarGraphModule):
                             if trade.buyer == item[1]:
                                 nomin_fiat_ask_tot += trade.quantity
                             elif trade.seller == item[1]:
-                                nomin_fiat_bid_tot += trade.quantity*trade.price
+                                nomin_fiat_bid_tot += trade.quantity
                         if trade.book.base == "havvens":
                             if trade.buyer == item[1]:
                                 havven_fiat_ask_tot += trade.quantity
                             elif trade.seller == item[1]:
-                                havven_fiat_bid_tot += trade.quantity*trade.price
+                                havven_fiat_bid_tot += trade.quantity
                     elif trade.book.quote == "nomins":
                         if trade.buyer == item[1]:
                             nomin_havven_ask_tot += trade.quantity
                         elif trade.seller == item[1]:
-                            nomin_havven_bid_tot += trade.quantity*trade.price
+                            nomin_havven_bid_tot += trade.quantity
 
                 vals[4].append(float(nomin_fiat_ask_tot))
                 vals[5].append(-float(nomin_fiat_bid_tot))
