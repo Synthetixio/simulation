@@ -177,7 +177,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     self.application.max_steps
                 )
                 data = self.model_handler.data[step:]
-        print([i[0] for i in data])
         return data
 
     def on_message(self, message):
