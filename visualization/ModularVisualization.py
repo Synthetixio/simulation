@@ -161,8 +161,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         Get the data from the model_handler from step to step+fps*2
         """
-        if step > self.application.max_steps:
-            return None
         data = []
         while len(data) < 2:
             with self.model_handler.data_lock:
@@ -197,15 +195,15 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 if msg['run_num'] != self.model_handler.current_run_num:
                     return
                 client_current_step = msg['step']
-                client_fps = msg['fps']
-                message = {
-                    "type": "viz_state",
-                    "data": self.collect_data_from_step(client_current_step, client_fps),
-                    "run_num":  self.model_handler.current_run_num
-                }
-                if message['data'] is None:
+                if client_current_step > self.application.max_steps:
                     self.write_message({"type": "end"})
                 else:
+                    client_fps = msg['fps']
+                    message = {
+                        "type": "viz_state",
+                        "data": self.collect_data_from_step(client_current_step, client_fps),
+                        "run_num":  self.model_handler.current_run_num
+                    }
                     self.write_message(message)
 
         elif msg["type"] == "reset":
@@ -371,7 +369,7 @@ class ModularServer(tornado.web.Application):
         self.model_name = name
         self.model_cls = model_cls
         self.model_params = model_params
-        self.max_steps = 1500
+        self.max_steps = 20
         self.calculation_buffer = 16
 
         self.description = ""

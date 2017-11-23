@@ -307,10 +307,8 @@ ws.onmessage = function(message) {
             break;
         case "end":
             // We have reached the end of the model
-            control.running = false;
             control.done = true;
             console.log("Done!");
-            clearInterval(player);
             $(playPauseButton.children()[0]).text("Done");
             break;
         case "model_params":
@@ -342,7 +340,11 @@ var reset = function($e) {
     send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
-    if (!control.running) $(playPauseButton.children()[0]).text("Start");
+    if (!control.running) {
+        $(playPauseButton.children()[0]).text("Start");
+    } else {
+        $(playPauseButton.children()[0]).text("Stop");
+    }
     send({"type": "get_steps", "step": control.data.length, "fps": 10, "run_num": control.run_number});
 
     return false;
@@ -355,7 +357,7 @@ var single_step = function() {
 
     if (control.tick > control.data.length - fps*2 && control.last_sent !== control.data.length) {
         control.last_sent = control.data.length;
-        send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
+        if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
     }
     update_graphs();
 };
