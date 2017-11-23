@@ -161,6 +161,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         Get the data from the model_handler from step to step+fps*2
         """
+        if step > self.application.max_steps:
+            return None
         data = []
         while len(data) < 2:
             with self.model_handler.data_lock:
@@ -201,7 +203,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     "data": self.collect_data_from_step(client_current_step, client_fps),
                     "run_num":  self.model_handler.current_run_num
                 }
-                self.write_message(message)
+                if message['data'] is None:
+                    self.write_message({"type": "end"})
+                else:
+                    self.write_message(message)
 
         elif msg["type"] == "reset":
             # message format: {'type':'reset', 'run_num':int}
