@@ -50,7 +50,7 @@ class MarketMaker(MarketPlayer):
 
     TODO: ensure profitability (calculate fees)
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.last_bet_end = random.randint(-20, 10)
         '''How long since the last market maker's "bet"'''
@@ -86,6 +86,10 @@ class MarketMaker(MarketPlayer):
         self.trade_market = self.havven_fiat_market
 
         self.current_bet: Optional[Dict[str, Any[str, int, Dec, 'ob.LimitOrder']]] = None
+
+    def setup(self, init_value):
+        self.fiat = init_value*Dec(3)
+        self.model.manager.endow_havvens(self, init_value*Dec(3))
 
     def step(self):
         # TODO: make it check what it needs more of the two options to sell into
