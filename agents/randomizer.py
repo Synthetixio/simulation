@@ -37,12 +37,12 @@ class Randomizer(MarketPlayer):
         for order in condemned:
             order.cancel()
 
-        while len(self.orders) < self.max_orders:
+        if len(self.orders) < self.max_orders:
             action = random.choice([self._havven_fiat_bid_, self._havven_fiat_ask_,
                                     self._nomin_fiat_bid_, self._nomin_fiat_ask_,
                                     self._havven_nomin_bid_, self._havven_nomin_ask_])
             if action() is None:
-                break
+                return
 
     def _havven_fiat_bid_(self) -> "ob.Bid":
         price = self.havven_fiat_market.price
