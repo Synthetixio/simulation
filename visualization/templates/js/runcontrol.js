@@ -20,7 +20,7 @@ var MesaVisualizationControl = function() {
     this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
-    this.fps = 10; // Frames per second
+    this.fps = 3; // Frames per second
     this.data = []
 };
 
@@ -39,11 +39,11 @@ var playPauseButton = $('#play-pause');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 var fpsControl = $('#fps').slider({
-    max: 20,
+    max: 6,
     min: 1,
-    value: 6,
-    ticks: [1, 20],
-    ticks_labels: [1, 20],
+    value: 3,
+    ticks: [1, 6],
+    ticks_labels: [1, 6],
     ticks_position: [0, 100]
 });
 
