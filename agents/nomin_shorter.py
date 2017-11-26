@@ -28,6 +28,9 @@ class NominShorter(MarketPlayer):
     _nomin_buy_rate_threshold = Dec('1.01')
     """The rate below which the player will buy nomins"""
 
+    def setup(self, init_value: Dec):
+        self.nomins = init_value * Dec(2)
+
     def step(self) -> None:
         # get rid of havvens, as that isn't the point of this player
         if self.available_havvens:
@@ -106,6 +109,9 @@ class HavvenEscrowNominShorter(NominShorter):
     In the end this player should hold escrowed havvens and nomins left over that he
     can't burn
     """
+    def setup(self, init_value: Dec):
+        self.havvens = init_value * Dec(3)
+
     def step(self) -> None:
         # keep all havvens escrowed to make issuing nomins easier
         if self.available_havvens > 0:

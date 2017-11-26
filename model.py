@@ -26,7 +26,8 @@ class HavvenModel(Model):
     def __init__(self, num_agents: int, init_value: float = 1000.0,
                  utilisation_ratio_max: float = 1.0,
                  match_on_order: bool = True,
-                 agent_fractions: Optional[Dict[str, int]] = None) -> None:
+                 agent_fractions: Optional[Dict[str, int]] = None,
+                 test_mode: bool = False) -> None:
         # Mesa setup.
 
         super().__init__()
@@ -54,7 +55,8 @@ class HavvenModel(Model):
             }
 
         self.agent_manager = AgentManager(self, num_agents,
-                                          agent_fractions, Dec(init_value))
+                                          agent_fractions, Dec(init_value),
+                                          test_mode=test_mode)
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:

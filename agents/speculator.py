@@ -37,6 +37,16 @@ class Speculator(MarketPlayer):
 
         self.change_currency(random.choice(["havvens", "fiat"]))  # TODO: add nomins
 
+    def setup(self, init_value):
+        if self.primary_currency == "fiat":
+            self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
+        elif self.primary_currency == "nomins":
+            self.nomins = 0
+        elif self.primary_currency == "curits":
+            self.model.endow_havvens(
+                self, self.model.manager.round_decimal(init_value * Dec(3))
+            )
+
     def change_currency(self, currency) -> None:
         # remove active bids/aks
         if self.active_trade_a:

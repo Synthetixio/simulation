@@ -44,6 +44,13 @@ class MarketPlayer(Agent):
     def __str__(self) -> str:
         return self.name
 
+    def setup(self, initial_value: Dec):
+        """
+        A function that defines how to give the Player wealth based
+        on the same initial value for everyone
+        """
+        pass
+
     @property
     def havven_fiat_market(self) -> "ob.OrderBook":
         """The havven-fiat market this player trades on."""

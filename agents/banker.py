@@ -1,6 +1,7 @@
 from typing import Optional
 from decimal import Decimal as Dec
 import random
+from scipy.stats import skewnorm
 
 import orderbook as ob
 from managers import HavvenManager as hm
@@ -17,6 +18,10 @@ class Banker(MarketPlayer):
         self.rate: Dec = hm.round_decimal(Dec(random.random() * 0.05))
         # step when initialised so nomins appear on the market.
         self.step()
+
+    def setup(self, init_value: Dec):
+        endowment = hm.round_decimal(Dec(skewnorm.rvs(100)) * init_value)
+        self.fiat = endowment
 
     def step(self) -> None:
         if hm.round_decimal(self.available_fiat) > 0:

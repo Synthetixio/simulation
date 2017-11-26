@@ -13,7 +13,7 @@ class Randomizer(MarketPlayer):
 
     def __init__(self, unique_id: int, havven_model: "model.HavvenModel",
                  fiat: Dec = Dec(0),
-                 havvens: Dec = Dec(0.0),
+                 havvens: Dec = Dec(0),
                  nomins: Dec = Dec(0),
                  variance: Dec = Dec(0.02),
                  order_lifetime: int = 30,
@@ -27,6 +27,10 @@ class Randomizer(MarketPlayer):
 
         self.max_orders = max_orders
         """Don't submit more than this number of orders."""
+
+    def setup(self, init_value: Dec):
+        self.fiat = init_value
+        self.model.endow_havvens(self, Dec(3) * init_value)
 
     def step(self) -> None:
         # Cancel expired orders

@@ -7,6 +7,11 @@ from managers import HavvenManager as hm
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
+    def setup(self, init_value: Dec):
+        self.model.endow_havvens(
+            self, self.model.manager.round_decimal(init_value / Dec(2))
+        )
+        self.fiat = self.model.manager.round_decimal(init_value / Dec(2))
 
     def step(self) -> None:
         """Find an exploitable arbitrage cycle."""
