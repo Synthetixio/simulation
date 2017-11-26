@@ -15,9 +15,16 @@ class AgentManager:
                  num_agents: int,
                  agent_fractions: Dict[str, float],
                  init_value: Dec,
-                 test_mode: bool = False) -> None:
+                 agent_minimum: int = 1) -> None:
+        """
+        :param havven_model: a reference to the sim itself.
+        :param num_agents: the number of agents to include in this simulation (plus or minus a handful).
+        :param agent_fractions: the vector which sets the proportions of each agent in the model. Will be normalised.
+        :param init_value: the initial value from which to calculate agent endowments.
+        :param agent_minimum: the minimum number of each type of agent to include in the simulation. 1 by default.
+        """
 
-        # A reference to the havven sim itself.
+        # A reference to the Havven sim itself.
         self.havven_model = havven_model
 
         # Lists of each type of agent.
@@ -25,36 +32,35 @@ class AgentManager:
             name: [] for name in ag.player_names
         }
         self.agents["others"] = []
-        if test_mode:
-            return
-        else:
-            # Normalise the fractions of the population each agent occupies.
-            total_value = sum(agent_fractions.values())
-            result = {}
-            if total_value > 0:
-                for name in ag.player_names:
-                    if name in agent_fractions:
-                        result[name] = agent_fractions[name]/total_value
-                        # always have a merchant
 
-            agent_fractions = result
+        # Normalise the fractions of the population each agent occupies.
+        total_value = sum(agent_fractions.values())
+        normalised_fractions = {}
+        if total_value > 0:
+            for name in ag.player_names:
+                if name in agent_fractions:
+                    normalised_fractions[name] = agent_fractions[name]/total_value
+        agent_fractions = normalised_fractions
 
-            # create each agent with custom
-            total_players = 0
-            for item in result:
-                total = max(1, int(num_agents*agent_fractions[item]) if item in agent_fractions else 0)
-                for i in range(total):
-                    agent = ag.player_names[item](total_players, self.havven_model)
-                    agent.setup(init_value)
-                    self.havven_model.schedule.add(agent)
-                    self.agents[item].append(agent)
-                    total_players += 1
+        # Create the agents themselves.
+        running_player_total = 0
+        for agent_type in agent_fractions:
+            total = max(agent_minimum, int(num_agents*agent_fractions[agent_type])
+                                           if agent_type in agent_fractions else 0)
 
-            #self._add_central_bank(total_players, num_agents, init_value)
+            for i in range(total):
+                agent = ag.player_names[agent_type](running_player_total, self.havven_model)
+                agent.setup(init_value)
+                self.havven_model.schedule.add(agent)
+                self.agents[agent_type].append(agent)
+                running_player_total += 1
 
-            # Now that each agent has its initial endowment, make them remember it.
-            for agent in self.havven_model.schedule.agents:
-                agent.reset_initial_wealth()
+        # Add a central stabilisation bank
+        # self._add_central_bank(running_player_total, num_agents, init_value)
+
+        # Now that each agent has its initial endowment, make them remember it.
+        for agent in self.havven_model.schedule.agents:
+            agent.reset_initial_wealth()
 
     def add(self, agent):
         self.havven_model.schedule.add(agent)
