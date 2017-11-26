@@ -50,14 +50,7 @@ class AgentManager:
                     self.agents[item].append(agent)
                     total_players += 1
 
-            # central_bank = ag.CentralBank(
-            #     total_players, self.havven_model, fiat=Dec(num_agents * init_value),
-            #     nomin_target=Dec('1.0')
-            # )
-            # self.havven_model.endow_havvens(central_bank,
-            #                          Dec(num_agents * init_value))
-            # self.havven_model.schedule.add(central_bank)
-            # self.agents["others"].append(central_bank)
+            #self._add_central_bank(total_players, num_agents, init_value)
 
             # Now that each agent has its initial endowment, make them remember it.
             for agent in self.havven_model.schedule.agents:
@@ -71,3 +64,13 @@ class AgentManager:
                 return
         else:
             self.agents['others'].append(agent)
+
+    def _add_central_bank(self, unique_id, num_agents, init_value):
+        central_bank = ag.CentralBank(
+            unique_id, self.havven_model, fiat=Dec(num_agents * init_value),
+            nomin_target=Dec('1.0')
+        )
+        self.havven_model.endow_havvens(central_bank,
+                                 Dec(num_agents * init_value))
+        self.havven_model.schedule.add(central_bank)
+        self.agents["others"].append(central_bank)
