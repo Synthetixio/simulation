@@ -10,7 +10,7 @@ UID = 0
 
 
 def make_model_without_agents(match_on_order=True):
-    havven_model = model.HavvenModel(0, match_on_order=match_on_order, test_mode=True)
+    havven_model = model.HavvenModel(0, match_on_order=match_on_order, agent_fractions={}, agent_minimum=0)
     for item in havven_model.schedule.agents:
         havven_model.schedule.remove(item)
     havven_model.agent_manager.agents = {"others": []}
