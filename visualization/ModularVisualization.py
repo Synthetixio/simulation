@@ -193,8 +193,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 # ignore old messages...
                 if msg['run_num'] != self.model_handler.current_run_num:
                     return
-                if self.model_handler.threaded:
-                    client_current_step = msg['step']
+                client_current_step = msg['step']
+                if client_current_step > self.application.max_steps:
+                    message = {"type": "end"}
+                elif self.model_handler.threaded:
                     client_fps = msg['fps']
                     data = self.collect_data_from_step(client_current_step, client_fps)
                     message = {
@@ -203,13 +205,13 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         "run_num":  self.model_handler.current_run_num
                     }
                 else:
+
                     self.model_handler.step()
                     message = {
                         "type": "viz_state",
                         "data": [self.model_handler.data[-1]],
                         "run_num": self.model_handler.current_run_num
                     }
-
                 self.write_message(message)
 
         elif msg["type"] == "reset":
