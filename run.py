@@ -2,7 +2,6 @@
 from mesa.visualization.ModularVisualization import ModularServer
 import server
 
-# currently, threaded bool isn't used, it is always threaded...
-S: ModularServer = server.make_server(threaded=True)
+S: ModularServer = server.make_server(threaded=False)
 S.port = 3000
 S.launch()

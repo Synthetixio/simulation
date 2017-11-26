@@ -134,6 +134,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.resetlock = threading.Lock()
         self.step = 0
         self.current_run_num = 0
+        self.last_run_num = 0
 
     def open(self):
         """
@@ -149,10 +150,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             copy.deepcopy(self.application.visualization_elements)
         )
         self.model_handler.reset_model(self.current_run_num)
-        self.model_run_thread = threading.Thread(
-            target=self.model_handler.run_model,
-            args=(self.model_handler,)
-        ).start()
+        if self.application.threaded:
+            self.model_run_thread = threading.Thread(
+                target=self.model_handler.run_model,
+                args=(self.model_handler,)
+            ).start()
         if self.application.verbose:
             print("Socket opened:", self)
 
@@ -160,19 +162,21 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         Get the data from the model_handler from step to step+fps*2
         """
-        with self.model_handler.data_lock:
+        data = []
+        while len(data) < 1:
+            time.sleep(0.01)
             if fps is None:
                 self.model_handler.max_calc_step = min(
                     step + self.application.calculation_buffer,
                     self.application.max_steps
                 )
-                data = copy.deepcopy(self.model_handler.data[step:])
+                data = self.model_handler.data[step:]
             else:
                 self.model_handler.max_calc_step = min(
-                    step + max(self.application.calculation_buffer, fps * 2),
+                    step + max(self.application.calculation_buffer, fps * 10),
                     self.application.max_steps
                 )
-                data = copy.deepcopy(self.model_handler.data[step:(step+fps*2)])
+                data = self.model_handler.data[step:]
         return data
 
     def on_message(self, message):
@@ -190,12 +194,24 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 if msg['run_num'] != self.model_handler.current_run_num:
                     return
                 client_current_step = msg['step']
-                client_fps = msg['fps']
-                message = {
-                    "type": "viz_state",
-                    "data": self.collect_data_from_step(client_current_step, client_fps),
-                    "run_num":  self.model_handler.current_run_num
-                }
+                if client_current_step > self.application.max_steps:
+                    message = {"type": "end"}
+                elif self.model_handler.threaded:
+                    client_fps = msg['fps']
+                    data = self.collect_data_from_step(client_current_step, client_fps)
+                    message = {
+                        "type": "viz_state",
+                        "data": data,
+                        "run_num":  self.model_handler.current_run_num
+                    }
+                else:
+
+                    self.model_handler.step()
+                    message = {
+                        "type": "viz_state",
+                        "data": [self.model_handler.data[-1]],
+                        "run_num": self.model_handler.current_run_num
+                    }
                 self.write_message(message)
 
         elif msg["type"] == "reset":
@@ -245,6 +261,7 @@ class ModelHandler:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
         self.resetting = False
+        self.current_step = 0
         self.max_calc_step = 10
 
         self.running = True
@@ -259,6 +276,7 @@ class ModelHandler:
             self.create_model()
         self.current_run_num = run_num
         self.resetting = False
+        self.current_step = 0
 
     def create_model(self):
         """Create a new model, with changed parameters"""
@@ -281,12 +299,12 @@ class ModelHandler:
         for element in self.visualization_elements:
             element_state = element.render(self.model)
             visualization_state.append(element_state)
-        with self.data_lock:
-            self.data.append(copy.deepcopy((self.model.manager.time, visualization_state)))
+        self.data.append((self.current_step, visualization_state))
 
     def step(self):
         self.model.step()
         self.render_model()
+        self.current_step += 1
 
     def set_model_kwargs(self, key, val):
         self.model_kwargs[key] = val
@@ -298,23 +316,15 @@ class ModelHandler:
                 # allow the model to reset if it hasn't already
                 # TODO: does this cause the lag?
                 while model_handler.resetting:
-                    time.sleep(0.05)
+                    time.sleep(0.02)
                 # slow it down significantly if the data isn't being used
                 # higher value causes lag when the page is first created
                 while len(model_handler.data) > model_handler.max_calc_step:
-                    time.sleep(0.1)
+                    time.sleep(0.02)
 
-                start = time.time()
-
-                with model_handler.lock:
+                with model_handler.data_lock:
                     model_handler.step()
 
-
-                end = time.time()
-                # if calculated faster than 20 step/sec allow it some time to sleep
-                # TODO: base this on max_fps, i.e. 6
-                if end - start < (1.0/20):
-                    time.sleep(end-start)
 
         except Exception as e:
             print("==========-ERROR-==========")
