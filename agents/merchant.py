@@ -40,7 +40,7 @@ class Merchant(MarketPlayer):
         # Set up this merchant's inventory of items, their stocks, and their prices.
         self.inventory: Dict[str, Dict[str, Dec]] = {
             # name: price(nomins), stock_price(fiat), current_stock, stock_goal
-            str(i): {'price': Dec(random.random() * 20), 'stock_price': Dec(1),
+            str(i): {'price': Dec(random.random() * 20)+1, 'stock_price': Dec(1),
                      'current_stock': Dec(100), 'stock_goal': Dec(100)}
             for i in range(1, random.randint(4, 6))
         }
@@ -52,6 +52,9 @@ class Merchant(MarketPlayer):
 
         self.restock_tick_rate: int = random.randint(20, 30)
         """Time between inventory restocking. Randomised to prevent all merchants restocking at once."""
+
+    def setup(self, init_value: Dec):
+        self.fiat = init_value
 
     def step(self) -> None:
         self.last_restock += 1
@@ -102,6 +105,9 @@ class Buyer(MarketPlayer):
 
         self.mpc = (self.max_mpc - self.min_mpc) * random.random() + self.min_mpc
         """This agent's marginal propensity to consume."""
+
+    def setup(self, init_value: Dec):
+        self.fiat = init_value
 
     def step(self) -> None:
         # Earn some dough.

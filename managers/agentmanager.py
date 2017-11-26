@@ -1,8 +1,6 @@
 from typing import Dict, List
 from decimal import Decimal as Dec
 
-from scipy.stats import skewnorm
-
 import agents as ag
 
 from .havvenmanager import HavvenManager
@@ -16,8 +14,17 @@ class AgentManager:
                  havven_model: "model.HavvenModel",
                  num_agents: int,
                  agent_fractions: Dict[str, float],
-                 init_value: Dec) -> None:
-        # A reference to the havven sim itself.
+                 init_value: Dec,
+                 agent_minimum: int = 1) -> None:
+        """
+        :param havven_model: a reference to the sim itself.
+        :param num_agents: the number of agents to include in this simulation (plus or minus a handful).
+        :param agent_fractions: the vector which sets the proportions of each agent in the model. Will be normalised.
+        :param init_value: the initial value from which to calculate agent endowments.
+        :param agent_minimum: the minimum number of each type of agent to include in the simulation. 1 by default.
+        """
+
+        # A reference to the Havven sim itself.
         self.havven_model = havven_model
 
         # Lists of each type of agent.
@@ -28,75 +35,28 @@ class AgentManager:
 
         # Normalise the fractions of the population each agent occupies.
         total_value = sum(agent_fractions.values())
-        result = {}
+        normalised_fractions = {}
         if total_value > 0:
             for name in ag.player_names:
                 if name in agent_fractions:
-                    result[name] = agent_fractions[name]/total_value
-                    # always have a merchant
+                    normalised_fractions[name] = agent_fractions[name]/total_value
+        agent_fractions = normalised_fractions
 
-        agent_fractions = result
+        # Create the agents themselves.
+        running_player_total = 0
+        for agent_type in agent_fractions:
+            total = max(agent_minimum, int(num_agents*agent_fractions[agent_type])
+                                           if agent_type in agent_fractions else 0)
 
-        # create each agent with custom
-        total_players = 0
-        for item in result:
-            total = max(1, int(num_agents*agent_fractions[item]) if item in agent_fractions else 0)
-            if item == 'Merchant' and total == 0:
-                total = 1
             for i in range(total):
-                if ag.player_names[item] == ag.Banker:
-                    endowment = HavvenManager.round_decimal(Dec(skewnorm.rvs(100)) * init_value)
-                    banker = ag.Banker(total_players, self.havven_model, fiat=endowment)
-                    self.havven_model.schedule.add(banker)
-                    self.agents[item].append(banker)
-                    total_players += 1
-                elif ag.player_names[item] == ag.Randomizer:
-                    randomizer = ag.Randomizer(total_players, self.havven_model, fiat=init_value)
-                    self.havven_model.endow_havvens(randomizer, Dec(3) * init_value)
-                    self.havven_model.schedule.add(randomizer)
-                    self.agents[item].append(randomizer)
-                    total_players += 1
-                elif ag.player_names[item] == ag.Arbitrageur:
-                    arbitrageur = ag.Arbitrageur(total_players, self.havven_model,
-                                                 fiat=HavvenManager.round_decimal(init_value / Dec(2)))
-                    self.havven_model.endow_havvens(arbitrageur,
-                                             HavvenManager.round_decimal(init_value / Dec(2)))
-                    self.havven_model.schedule.add(arbitrageur)
-                    self.agents[item].append(arbitrageur)
-                    total_players += 1
-                elif ag.player_names[item] == ag.NominShorter:
-                    nomin_shorter = ag.NominShorter(total_players, self.havven_model,
-                                                    nomins=HavvenManager.round_decimal(init_value * Dec(2)))
-                    self.havven_model.schedule.add(nomin_shorter)
-                    self.agents[item].append(nomin_shorter)
-                    total_players += 1
-                elif ag.player_names[item] == ag.HavvenEscrowNominShorter:
-                    escrow_nomin_shorter = ag.HavvenEscrowNominShorter(
-                        total_players, self.havven_model,
-                        havvens=HavvenManager.round_decimal(init_value * Dec(2))
-                    )
-                    self.havven_model.schedule.add(escrow_nomin_shorter)
-                    self.agents[item].append(escrow_nomin_shorter)
-                    total_players += 1
-                elif ag.player_names[item] == ag.Merchant:
-                    merchant = ag.Merchant(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value))
-                    self.havven_model.schedule.add(merchant)
-                    self.agents[item].append(merchant)
-                    total_players += 1
-                elif ag.player_names[item] == ag.Buyer:
-                    buyer = ag.Buyer(total_players, self.havven_model, fiat=HavvenManager.round_decimal(init_value*Dec(2)))
-                    self.havven_model.schedule.add(buyer)
-                    self.agents[item].append(buyer)
-                    total_players += 1
+                agent = ag.player_names[agent_type](running_player_total, self.havven_model)
+                agent.setup(init_value)
+                self.havven_model.schedule.add(agent)
+                self.agents[agent_type].append(agent)
+                running_player_total += 1
 
-        # central_bank = ag.CentralBank(
-        #     total_players, self.havven_model, fiat=Dec(num_agents * init_value),
-        #     nomin_target=Dec('1.0')
-        # )
-        # self.havven_model.endow_havvens(central_bank,
-        #                          Dec(num_agents * init_value))
-        # self.havven_model.schedule.add(central_bank)
-        # self.agents["others"].append(central_bank)
+        # Add a central stabilisation bank
+        # self._add_central_bank(running_player_total, num_agents, init_value)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven_model.schedule.agents:
@@ -110,3 +70,13 @@ class AgentManager:
                 return
         else:
             self.agents['others'].append(agent)
+
+    def _add_central_bank(self, unique_id, num_agents, init_value):
+        central_bank = ag.CentralBank(
+            unique_id, self.havven_model, fiat=Dec(num_agents * init_value),
+            nomin_target=Dec('1.0')
+        )
+        self.havven_model.endow_havvens(central_bank,
+                                 Dec(num_agents * init_value))
+        self.havven_model.schedule.add(central_bank)
+        self.agents["others"].append(central_bank)
