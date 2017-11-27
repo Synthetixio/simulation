@@ -21,10 +21,10 @@ class Arbitrageur(MarketPlayer):
         # if there is an arbitrage opportunity, taking into account
         # the fee rates.
 
-        if self._forward_multiple_() <= 1 and self._reverse_multiple_() <= 1:
+        if self._forward_multiple() <= 1 and self._reverse_multiple() <= 1:
             return
 
-        if self._forward_multiple_() > 1:
+        if self._forward_multiple() > 1:
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # hav -> fiat -> nom -> hav
@@ -75,7 +75,7 @@ class Arbitrageur(MarketPlayer):
             else:
             """
 
-        elif self._reverse_multiple_() > 1:
+        elif self._reverse_multiple() > 1:
             # Trade in the reverse direction
             # hav -> nom -> fiat -> hav
             fc_price = hm.round_decimal(Dec('1.0') / self.model.market_manager.havven_fiat_market.lowest_ask_price())
@@ -95,13 +95,13 @@ class Arbitrageur(MarketPlayer):
             f_qty = min(self.available_fiat, hm.round_decimal(fc_qty * fc_price))
             self.sell_nomins_for_havvens(n_qty)
 
-    def _cycle_fee_rate_(self) -> Dec:
+    def _cycle_fee_rate(self) -> Dec:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
         return hm.round_decimal((Dec(1) + self.model.fee_manager.nomin_fee_rate) * \
                                 (Dec(1) + self.model.fee_manager.havven_fee_rate) * \
                                 (Dec(1) + self.model.fee_manager.fiat_fee_rate))
 
-    def _forward_multiple_no_fees_(self) -> Dec:
+    def _forward_multiple_no_fees(self) -> Dec:
         """
         The value multiple after one forward arbitrage cycle, neglecting fees.
         """
@@ -110,7 +110,7 @@ class Arbitrageur(MarketPlayer):
                                 (self.nomin_fiat_market.lowest_ask_price() *
                                  self.havven_nomin_market.lowest_ask_price()))
 
-    def _reverse_multiple_no_fees_(self) -> Dec:
+    def _reverse_multiple_no_fees(self) -> Dec:
         """
         The value multiple after one reverse arbitrage cycle, neglecting fees.
         """
@@ -119,15 +119,15 @@ class Arbitrageur(MarketPlayer):
                                  self.nomin_fiat_market.highest_bid_price()) / \
                                 self.havven_fiat_market.lowest_ask_price())
 
-    def _forward_multiple_(self) -> Dec:
+    def _forward_multiple(self) -> Dec:
         """The return after one forward arbitrage cycle."""
         # Note, this only works because the fees are purely multiplicative.
-        return hm.round_decimal(self._forward_multiple_no_fees_() / self._cycle_fee_rate_())
+        return hm.round_decimal(self._forward_multiple_no_fees() / self._cycle_fee_rate())
 
-    def _reverse_multiple_(self) -> Dec:
+    def _reverse_multiple(self) -> Dec:
         """The return after one reverse arbitrage cycle."""
         # As above. If the fees were not just levied as percentages this would need to be updated.
-        return hm.round_decimal(self._reverse_multiple_no_fees_() / self._cycle_fee_rate_())
+        return hm.round_decimal(self._reverse_multiple_no_fees() / self._cycle_fee_rate())
 
-    def _equalise_tokens_(self) -> None:
+    def _equalise_tokens(self) -> None:
         pass

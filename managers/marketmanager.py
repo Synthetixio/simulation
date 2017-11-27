@@ -41,7 +41,7 @@ class MarketManager:
             self.model_manager.match_on_order
         )
 
-    def __bid_ask_match__(
+    def __bid_ask_match(
             self, bid: "ob.Bid", ask: "ob.Ask",
             bid_success: Callable[["ag.MarketPlayer", Dec, Dec], bool],
             ask_success: Callable[["ag.MarketPlayer", Dec, Dec], bool],
@@ -101,11 +101,11 @@ class MarketManager:
         Buyer offers nomins in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
-        return self.__bid_ask_match__(bid, ask,
-                                      self.transfer_nomins_success,
-                                      self.transfer_havvens_success,
-                                      self.transfer_nomins,
-                                      self.transfer_havvens)
+        return self.__bid_ask_match(bid, ask,
+                                    self.transfer_nomins_success,
+                                    self.transfer_havvens_success,
+                                    self.transfer_nomins,
+                                    self.transfer_havvens)
 
     def havven_fiat_match(self, bid: "ob.Bid",
                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
@@ -113,11 +113,11 @@ class MarketManager:
         Buyer offers fiat in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
-        return self.__bid_ask_match__(bid, ask,
-                                      self.transfer_fiat_success,
-                                      self.transfer_havvens_success,
-                                      self.transfer_fiat,
-                                      self.transfer_havvens)
+        return self.__bid_ask_match(bid, ask,
+                                    self.transfer_fiat_success,
+                                    self.transfer_havvens_success,
+                                    self.transfer_fiat,
+                                    self.transfer_havvens)
 
     def nomin_fiat_match(self, bid: "ob.Bid",
                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
@@ -125,11 +125,11 @@ class MarketManager:
         Buyer offers fiat in exchange for nomins from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
         """
-        return self.__bid_ask_match__(bid, ask,
-                                      self.transfer_fiat_success,
-                                      self.transfer_nomins_success,
-                                      self.transfer_fiat,
-                                      self.transfer_nomins)
+        return self.__bid_ask_match(bid, ask,
+                                    self.transfer_fiat_success,
+                                    self.transfer_nomins_success,
+                                    self.transfer_fiat,
+                                    self.transfer_nomins)
 
     def transfer_fiat_success(self, sender: "ag.MarketPlayer",
                               quantity: Dec, fee: Dec) -> bool:
