@@ -12,7 +12,7 @@ from visualization.VisualizationElement import VisualizationElement
 import model
 
 
-def make_server(n_agents: int = 50, ur: float = 0.2,
+def make_server(n_agents: int = 50, ur: float = 0.5,
                 cont_orders: bool = True, threaded=True) -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.

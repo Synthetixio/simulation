@@ -10,18 +10,18 @@ import orderbook as ob
 class Speculator(MarketPlayer):
     """
     A speculator who comes into the market with one of the three currencies, buys the others,
-      hoping the price will go up by profit_goal percent, before the hodl_duration passes
+      hoping the price will go up by profit_goal percent, before the hold_duration passes
 
     The speculator places asks after purchasing nom/hav at purchase_price*(1+profit_goal)
-    If the market price goes below loss_cutoff, or the hodl_duration passes, and the price is
+    If the market price goes below loss_cutoff, or the hold_duration passes, and the price is
       below the initial purchase price, sell
     """
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.risk_factor = Dec(random.random()/5+0.05)
 
-        self.hodl_duration = Dec(random.randint(20, 30))
-        """How long a speculator wants to hold onto a trade"""
+        self.hold_duration = Dec(random.randint(20, 30))
+        """How long a speculator wants to hodl onto a trade"""
 
         self.profit_goal = Dec(random.random()/50 + 0.008)
         """How much a speculator wants to profit on any trade"""
@@ -35,14 +35,14 @@ class Speculator(MarketPlayer):
         self.active_trade_a: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
         self.active_trade_b: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
 
-        self.change_currency(random.choice(["havvens", "fiat"]))  # TODO: add nomins
+        self.change_currency(random.choice(["havvens", "fiat", "nomins"]))
 
     def setup(self, init_value):
         if self.primary_currency == "fiat":
             self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
         elif self.primary_currency == "nomins":
-            self.nomins = 0
-        elif self.primary_currency == "curits":
+            self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
+        elif self.primary_currency == "havvens":
             self.model.endow_havvens(
                 self, self.model.manager.round_decimal(init_value * Dec(3))
             )
@@ -103,12 +103,20 @@ class Speculator(MarketPlayer):
             self.sell_b_function = self.sell_havvens_for_fiat_with_fee
 
     def step(self) -> None:
+
         if self.active_trade_a:
             if not self._check_trade_profit(*self.active_trade_a, self.direction_a):
                 order = self.active_trade_a[2]
                 order.cancel()
                 self.sell_a_function(self.a_currency())
                 self.active_trade_a = None
+        else:
+            if self.a_currency() > 0:
+                self.sell_a_function(self.a_currency())
+
+            self.active_trade_a = self.try_trade(
+                self.a_currency, self.direction_a, self.market_a, self.place_a_function
+            )
 
         if self.active_trade_b:
             if not self._check_trade_profit(*self.active_trade_b, self.direction_b):
@@ -116,12 +124,10 @@ class Speculator(MarketPlayer):
                 order.cancel()
                 self.sell_b_function(self.b_currency())
                 self.active_trade_b = None
+        else:
+            if self.b_currency() > 0:
+                self.sell_b_function(self.b_currency())
 
-        if self.active_trade_a is None:
-            self.active_trade_a = self.try_trade(
-                self.a_currency, self.direction_a, self.market_a, self.place_a_function
-            )
-        if self.active_trade_b is None:
             self.active_trade_b = self.try_trade(
                 self.b_currency, self.direction_b, self.market_b, self.place_b_function
             )
@@ -172,6 +178,7 @@ class Speculator(MarketPlayer):
 
             if current_price > initial_price * (1 + self.profit_goal) and len(ask.book.bids) > 0:
                 # the order should've been filled, i.e. it shouldn't be active
+                print(initial_price, current_price, order, direction)
                 raise Exception("order should've been filled")
 
             # the current trade is going down, get out
@@ -179,7 +186,7 @@ class Speculator(MarketPlayer):
                 return False
 
             # if the price is lower than the initial buy, and has been holding for longer than the duration
-            if current_price < initial_price and time_bought + self.hodl_duration <= self.model.manager.time:
+            if current_price < initial_price and time_bought + self.hold_duration <= self.model.manager.time:
                 return False
 
             # otherwise do nothing
@@ -191,7 +198,9 @@ class Speculator(MarketPlayer):
 
             current_price = bid.book.lowest_ask_price()
 
-            if current_price < initial_price * (1 - self.profit_goal) and len(bid.book.bids) > 0:
+            if current_price < initial_price * (1 - self.profit_goal) and len(bid.book.asks) > 0:
+                print(initial_price, current_price, order, direction)
+
                 # the order should've been filled, i.e. it shouldn't be active
                 raise Exception("order should've been filled")
 
@@ -200,7 +209,7 @@ class Speculator(MarketPlayer):
                 return False
 
             # if the price is lower than the initial buy, and has been holding for longer than the duration
-            if current_price > initial_price and time_bought + self.hodl_duration <= self.model.manager.time:
+            if current_price > initial_price and time_bought + self.hold_duration <= self.model.manager.time:
                 return False
 
             # otherwise do nothing

@@ -335,8 +335,7 @@ class MarketPlayer(Agent):
                                            self.model.market_manager.nomin_fiat_market,
                                            quantity)
 
-    def sell_nomins_for_fiat_with_fee(self, quantity: Dec,
-                                      discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_nomins_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of nomins (including fee) to buy fiat.
         """

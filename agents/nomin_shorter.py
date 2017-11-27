@@ -29,7 +29,8 @@ class NominShorter(MarketPlayer):
     """The rate below which the player will buy nomins"""
 
     def setup(self, init_value: Dec):
-        self.nomins = init_value * Dec(2)
+        self.nomins = init_value
+        self.fiat = init_value
 
     def step(self) -> None:
         # get rid of havvens, as that isn't the point of this player
@@ -110,7 +111,8 @@ class HavvenEscrowNominShorter(NominShorter):
     can't burn
     """
     def setup(self, init_value: Dec):
-        self.havvens = init_value * Dec(3)
+        self.havvens = init_value * Dec(2)
+        self.fiat = init_value
 
     def step(self) -> None:
         # keep all havvens escrowed to make issuing nomins easier
