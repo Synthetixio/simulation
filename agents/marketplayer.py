@@ -241,43 +241,37 @@ class MarketPlayer(Agent):
         """
         Sell a quantity of nomins to buy havvens.
         """
-        return self._sell_quoted(self.model.market_manager.havven_nomin_market,
-                                 quantity)
+        return self._sell_quoted(self.havven_nomin_market, quantity)
 
     def sell_havvens_for_nomins(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of havvens to buy nomins.
         """
-        return self._sell_base(self.model.market_manager.havven_nomin_market,
-                               quantity)
+        return self._sell_base(self.havven_nomin_market, quantity)
 
     def sell_fiat_for_havvens(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat to buy havvens.
         """
-        return self._sell_quoted(self.model.market_manager.havven_fiat_market,
-                                 quantity)
+        return self._sell_quoted(self.havven_fiat_market, quantity)
 
     def sell_havvens_for_fiat(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of havvens to buy fiat.
         """
-        return self._sell_base(self.model.market_manager.havven_fiat_market,
-                               quantity)
+        return self._sell_base(self.havven_fiat_market, quantity)
 
     def sell_fiat_for_nomins(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat to buy nomins.
         """
-        return self._sell_quoted(self.model.market_manager.nomin_fiat_market,
-                                 quantity)
+        return self._sell_quoted(self.nomin_fiat_market, quantity)
 
     def sell_nomins_for_fiat(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of nomins to buy fiat.
         """
-        return self._sell_base(self.model.market_manager.nomin_fiat_market,
-                               quantity)
+        return self._sell_base(self.nomin_fiat_market, quantity)
 
     def _sell_quoted_with_fee(self, received_qty_fn: Callable[[Dec], Dec],
                               book: "ob.OrderBook", quantity: Dec) -> "ob.Bid":
@@ -301,49 +295,42 @@ class MarketPlayer(Agent):
         Sell a quantity of nomins (including fee) to buy havvens.
         """
         return self._sell_quoted_with_fee(self.model.fee_manager.transferred_nomins_received,
-                                          self.model.market_manager.havven_nomin_market,
-                                          quantity)
+                                          self.havven_nomin_market, quantity)
 
     def sell_havvens_for_nomins_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of havvens (including fee) to buy nomins.
         """
         return self._sell_base_with_fee(self.model.fee_manager.transferred_havvens_received,
-                                        self.model.market_manager.havven_nomin_market,
-                                        quantity)
+                                        self.havven_nomin_market, quantity)
 
     def sell_fiat_for_havvens_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy havvens.
         """
         return self._sell_quoted_with_fee(self.model.fee_manager.transferred_fiat_received,
-                                          self.model.market_manager.havven_fiat_market,
-                                          quantity)
+                                          self.havven_fiat_market, quantity)
 
     def sell_havvens_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of havvens (including fee) to buy fiat.
         """
         return self._sell_base_with_fee(self.model.fee_manager.transferred_havvens_received,
-                                        self.model.market_manager.havven_fiat_market,
-                                        quantity)
+                                        self.havven_fiat_market, quantity)
 
     def sell_fiat_for_nomins_with_fee(self, quantity: Dec) -> "ob.Bid":
         """
         Sell a quantity of fiat (including fee) to buy nomins.
         """
         return self._sell_quoted_with_fee(self.model.fee_manager.transferred_fiat_received,
-                                          self.model.market_manager.nomin_fiat_market,
-                                          quantity)
+                                          self.nomin_fiat_market, quantity)
 
-    def sell_nomins_for_fiat_with_fee(self, quantity: Dec,
-                                      discount: Dec = Dec('0')) -> "ob.Ask":
+    def sell_nomins_for_fiat_with_fee(self, quantity: Dec) -> "ob.Ask":
         """
         Sell a quantity of nomins (including fee) to buy fiat.
         """
         return self._sell_base_with_fee(self.model.fee_manager.transferred_nomins_received,
-                                        self.model.market_manager.nomin_fiat_market,
-                                        quantity)
+                                        self.nomin_fiat_market, quantity)
 
     def place_havven_fiat_bid(self, quantity: Dec, price: Dec) -> "ob.Bid":
         """

@@ -28,12 +28,12 @@ class Arbitrageur(MarketPlayer):
             # Trade in the forward direction
             # TODO: work out which rotation of this cycle would be the least wasteful
             # hav -> fiat -> nom -> hav
-            fn_price = Dec('1.0') / self.model.market_manager.nomin_fiat_market.lowest_ask_price()
-            nc_price = Dec('1.0') / self.model.market_manager.havven_nomin_market.lowest_ask_price()
+            fn_price = Dec('1.0') / self.nomin_fiat_market.lowest_ask_price()
+            nc_price = Dec('1.0') / self.havven_nomin_market.lowest_ask_price()
 
-            cf_qty = Dec(sum(b.quantity for b in self.model.market_manager.havven_fiat_market.highest_bids()))
-            fn_qty = Dec(sum(a.quantity for a in self.model.market_manager.nomin_fiat_market.lowest_asks()))
-            nc_qty = Dec(sum(a.quantity for a in self.model.market_manager.havven_nomin_market.lowest_asks()))
+            cf_qty = Dec(sum(b.quantity for b in self.havven_fiat_market.highest_bids()))
+            fn_qty = Dec(sum(a.quantity for a in self.nomin_fiat_market.lowest_asks()))
+            nc_qty = Dec(sum(a.quantity for a in self.havven_nomin_market.lowest_asks()))
             
             # hav_val = self.model.fiat_value(havvens=self.available_havvens)
             # nom_val = self.model.fiat_value(nomins=self.available_nomins)
@@ -78,13 +78,13 @@ class Arbitrageur(MarketPlayer):
         elif self._reverse_multiple() > 1:
             # Trade in the reverse direction
             # hav -> nom -> fiat -> hav
-            fc_price = hm.round_decimal(Dec('1.0') / self.model.market_manager.havven_fiat_market.lowest_ask_price())
+            fc_price = hm.round_decimal(Dec('1.0') / self.havven_fiat_market.lowest_ask_price())
 
             # These seemingly-redundant Dec constructors are necessary because if these lists are empty,
             # the sum returns 0 as an integer.
-            cn_qty = Dec(sum(b.quantity for b in self.model.market_manager.havven_nomin_market.highest_bids()))
-            nf_qty = Dec(sum(b.quantity for b in self.model.market_manager.nomin_fiat_market.highest_bids()))
-            fc_qty = Dec(sum(a.quantity for a in self.model.market_manager.havven_fiat_market.lowest_asks()))
+            cn_qty = Dec(sum(b.quantity for b in self.havven_nomin_market.highest_bids()))
+            nf_qty = Dec(sum(b.quantity for b in self.nomin_fiat_market.highest_bids()))
+            fc_qty = Dec(sum(a.quantity for a in self.havven_fiat_market.lowest_asks()))
 
             c_qty = min(self.available_havvens, cn_qty)
             self.sell_havvens_for_nomins(c_qty)
