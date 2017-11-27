@@ -177,7 +177,7 @@ class OrderBook:
 
         # Define the currency pair held by this book.
         self.base: str = base
-        self.quote: str = quote
+        self.quoted: str = quote
 
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
@@ -221,7 +221,7 @@ class OrderBook:
         """
         Return this market's name.
         """
-        return f"{self.base}/{self.quote}"
+        return f"{self.base}/{self.quoted}"
 
     @property
     def price(self) -> Dec:
@@ -357,7 +357,7 @@ class OrderBook:
 
         # Fail if the value of the order exceeds the agent's available supply
         agent.round_values()
-        if agent.__getattribute__(f"available_{self.quote}") < HavvenManager.round_decimal(price*quantity) + fee:
+        if agent.__getattribute__(f"available_{self.quoted}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
         bid = Bid(price, quantity, fee, agent, self)
@@ -491,7 +491,7 @@ class OrderBook:
             return
 
         # Update the issuer's unavailable quote value.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += bid.quantity * bid.price + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quoted}"] += bid.quantity * bid.price + bid.fee
 
         # Add to the issuer and book's records
         bid.issuer.orders.append(bid)
@@ -538,7 +538,7 @@ class OrderBook:
 
         # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] += \
+        bid.issuer.__dict__[f"unavailable_{self.quoted}"] += \
             (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
             (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
 
@@ -580,7 +580,7 @@ class OrderBook:
             return
 
         # Free up tokens occupied by this bid.
-        bid.issuer.__dict__[f"unavailable_{self.quote}"] -= bid.quantity * bid.price + bid.fee
+        bid.issuer.__dict__[f"unavailable_{self.quoted}"] -= bid.quantity * bid.price + bid.fee
 
         # Remove this order's remaining quantity from its price bucket
         self._bid_bucket_deduct(bid.price, bid.quantity)
