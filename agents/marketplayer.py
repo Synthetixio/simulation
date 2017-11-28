@@ -44,7 +44,7 @@ class MarketPlayer(Agent):
     def __str__(self) -> str:
         return self.name
 
-    def setup(self, initial_value: Dec):
+    def setup(self, initial_value: Dec) -> None:
         """
         A function that defines how to give the Player wealth based
         on the same initial value for everyone
@@ -433,7 +433,10 @@ class MarketPlayer(Agent):
         """
         return self.model.manager.round_decimal(self.nomins - self.unavailable_nomins)
 
-    def round_values(self):
+    def round_values(self) -> None:
+        """
+        Apply rounding to this player's nomin, fiat, havven values.
+        """
         self.nomins = hm.round_decimal(self.nomins)
         self.fiat = hm.round_decimal(self.fiat)
         self.havvens = hm.round_decimal(self.havvens)
