@@ -39,6 +39,10 @@ class Speculator(MarketPlayer):
         self.primary_currency = random.choice(["havvens", "fiat", "nomins"])
         self.set_avail_primary()
 
+    @property
+    def name(self):
+        return f"{self.__class__.__name__} {self.unique_id} ({self.primary_currency})"
+
     def set_avail_primary(self):
         if self.primary_currency == "havvens":
             self.avail_primary = lambda: self.available_havvens
@@ -47,7 +51,7 @@ class Speculator(MarketPlayer):
         elif self.primary_currency == "nomins":
             self.avail_primary = lambda: self.available_nomins
         else:
-            raise Exception(f"primary curr:{self.primary_currency} isn't in [havvens, fiat, nomins]")
+            raise Exception(f"primarycurr:{self.primary_currency} isn't in [havvens, fiat, nomins]")
 
     def setup(self, init_value):
         if self.primary_currency == "fiat":
@@ -165,42 +169,54 @@ class HavvenSpeculator(Speculator):
         # give an equal chance to short/long havvens
         if self.primary_currency == "havvens":
             self.secondary_currency = random.choice(["fiat", "nomins"])
+            self.direction = "bid"
             if self.secondary_currency == "fiat":
-                pass
+                self.market = self.havven_fiat_market
+                self.avail_secondary = lambda: self.available_fiat
+                self.place_function = self.place_havven_fiat_bid_with_fee
+                self.sell_function = self.sell_fiat_for_havvens_with_fee
             else:  # secondary: nomins
-                pass
+                self.market = self.havven_nomin_market
+                self.avail_secondary = lambda: self.available_nomins
+                self.place_function = self.place_nomin_fiat_bid_with_fee
+                self.sell_function = self.sell_nomins_for_havvens_with_fee
 
         elif self.primary_currency == "fiat":
             self.secondary_currency = "havvens"
-        elif self.primary_currency == "nomins":
+            self.avail_secondary = lambda: self.available_havvens
+            self.market = self.havven_fiat_market
+            self.direction = "ask"
+            self.place_function = self.place_havven_fiat_ask_with_fee
+            self.sell_function = self.sell_havvens_for_fiat_with_fee
+
+        else:  # primary: nomins
             self.secondary_currency = "havvens"
+            self.avail_secondary = lambda: self.available_havvens
+            self.market = self.havven_nomin_market
+            self.direction = "ask"
+            self.place_function = self.place_havven_nomin_ask_with_fee
+            self.sell_function = self.sell_havvens_for_nomins_with_fee
+
         self.set_avail_primary()
         self.active_trade: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
 
     def step(self):
-        # short havvens
-        if self.primary_currency == "havvens":
-            if self.active_trade:
-                pass
-            else:
-                if self.available_nomins > 0:
-                    self.sell_nomins_for_havvens_with_fee(self.available_nomins)
-                if self.available_fiat > 0:
-                    self.sell_fiat_for_havvens_with_fee(self.available_fiat)
+        if self.primary_currency == "nomins":
+            if self.available_fiat > 0:
+                self.sell_fiat_for_nomins_with_fee(self.available_fiat)
 
-                if self.secondary_currency == "nomins":
-                    self.active_trade = self.try_trade(
-
-                    )
-
-        # long havvens
+        if self.active_trade:
+            if not self._check_trade_profit(*self.active_trade, self.direction):
+                self.active_trade[2].cancel()
+                self.sell_function(self.avail_secondary())
+                self.active_trade = None
         else:
-            direction = "ask"
-            if self.active_trade:
-                pass
-            else:
-                pass
+            if self.avail_secondary() > 0:
+                self.sell_function(self.avail_secondary())
 
+            self.active_trade = self.try_trade(
+                self.avail_secondary, self.direction, self.market, self.place_function
+            )
 
 
 class NaiveSpeculator(Speculator):
@@ -272,7 +288,6 @@ class NaiveSpeculator(Speculator):
             self.sell_b_function = self.sell_havvens_for_fiat_with_fee
 
     def step(self) -> None:
-
         if self.active_trade_a:
             if not self._check_trade_profit(*self.active_trade_a, self.direction_a):
                 order = self.active_trade_a[2]
