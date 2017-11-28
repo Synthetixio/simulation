@@ -168,26 +168,30 @@ class OrderBook:
     This one is generic, but there will have to be a market for each currency pair.
     """
 
-    def __init__(self, model_manager: "HavvenManager", base: str, quote: str,
-                 matcher: Matcher, bid_fee_fn: Callable[[Dec], Dec],
-                 ask_fee_fn: Callable[[Dec], Dec],
+    def __init__(self, model_manager: "HavvenManager",
+                 base: str, quote: str,
+                 matcher: Matcher,
+                 quoted_fee_fn: Callable[[Dec], Dec],
+                 base_fee_fn: Callable[[Dec], Dec],
+                 quoted_qty_received_fn: Callable[[Dec], Dec],
+                 base_qty_received_fn: Callable[[Dec], Dec],
                  match_on_order: bool = True) -> None:
         # hold onto the model to be able to access variables
         self.model_manager = model_manager
 
         # Define the currency pair held by this book.
-        self.base: str = base
-        self.quoted: str = quote
+        self.base = base
+        self.quoted = quote
 
         # Buys and sells should be ordered, by price first, then date.
         # Bids are ordered highest-first
-        self.bids: SortedListWithKey = SortedListWithKey(key=Bid.comparator)
+        self.bids = SortedListWithKey(key=Bid.comparator)
         # Asks are ordered lowest-first
-        self.asks: SortedListWithKey = SortedListWithKey(key=Ask.comparator)
+        self.asks = SortedListWithKey(key=Ask.comparator)
 
         # These dicts store the quantities demanded or supplied at each price.
-        self.bid_price_buckets: SortedDict = SortedDict(lambda x: -x)
-        self.ask_price_buckets: SortedDict = SortedDict(lambda x: x)
+        self.bid_price_buckets = SortedDict(lambda x: -x)
+        self.ask_price_buckets = SortedDict(lambda x: x)
 
         self.cached_price: Dec = Dec('1.0')
         self.last_cached_price_time: int = 0
@@ -199,11 +203,13 @@ class OrderBook:
         # which transfers buy_val of the buyer's good to the seller,
         # which transfers sell_val of the seller's good to the buyer,
         # and which returns True iff the transfer succeeded.
-        self.matcher: Matcher = matcher
+        self.matcher = matcher
 
         # Fees will be calculated with the following functions.
-        self._bid_fee_fn: Callable[[Dec], Dec] = bid_fee_fn
-        self._ask_fee_fn: Callable[[Dec], Dec] = ask_fee_fn
+        self._quoted_fee_fn = quoted_fee_fn
+        self._base_fee_fn = base_fee_fn
+        self._quoted_qty_received_fn = quoted_qty_received_fn
+        self._base_qty_received_fn = base_qty_received_fn
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
@@ -335,25 +341,37 @@ class OrderBook:
         else:
             self.ask_price_buckets[price] -= quantity
 
-    def _bid_fee(self, price: Dec, quantity: Dec) -> Dec:
+    def buyer_fee(self, price: Dec, quantity: Dec) -> Dec:
         """
-        Return the fee paid on the quoted end for a bid
+        Return the fee paid on the quoted end (by the buyer) for a bid
         of the given quantity and price.
         """
-        return self._bid_fee_fn(HavvenManager.round_decimal(price * quantity))
+        return self._quoted_fee_fn(HavvenManager.round_decimal(price * quantity))
 
-    def _ask_fee(self, price: Dec, quantity: Dec) -> Dec:
+    def seller_fee(self, price: Dec, quantity: Dec) -> Dec:
         """
-        Return the fee paid on the base end for an ask
+        Return the fee paid on the base end (by the seller) for an ask
         of the given quantity and price.
         """
-        return self._ask_fee_fn(quantity)
+        return self._base_fee_fn(quantity)
+
+    def seller_received_quantity(self, price: Dec, quantity: Dec) -> Dec:
+        """
+        The quantity of the quoted currency received by a seller (fees deducted).
+        """
+        return self._quoted_qty_received_fn_(price * quantity)
+
+    def buyer_received_quantity(self, price: Dec, quantity: Dec) -> Dec:
+        """
+        The quantity of the base currency received by a buyer (fees deducted).
+        """
+        return self._base_qty_received_fn(quantity)
 
     def bid(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
         Submit a new sell order to the book.
         """
-        fee = self._bid_fee(price, quantity)
+        fee = self.buyer_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
         agent.round_values()
@@ -373,7 +391,7 @@ class OrderBook:
         Submit a new buy order to the book.
         """
         quantity = HavvenManager.round_decimal(quantity)
-        fee = self._ask_fee(price, quantity)
+        fee = self.seller_fee(price, quantity)
 
         # Fail if the value of the order exceeds the agent's available supply
         agent.round_values()
@@ -388,18 +406,16 @@ class OrderBook:
 
         return ask
 
-    def buy(self, quantity: Dec, agent: "ag.MarketPlayer") -> Bid:
+    def buy(self, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
-        Buy a quantity of the sale token at the best available price.
-        Optionally buy at a premium a certain fraction above the market price.
+        Buy a quantity of the base currency at the best available price.
         """
         price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity))
         return self.bid(price, quantity, agent)
 
-    def sell(self, quantity: Dec, agent: "ag.MarketPlayer") -> Ask:
+    def sell(self, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Ask]:
         """
-        Sell a quantity of the sale token at the best available price.
-        Optionally sell at a discount a certain fraction below the market price.
+        Sell a quantity of the base currency at the best available price.
         """
         price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity))
         return self.ask(price, quantity, agent)
@@ -534,7 +550,7 @@ class OrderBook:
         # Compute the new fee.
         new_fee = fee
         if fee is None:
-            new_fee = self._bid_fee(new_price, new_quantity)
+            new_fee = self.buyer_fee(new_price, new_quantity)
 
         # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
@@ -648,7 +664,7 @@ class OrderBook:
         # Compute the new fee
         new_fee = fee
         if fee is None:
-            new_fee = self._ask_fee(new_price, new_quantity)
+            new_fee = self.seller_fee(new_price, new_quantity)
 
         # Update the unavailable quantities for this ask,
         # deducting the old and crediting the new.

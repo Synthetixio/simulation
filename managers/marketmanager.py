@@ -26,18 +26,24 @@ class MarketManager:
             model_manager, "havvens", "nomins", self.havven_nomin_match,
             self.fee_manager.transferred_nomins_fee,
             self.fee_manager.transferred_havvens_fee,
+            self.fee_manager.transferred_nomins_received,
+            self.fee_manager.transferred_havvens_received,
             self.model_manager.match_on_order
         )
         self.havven_fiat_market = ob.OrderBook(
             model_manager, "havvens", "fiat", self.havven_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_havvens_fee,
+            self.fee_manager.transferred_fiat_received,
+            self.fee_manager.transferred_havvens_received,
             self.model_manager.match_on_order
         )
         self.nomin_fiat_market = ob.OrderBook(
             model_manager, "nomins", "fiat", self.nomin_fiat_match,
             self.fee_manager.transferred_fiat_fee,
             self.fee_manager.transferred_nomins_fee,
+            self.fee_manager.transferred_fiat_received,
+            self.fee_manager.transferred_nomins_received,
             self.model_manager.match_on_order
         )
 
