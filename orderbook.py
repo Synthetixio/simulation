@@ -271,7 +271,10 @@ class OrderBook:
         else:
             return self.rolling_price_average(self.model_manager.rolling_avg_time_window)
 
-    def rolling_price_average(self, time_window):
+    def rolling_price_average(self, time_window: int) -> Dec:
+        """
+        Return the average trading price over the last time_window periods.
+        """
         total = Dec(0)
         counted = 0
 
@@ -289,7 +292,10 @@ class OrderBook:
         self.last_cached_price_time = self.model_manager.time
         return self.cached_price
 
-    def weighted_rolling_price_average(self, time_window):
+    def weighted_rolling_price_average(self, time_window: int) -> Dec:
+        """
+        Return the average trading price over the last time_window periods, weighted by quantity per trade.
+        """
         total = Dec(0)
         counted_vol = Dec(0)
 
