@@ -230,6 +230,30 @@ class MarketPlayer(Agent):
         """
         price = book.lowest_ask_price()
         return book.buy(hm.round_decimal(quantity/price), self)
+        """
+        remaining_quoted = self.__getattribute__(f"available_{book.quoted}")
+        quantity = min(quantity, remaining_quoted)
+        if quantity == 0:
+            return None
+
+        next_qty = min(quantity, book.lowest_ask_quantity()) / book.lowest_ask_price()
+        pre_sold = self.__getattribute__(f"available_{book.quoted}")
+        bid = book.buy(next_qty, self)
+        total_sold = pre_sold - self.__getattribute__(f"available_{book.quoted}")
+
+        while bid is not None and not bid.active and total_sold < quantity:
+            next_qty = min(quantity - total_sold, book.lowest_ask_quantity()) / book.lowest_ask_price()
+            pre_sold = self.__getattribute__(f"available_{book.quoted}")
+            bid = book.buy(next_qty, self)
+            total_sold += pre_sold - self.__getattribute__(f"available_{book.quoted}")
+
+        if total_sold < quantity:
+            if bid is not None:
+                bid.cancel()
+            bid = book.bid(book.lowest_ask_price(), quantity - total_sold, self)
+
+        return bid
+        """
 
     def _sell_base(self, book: "ob.OrderBook", quantity: Dec) -> Optional["ob.Ask"]:
         """
