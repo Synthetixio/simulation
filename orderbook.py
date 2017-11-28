@@ -171,10 +171,10 @@ class OrderBook:
     def __init__(self, model_manager: "HavvenManager",
                  base: str, quote: str,
                  matcher: Matcher,
-                 quoted_fee_fn: Callable[[Dec], Dec],
-                 base_fee_fn: Callable[[Dec], Dec],
-                 quoted_qty_received_fn: Callable[[Dec], Dec],
-                 base_qty_received_fn: Callable[[Dec], Dec],
+                 quoted_fee: Callable[[Dec], Dec],
+                 base_fee: Callable[[Dec], Dec],
+                 quoted_qty_rcvd: Callable[[Dec], Dec],
+                 base_qty_rcvd: Callable[[Dec], Dec],
                  match_on_order: bool = True) -> None:
         # hold onto the model to be able to access variables
         self.model_manager = model_manager
@@ -206,10 +206,10 @@ class OrderBook:
         self.matcher = matcher
 
         # Fees will be calculated with the following functions.
-        self._quoted_fee_fn = quoted_fee_fn
-        self._base_fee_fn = base_fee_fn
-        self._quoted_qty_received_fn = quoted_qty_received_fn
-        self._base_qty_received_fn = base_qty_received_fn
+        self.quoted_fee = quoted_fee
+        self.base_fee = base_fee
+        self.quoted_qty_rcvd = quoted_qty_rcvd
+        self.base_qty_rcvd = base_qty_rcvd
 
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
@@ -346,14 +346,14 @@ class OrderBook:
         Return the fee paid on the quoted end (by the buyer) for a bid
         of the given quantity and price.
         """
-        return self._quoted_fee_fn(HavvenManager.round_decimal(price * quantity))
+        return self.quoted_fee(HavvenManager.round_decimal(price * quantity))
 
     def seller_fee(self, price: Dec, quantity: Dec) -> Dec:
         """
         Return the fee paid on the base end (by the seller) for an ask
         of the given quantity and price.
         """
-        return self._base_fee_fn(quantity)
+        return self.base_fee(quantity)
 
     def seller_received_quantity(self, price: Dec, quantity: Dec) -> Dec:
         """
@@ -365,7 +365,7 @@ class OrderBook:
         """
         The quantity of the base currency received by a buyer (fees deducted).
         """
-        return self._base_qty_received_fn(quantity)
+        return self.base_qty_rcvd(quantity)
 
     def bid(self, price: Dec, quantity: Dec, agent: "ag.MarketPlayer") -> Optional[Bid]:
         """
