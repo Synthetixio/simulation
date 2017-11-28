@@ -394,7 +394,7 @@ class OrderBook:
         """
         The quantity of the quoted currency received by a seller (fees deducted).
         """
-        return self._quoted_qty_received_fn_(price * quantity)
+        return self._quoted_qty_received_fn_(HavvenManager.round_decimal(price * quantity))
 
     def buyer_received_quantity(self, price: Dec, quantity: Dec) -> Dec:
         """
@@ -508,9 +508,9 @@ class OrderBook:
         bought = Dec(0)
         sold = Dec(0)
         for ask in self.asks_not_higher(price):
-            next_sold = ask.price * ask.quantity
+            next_sold = HavvenManager.round_decimal(ask.price * ask.quantity)
             if quoted_capital is not None and sold + next_sold > quoted_capital:
-                bought += ask.quantity * (quoted_capital - sold) / next_sold
+                bought += HavvenManager.round_decimal(ask.quantity * (quoted_capital - sold) / next_sold)
                 break
             sold += next_sold
             bought += ask.quantity
@@ -525,10 +525,10 @@ class OrderBook:
         sold = Dec(0)
         for bid in self.bids_not_lower(price):
             if base_capital is not None and sold + bid.quantity > base_capital:
-                bought += (base_capital - sold) * bid.price
+                bought += HavvenManager.round_decimal((base_capital - sold) * bid.price)
                 break
             sold += bid.quantity
-            bought += bid.price * bid.quantity
+            bought += HavvenManager.round_decimal(bid.price * bid.quantity)
         return bought
 
     def bids_not_lower(self, price: Dec) -> Iterable[Bid]:
