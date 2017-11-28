@@ -500,6 +500,37 @@ class OrderBook:
                 break
         return price
 
+    def asks_lower_or_equal_base_quantity(self, price: Dec, quoted_capital: Optional[Dec] = None) -> Dec:
+        """
+        Return the quantity of base currency you would obtain offering no more
+        than a certain price, if you could spend up to a quantity of the quoted currency.
+        """
+        bought = Dec(0)
+        sold = Dec(0)
+        for ask in self.asks_lower_or_equal(price):
+            next_sold = ask.price * ask.quantity
+            if quoted_capital is not None and sold + next_sold > quoted_capital:
+                bought += ask.quantity * (quoted_capital - sold) / next_sold
+                break
+            sold += next_sold
+            bought += ask.quantity
+        return bought
+
+    def bids_higher_or_equal_quoted_quantity(self, price: Dec, base_capital: Optional[Dec] = None) -> Dec:
+        """
+        Return the quantity of quoted currency you would obtain offering no less
+        than a certain price, if you could spend up to a quantity of the base currency.
+        """
+        bought = Dec(0)
+        sold = Dec(0)
+        for bid in self.bids_higher_or_equal(price):
+            if base_capital is not None and sold + bid.quantity > base_capital:
+                bought += (base_capital - sold) * bid.price
+                break
+            sold += bid.quantity
+            bought += bid.price * bid.quantity
+        return bought
+
     def bids_higher_or_equal(self, price: Dec) -> Iterable[Bid]:
         """
         Return an iterator of bids whose prices are no lower than the given price.
