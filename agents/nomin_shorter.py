@@ -21,16 +21,16 @@ class NominShorter(MarketPlayer):
 
     TODO: Maybe put up a wall by placing nomin ask @ sell_rate_threshold
     """
+    initial_order = None
 
-    _nomin_sell_rate_threshold = Dec('1.04')
+    _nomin_sell_rate_threshold = Dec('1.03')
     """The rate above which the player will sell nomins"""
 
-    _nomin_buy_rate_threshold = Dec('1.01')
+    _nomin_buy_rate_threshold = Dec('0.99')
     """The rate below which the player will buy nomins"""
 
     def setup(self, init_value: Dec):
-        self.nomins = init_value
-        self.fiat = init_value
+        self.fiat = init_value * Dec(2)
 
     def step(self) -> None:
         # get rid of havvens, as that isn't the point of this player

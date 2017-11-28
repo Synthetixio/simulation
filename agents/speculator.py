@@ -15,6 +15,8 @@ class Speculator(MarketPlayer):
     The speculator places asks after purchasing nom/hav at purchase_price*(1+profit_goal)
     If the market price goes below loss_cutoff, or the hold_duration passes, and the price is
       below the initial purchase price, sell
+
+    This class only holds helper functions for the speculator types below
     """
     avail_primary = None
 
@@ -41,9 +43,14 @@ class Speculator(MarketPlayer):
 
     @property
     def name(self):
+        """Add the primary currency to the name"""
         return f"{self.__class__.__name__} {self.unique_id} ({self.primary_currency})"
 
     def set_avail_primary(self):
+        """
+        Set functions for checking available primary currency, or raise an exception if
+        the currency isn't one of the main 3
+        """
         if self.primary_currency == "havvens":
             self.avail_primary = lambda: self.available_havvens
         elif self.primary_currency == "fiat":
@@ -51,7 +58,7 @@ class Speculator(MarketPlayer):
         elif self.primary_currency == "nomins":
             self.avail_primary = lambda: self.available_nomins
         else:
-            raise Exception(f"primarycurr:{self.primary_currency} isn't in [havvens, fiat, nomins]")
+            raise Exception(f"currency:{self.primary_currency} isn't in [havvens, fiat, nomins]")
 
     def setup(self, init_value):
         if self.primary_currency == "fiat":
@@ -65,7 +72,9 @@ class Speculator(MarketPlayer):
 
     def _check_trade_profit(self, initial_price, time_bought, order, direction) -> bool:
         """
-        Check the current trade, to see if the market is below the loss_cutoff or
+        Check the current trade, to see if the price has gone above/below the loss cutoff or
+        above/below the profit goal, if the speculator should cancel, return false, otherwise
+        return true.
         """
         if direction == "ask":
             ask = order
@@ -118,10 +127,17 @@ class Speculator(MarketPlayer):
 
     def try_trade(self, avail_curr_func, direction, market,
                   place_w_fee_function) -> Optional[Tuple[Dec, int, 'ob.LimitOrder']]:
+        """
+        Attempt to make a trade if the speculator is "feeling" risky enough
+
+        Making a trade involves buying into one of the markets, then deciding on a price
+        to sell.
+        """
         if random.random() < self.risk_factor:
             if direction == "ask":
                 price = market.highest_bid_price()
-                market.buy(self.avail_primary()*self.investment_fraction, self)
+                bid = market.bid(price, self.avail_primary()*self.investment_fraction, self)
+                bid.cancel()
                 if avail_curr_func() > Dec(0.005):
                     price_goal = Dec(price*(1+self.profit_goal))
                     new_ask = place_w_fee_function(avail_curr_func(), price_goal)
@@ -135,7 +151,8 @@ class Speculator(MarketPlayer):
                         return None
             else:  # placing bid
                 price = market.lowest_ask_price()
-                market.sell(self.avail_primary()*self.investment_fraction, self)
+                ask = market.ask(price, self.avail_primary()*self.investment_fraction, self)
+                ask.cancel()
                 if avail_curr_func() > Dec(0.005):
                     price_goal = Dec(price*(1-self.profit_goal))
                     new_bid = place_w_fee_function(avail_curr_func(), price_goal)
@@ -232,9 +249,16 @@ class NaiveSpeculator(Speculator):
 
     def setup(self, init_value):
         super().setup(init_value)
-        self.change_currency(self.primary_currency)
+        self.change_currency()
 
-    def change_currency(self, currency) -> None:
+    def change_currency(self, currency: Optional[str] = None) -> None:
+        """
+        Change currency and trade functions for speculator for a more generalised trade function
+        """
+        if currency:
+            self.primary_currency = currency
+            self.set_avail_primary()
+
         # remove active bids/aks
         if self.active_trade_a:
             self.active_trade_a[2].cancel()
