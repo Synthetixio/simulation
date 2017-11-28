@@ -500,14 +500,14 @@ class OrderBook:
                 break
         return price
 
-    def asks_lower_or_equal_base_quantity(self, price: Dec, quoted_capital: Optional[Dec] = None) -> Dec:
+    def asks_not_higher_base_quantity(self, price: Dec, quoted_capital: Optional[Dec] = None) -> Dec:
         """
         Return the quantity of base currency you would obtain offering no more
         than a certain price, if you could spend up to a quantity of the quoted currency.
         """
         bought = Dec(0)
         sold = Dec(0)
-        for ask in self.asks_lower_or_equal(price):
+        for ask in self.asks_not_higher(price):
             next_sold = ask.price * ask.quantity
             if quoted_capital is not None and sold + next_sold > quoted_capital:
                 bought += ask.quantity * (quoted_capital - sold) / next_sold
@@ -516,14 +516,14 @@ class OrderBook:
             bought += ask.quantity
         return bought
 
-    def bids_higher_or_equal_quoted_quantity(self, price: Dec, base_capital: Optional[Dec] = None) -> Dec:
+    def bids_not_lower_quoted_quantity(self, price: Dec, base_capital: Optional[Dec] = None) -> Dec:
         """
         Return the quantity of quoted currency you would obtain offering no less
         than a certain price, if you could spend up to a quantity of the base currency.
         """
         bought = Dec(0)
         sold = Dec(0)
-        for bid in self.bids_higher_or_equal(price):
+        for bid in self.bids_not_lower(price):
             if base_capital is not None and sold + bid.quantity > base_capital:
                 bought += (base_capital - sold) * bid.price
                 break
@@ -531,7 +531,7 @@ class OrderBook:
             bought += bid.price * bid.quantity
         return bought
 
-    def bids_higher_or_equal(self, price: Dec) -> Iterable[Bid]:
+    def bids_not_lower(self, price: Dec) -> Iterable[Bid]:
         """
         Return an iterator of bids whose prices are no lower than the given price.
         """
@@ -547,7 +547,7 @@ class OrderBook:
         """
         Return the list of highest-priced bids. May be empty if there are none.
         """
-        return self.bids_higher_or_equal(self.highest_bid_price())
+        return self.bids_not_lower(self.highest_bid_price())
 
     def highest_bid_quantity(self) -> Dec:
         """
@@ -556,7 +556,7 @@ class OrderBook:
         # Enclose in Decimal constructor in case sum is 0.
         return Dec(sum(b.quantity for b in self.highest_bids()))
 
-    def asks_lower_or_equal(self, price: Dec) -> Iterable[Bid]:
+    def asks_not_higher(self, price: Dec) -> Iterable[Bid]:
         """
         Return an iterator of asks whose prices are no higher than the given price.
         """
@@ -572,7 +572,7 @@ class OrderBook:
         """
         Return the list of lowest-priced asks. May be empty if there are none.
         """
-        return self.asks_lower_or_equal(self.lowest_ask_price())
+        return self.asks_not_higher(self.lowest_ask_price())
 
     def lowest_ask_quantity(self) -> Dec:
         """
