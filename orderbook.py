@@ -165,7 +165,36 @@ Matcher = Callable[[Bid, Ask], Optional[TradeRecord]]
 class OrderBook:
     """
     An order book for Havven agents to interact with.
-    This one is generic, but there will have to be a market for each currency pair.
+
+    The order book will handle trades between a particular currency pair,
+    consisting of the "base" and "quoted" currencies.
+    This is generic; there will have to be a book for each pair.
+
+    The book holds two lists of orders, asks and bids. Each order has a price,
+    quantity, and time of issue. They are ordered in the book by price, and then
+    by time.
+    An ask is an order to sell the base currency, while a bid is an order to buy it.
+    Therefore, merchants filing asks hold the base currency, while those filing bids
+    hold the quoted currency.
+    Order prices are a quantity of the quoted currency per unit of the base currency.
+    Order quantities shall be a quantity of the base currency to trade.
+
+    If a bid has a higher price than an ask, then the orders may match,
+    in which case the issuers trade at the price on the earlier-issued order.
+    The seller will transfer the smaller quantity of the base currency
+    to the buyer, while the buyer will transfer that quantity times the match price
+    of the quoted currency to the seller.
+
+    An order may be partially filled, in which case its quantity will be decreased.
+    If an order's remaining quantity falls to zero, the order is completely filled
+    and struck off the book.
+    A user may cancel bids they have issued at any time.
+
+    If an ask is placed at a price lower or equal to the highest bid price, it
+    will be immediately matched against the most favourable orders in turn until it is completely
+    filled (if possible).
+    The operation is symmetric if a bid is placed at a price higher than the lowest
+    ask price.
     """
 
     def __init__(self, model_manager: "HavvenManager",
