@@ -406,16 +406,23 @@ class OrderBook:
         """
         Submit a new sell order to the book.
         """
+        quantity = HavvenManager.round_decimal(quantity)
+
+        # Disallow empty orders.
+        if quantity == Dec(0):
+            return None
+
+        # Compute the fee to be paid.
         fee = self.buyer_fee(price, quantity)
 
-        # Fail if the value of the order exceeds the agent's available supply
+        # Fail if the value of the order exceeds the agent's available supply.
         agent.round_values()
         if agent.__getattribute__(f"available_{self.quoted}") < HavvenManager.round_decimal(price*quantity) + fee:
             return None
 
         bid = Bid(price, quantity, fee, agent, self)
 
-        # Attempt to trade the bid immediately
+        # Attempt to trade the bid immediately.
         if self.match_on_order:
             self.match()
 
@@ -426,16 +433,22 @@ class OrderBook:
         Submit a new buy order to the book.
         """
         quantity = HavvenManager.round_decimal(quantity)
+
+        # Disallow empty orders.
+        if quantity == Dec(0):
+            return None
+
+        # Compute the fee to be paid.
         fee = self.seller_fee(price, quantity)
 
-        # Fail if the value of the order exceeds the agent's available supply
+        # Fail if the value of the order exceeds the agent's available supply.
         agent.round_values()
         if agent.__getattribute__(f"available_{self.base}") < quantity + fee:
             return None
 
         ask = Ask(price, quantity, fee, agent, self)
 
-        # Attempt to trade the ask immediately
+        # Attempt to trade the ask immediately.
         if self.match_on_order:
             self.match()
 
