@@ -135,6 +135,8 @@ class UserSettableParameter:
         }
         if 'Merchant' in v:
             v['Merchant'] = 0
+        if 'NaiveSpeculator' in v:
+            v['NaiveSpeculator'] = 0
         # total should be < 1, dividing by total should make total 1.
         total = sum(v[i] for i in v)
         for item in v:

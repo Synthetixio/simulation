@@ -3,7 +3,7 @@ from .arbitrageur import Arbitrageur
 from .banker import Banker
 from .randomizer import Randomizer
 from .centralbank import CentralBank
-from .speculator import HavvenSpeculator
+from .speculator import HavvenSpeculator, NaiveSpeculator
 from .nomin_shorter import NominShorter, HavvenEscrowNominShorter
 from .merchant import Merchant, Buyer
 
@@ -16,6 +16,7 @@ player_names = {
     'NominShorter': NominShorter,
     'HavvenEscrowNominShorter': HavvenEscrowNominShorter,
     'HavvenSpeculator': HavvenSpeculator,
+    'NaiveSpeculator': NaiveSpeculator,
     'Merchant': Merchant,
     'Buyer': Buyer
 }
