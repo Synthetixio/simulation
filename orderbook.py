@@ -518,6 +518,13 @@ class OrderBook:
         """
         return self.bids_higher_or_equal(self.highest_bid_price())
 
+    def highest_bid_quantity(self) -> Dec:
+        """
+        Return the quantity of the base currency demanded at the highest bid price.
+        """
+        # Enclose in Decimal constructor in case sum is 0.
+        return Dec(sum(b.quantity for b in self.highest_bids()))
+
     def asks_lower_or_equal(self, price: Dec) -> Iterable[Bid]:
         """
         Return an iterator of asks whose prices are no higher than the given price.
@@ -535,6 +542,13 @@ class OrderBook:
         Return the list of lowest-priced asks. May be empty if there are none.
         """
         return self.asks_lower_or_equal(self.lowest_ask_price())
+
+    def lowest_ask_quantity(self) -> Dec:
+        """
+        Return the quantity of the base currency supplied at the lowest ask price.
+        """
+        # Enclose in Decimal constructor in case sum is 0.
+        return Dec(sum(a.quantity for a in self.lowest_asks()))
 
     def spread(self) -> Dec:
         """
