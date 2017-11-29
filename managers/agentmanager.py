@@ -45,8 +45,10 @@ class AgentManager:
         # Create the agents themselves.
         running_player_total = 0
         for agent_type in agent_fractions:
-            total = max(agent_minimum, int(num_agents*agent_fractions[agent_type])
-                                           if agent_type in agent_fractions else 0)
+            total = max(
+                agent_minimum,
+                int(num_agents*agent_fractions[agent_type])
+            )
 
             for i in range(total):
                 agent = ag.player_names[agent_type](running_player_total, self.havven_model)

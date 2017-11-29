@@ -26,7 +26,7 @@ class WealthModule(BarGraphModule):
             agents = sorted(
                 data_collector.agent_vars["Agents"][-1],
                 key=lambda x: x[0]
-            )[:-1]
+            )  # [:-1]
             for item in agents:
                 vals[3].append(item[1].name)
                 vals[4].append(float(item[1].wealth()))
@@ -68,7 +68,7 @@ class PortfolioModule(BarGraphModule):
             agents = sorted(
                 data_collector.agent_vars["Agents"][-1],
                 key=lambda x: x[0]
-            )[:-1]
+            )  # [:-1]
 
             for item in agents:
                 vals[3].append(item[1].name)
@@ -79,7 +79,6 @@ class PortfolioModule(BarGraphModule):
                         vals[i + 4].append(-float(breakdown[i]))
                     else:
                         vals[i + 4].append(float(breakdown[i]))
-
 
         except Exception:
             vals = []
@@ -109,7 +108,7 @@ class CurrentOrderModule(BarGraphModule):
             agents = sorted(
                 data_collector.agent_vars["Agents"][-1],
                 key=lambda x: x[0]
-            )[:-1]
+            )  # [:-1]
 
             for item in agents:
                 vals[3].append(item[1].name)
@@ -169,7 +168,7 @@ class PastOrdersModule(BarGraphModule):
             agents = sorted(
                 data_collector.agent_vars["Agents"][-1],
                 key=lambda x: x[0]
-            )[:-1]
+            )  # [:-1]
 
             for item in agents:
                 vals[3].append(item[1].name)
