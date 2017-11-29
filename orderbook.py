@@ -632,8 +632,11 @@ class OrderBook:
 
         # Do nothing if the price and quantity would remain unchanged.
         if bid.price == new_price and bid.quantity == new_quantity:
-            if fee is None or fee == bid.fee:
+            if fee == bid.fee or fee is None:
                 return
+            else:
+                print(bid)
+                raise Exception("Fee changed, but price and quantity are unchanged...")
 
         # If the bid is updated with a non-positive quantity, it is cancelled.
         if new_quantity <= 0:
@@ -748,6 +751,9 @@ class OrderBook:
         if ask.price == new_price and ask.quantity == new_quantity:
             if fee is None or fee == ask.fee:
                 return
+            else:
+                print(ask)
+                raise Exception("Fee changed, but price and quantity are unchanged...")
 
         # If the ask is updated with a non-positive quantity, it is cancelled.
         if new_quantity <= 0:
