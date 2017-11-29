@@ -241,7 +241,7 @@ class MarketPlayer(Agent):
         bid = book.buy(next_qty, self)
         total_sold = pre_sold - self.__getattribute__(f"available_{book.quoted}")
         
-        last_price = 0
+        last_price = 0 # TODO: Remove this workaround with the other one.
         while bid is not None and not bid.active and total_sold < quantity and last_price != bid.price:
             last_price = bid.price
             next_qty = hm.round_decimal(min(quantity - total_sold, book.lowest_ask_quantity()) / book.lowest_ask_price())
