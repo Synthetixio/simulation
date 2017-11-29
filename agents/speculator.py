@@ -142,6 +142,8 @@ class Speculator(MarketPlayer):
             if direction == "ask":
                 price = market.highest_bid_price()
                 bid = market.bid(price, self.avail_primary()*self.investment_fraction, self)
+                if bid is None:
+                    return None
                 bid.cancel()
                 if avail_curr_func() > Dec(0.005):
                     price_goal = Dec(price*(1+self.profit_goal))
@@ -157,6 +159,8 @@ class Speculator(MarketPlayer):
             else:  # placing bid
                 price = market.lowest_ask_price()
                 ask = market.ask(price, self.avail_primary()*self.investment_fraction, self)
+                if ask is None:
+                    return None
                 ask.cancel()
                 if avail_curr_func() > Dec(0.005):
                     price_goal = Dec(price*(1-self.profit_goal))

@@ -70,7 +70,7 @@ class MarketMaker(MarketPlayer):
         multiplied by the percentage value
         '''
 
-        self.initial_bet_margin = Dec('0.03')
+        self.initial_bet_margin = Dec('0.05')
         '''
         How off the expected price gradient will the gradient bet be placed
         This also determines how close the bets get at the end (both would be off by the margin)
@@ -98,13 +98,16 @@ class MarketMaker(MarketPlayer):
     def step(self):
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:
-                self.sell_fiat_for_havvens_with_fee(self.available_fiat)
+                self.sell_fiat_for_havvens_with_fee(self.available_fiat / Dec(2))
+                self.sell_fiat_for_nomins_with_fee(self.available_fiat / Dec(2))
         if self.trade_market == self.nomin_fiat_market:
             if self.available_havvens > 0:
-                self.sell_havvens_for_fiat_with_fee(self.available_nomins)
+                self.sell_havvens_for_fiat_with_fee(self.available_nomins / Dec(2))
+                self.sell_havvens_for_nomins_with_fee(self.available_nomins / Dec(2))
         if self.trade_market == self.havven_fiat_market:
             if self.available_nomins > 0:
-                self.sell_nomins_for_fiat_with_fee(self.available_nomins)
+                self.sell_nomins_for_fiat_with_fee(self.available_nomins / Dec(2))
+                self.sell_nomins_for_havvens_with_fee(self.available_nomins / Dec(2))
 
         # if the duration has ended, close the trades
         if self.last_bet_end >= self.minimal_wait + self.bet_length:
