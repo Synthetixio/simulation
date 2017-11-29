@@ -233,15 +233,17 @@ class MarketPlayer(Agent):
         """
         remaining_quoted = self.__getattribute__(f"available_{book.quoted}")
         quantity = min(quantity, remaining_quoted)
-        if quantity == 0:
+        if quantity < Dec('0.0005'): # TODO: remove workaround, and/or factor into epsilon variable
             return None
 
         next_qty = hm.round_decimal(min(quantity, book.lowest_ask_quantity()) / book.lowest_ask_price())
         pre_sold = self.__getattribute__(f"available_{book.quoted}")
         bid = book.buy(next_qty, self)
         total_sold = pre_sold - self.__getattribute__(f"available_{book.quoted}")
-
-        while bid is not None and not bid.active and total_sold < quantity:
+        
+        last_price = 0
+        while bid is not None and not bid.active and total_sold < quantity and last_price != bid.price:
+            last_price = bid.price
             next_qty = hm.round_decimal(min(quantity - total_sold, book.lowest_ask_quantity()) / book.lowest_ask_price())
             pre_sold = self.__getattribute__(f"available_{book.quoted}")
             bid = book.buy(next_qty, self)
