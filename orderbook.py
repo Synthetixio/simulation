@@ -391,18 +391,28 @@ class OrderBook:
     def buy(self, quantity: Dec, agent: "ag.MarketPlayer") -> Bid:
         """
         Buy a quantity of the sale token at the best available price.
-        Optionally buy at a premium a certain fraction above the market price.
         """
         price = HavvenManager.round_decimal(self.price_to_buy_quantity(quantity))
-        return self.bid(price, quantity, agent)
+        bid = self.bid(price, quantity, agent)
+
+        # cancel the bid if it isn't filled immediately, as a market buy/sell should
+        # always be filled (unless the market dries up)
+        if not self.match_on_order and bid:
+            bid.cancel()
+        return bid
 
     def sell(self, quantity: Dec, agent: "ag.MarketPlayer") -> Ask:
         """
         Sell a quantity of the sale token at the best available price.
-        Optionally sell at a discount a certain fraction below the market price.
         """
         price = HavvenManager.round_decimal(self.price_to_sell_quantity(quantity))
-        return self.ask(price, quantity, agent)
+        ask = self.ask(price, quantity, agent)
+
+        # cancel the ask if it isn't filled immediately, as a market buy/sell should
+        # always be filled (unless the market dries up)
+        if not self.match_on_order and ask:
+            ask.cancel()
+        return ask
 
     def price_to_buy_quantity(self, quantity: Dec) -> Dec:
         """

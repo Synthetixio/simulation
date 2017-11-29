@@ -33,8 +33,6 @@ class CandleStickModule(VisualizationElement):
             )
         );"""
 
-        self.chart_length = 85
-
     def render(self, model: HavvenModel) -> Tuple[Tuple[float, float, float, float], float, float]:
         """
         return the data to be sent to the websocket to be rendered on the page

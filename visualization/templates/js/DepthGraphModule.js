@@ -94,6 +94,8 @@ var DepthGraphModule = function (graph_id, width, height) {
 
         if (new_data.length > 0) {
             new_data = new_data[new_data.length-1]
+        } else {
+            return false;
         }
         let price_range = 1.0;
         let curr_price = new_data[0];

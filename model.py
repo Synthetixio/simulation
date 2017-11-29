@@ -50,7 +50,8 @@ class HavvenModel(Model):
                 'Arbitrageur': 0.2,
                 'Randomizer': 0.3,
                 'NominShorter': 0.15,
-                'HavvenEscrowNominShorter': 0.15
+                'HavvenEscrowNominShorter': 0.15,
+                'Speculator': 0.1
             }
 
         self.agent_manager = AgentManager(self, num_agents,
