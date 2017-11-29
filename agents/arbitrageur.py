@@ -32,6 +32,10 @@ class Arbitrageur(MarketPlayer):
         self.havven_nomin_ask_qty = Dec(0)
         self.havven_fiat_ask_qty = Dec(0)
 
+    def setup(self, init_value: Dec):
+        self.fiat = init_value
+        self.model.endow_havvens(self, init_value)
+
     def step(self) -> None:
         """
         Find an exploitable arbitrage cycle.

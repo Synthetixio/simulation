@@ -227,9 +227,8 @@ class MarketPlayer(Agent):
         """
         Sell a quantity of the quoted currency into the given market.
         """
-        price = book.lowest_ask_price()
-        return book.buy(hm.round_decimal(quantity/price), self)
-        """
+        # price = book.lowest_ask_price()
+        # return book.buy(hm.round_decimal(quantity/price), self)
         remaining_quoted = self.__getattribute__(f"available_{book.quoted}")
         quantity = min(quantity, remaining_quoted)
         if quantity < Dec('0.0005'): # TODO: remove workaround, and/or factor into epsilon variable
@@ -255,7 +254,6 @@ class MarketPlayer(Agent):
             bid = book.bid(price, hm.round_decimal((quantity - total_sold) / price), self)
 
         return bid
-        """
 
     def _sell_base(self, book: "ob.OrderBook", quantity: Dec) -> Optional["ob.Ask"]:
         """
