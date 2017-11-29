@@ -189,6 +189,7 @@ class HavvenSpeculator(Speculator):
 
         self.primary_currency = random.choice(["havvens", "havvens", "fiat", "nomins"])
         # give an equal chance to short/long havvens
+        self.change_currency()
 
         self.set_avail_primary()
         self.active_trade: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
