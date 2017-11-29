@@ -1,6 +1,6 @@
 import random
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 from decimal import Decimal as Dec
 
 from agents import MarketPlayer
@@ -125,8 +125,13 @@ class Speculator(MarketPlayer):
             raise Exception(f""""order in speculator _check_trade_profit is neither a bid nor ask. 
                             type(order): {type(order)}""")
 
-    def try_trade(self, avail_curr_func, direction, market,
-                  place_w_fee_function) -> Optional[Tuple[Dec, int, 'ob.LimitOrder']]:
+    def _try_trade(
+            self,
+            avail_curr_func: Callable[[], Dec],  # the amount of currency the player has that is being speculated on
+            direction: str,  # the direction of the trade secondary->primary
+            market: ob.OrderBook,  # the market being traded on
+            place_w_fee_function: Callable[[Dec, Dec], 'ob.LimitOrder']  # place the order secondary->primary
+    ) -> Optional[Tuple[Dec, int, 'ob.LimitOrder']]:
         """
         Attempt to make a trade if the speculator is "feeling" risky enough
 
@@ -184,6 +189,19 @@ class HavvenSpeculator(Speculator):
 
         self.primary_currency = random.choice(["havvens", "havvens", "fiat", "nomins"])
         # give an equal chance to short/long havvens
+
+        self.set_avail_primary()
+        self.active_trade: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
+        """tuple of [Price_at_purchase, time, order]"""
+
+    def change_currency(self, currency: Optional[str] = None) -> None:
+        """
+        Change currency and trade functions for speculator for a more generalised trade function
+        """
+        if currency:
+            self.primary_currency = currency
+            self.set_avail_primary()
+
         if self.primary_currency == "havvens":
             self.secondary_currency = random.choice(["fiat", "nomins"])
             self.direction = "bid"
@@ -214,9 +232,6 @@ class HavvenSpeculator(Speculator):
             self.place_function = self.place_havven_nomin_ask_with_fee
             self.sell_function = self.sell_havvens_for_nomins_with_fee
 
-        self.set_avail_primary()
-        self.active_trade: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
-
     def step(self):
         if self.primary_currency == "nomins":
             if self.available_fiat > 0:
@@ -231,7 +246,7 @@ class HavvenSpeculator(Speculator):
             if self.avail_secondary() > 0:
                 self.sell_function(self.avail_secondary())
 
-            self.active_trade = self.try_trade(
+            self.active_trade = self._try_trade(
                 self.avail_secondary, self.direction, self.market, self.place_function
             )
 
@@ -245,7 +260,9 @@ class NaiveSpeculator(Speculator):
         super().__init__(*args, **kwargs)
 
         self.active_trade_a: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
+        """tuple of [Price_at_purchase, time, order]"""
         self.active_trade_b: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
+        """tuple of [Price_at_purchase, time, order]"""
 
     def setup(self, init_value):
         super().setup(init_value)
@@ -322,7 +339,7 @@ class NaiveSpeculator(Speculator):
             if self.a_currency() > 0:
                 self.sell_a_function(self.a_currency())
 
-            self.active_trade_a = self.try_trade(
+            self.active_trade_a = self._try_trade(
                 self.a_currency, self.direction_a, self.market_a, self.place_a_function
             )
 
@@ -336,6 +353,6 @@ class NaiveSpeculator(Speculator):
             if self.b_currency() > 0:
                 self.sell_b_function(self.b_currency())
 
-            self.active_trade_b = self.try_trade(
+            self.active_trade_b = self._try_trade(
                 self.b_currency, self.direction_b, self.market_b, self.place_b_function
             )
