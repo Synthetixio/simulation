@@ -66,7 +66,6 @@ class MarketPlayer(Agent):
         """The havven-nomin market this player trades on."""
         return self.model.market_manager.havven_nomin_market
 
-
     @property
     def name(self) -> str:
         """

@@ -12,7 +12,7 @@ from visualization.VisualizationElement import VisualizationElement
 import model
 
 
-def make_server(n_agents: int = 50, ur: float = 0.2,
+def make_server(n_agents: int = 50, ur: float = 0.3,
                 cont_orders: bool = True, threaded=True) -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.
@@ -38,7 +38,6 @@ def make_server(n_agents: int = 50, ur: float = 0.2,
             {"Label": "HavvenNominPriceData", "orderbook": "HavvenNominOrderBook",
              "AvgColor": "rgba(153,50,204,0.6)", "VolumeColor": "rgba(153,50,204,0.3)"}  # darkorchid
         ]),
-
 
         # ChartModule([
         #     {"Label": "Max Wealth", "Color": "purple"},
