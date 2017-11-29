@@ -16,6 +16,7 @@
  */
 var MesaVisualizationControl = function() {
     this.tick = -1; // Counts at which tick of the model we are.
+    this.last_sent = -1;
     this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
@@ -295,6 +296,7 @@ ws.onmessage = function(message) {
             }
 
             var data = msg["data"];
+
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
@@ -305,10 +307,8 @@ ws.onmessage = function(message) {
             break;
         case "end":
             // We have reached the end of the model
-            control.running = false;
             control.done = true;
             console.log("Done!");
-            clearInterval(player);
             $(playPauseButton.children()[0]).text("Done");
             break;
         case "model_params":
@@ -333,13 +333,18 @@ var reset = function($e) {
         $e.preventDefault();
 
     control.tick = -1;
+    control.last_sent = -1;
     control.done = false;
     control.data = [];
     control.run_number += 1;
     send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
-    if (!control.running) $(playPauseButton.children()[0]).text("Start");
+    if (!control.running) {
+        $(playPauseButton.children()[0]).text("Start");
+    } else {
+        $(playPauseButton.children()[0]).text("Stop");
+    }
     send({"type": "get_steps", "step": control.data.length, "fps": 10, "run_num": control.run_number});
 
     return false;
@@ -349,8 +354,10 @@ var reset = function($e) {
 var single_step = function() {
     control.tick += 1;
     let fps = parseInt(fpsControl[0].value);
-    if (control.tick > control.data.length - fps*2) {
-        send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
+
+    if (control.tick > control.data.length - fps*2 && control.last_sent !== control.data.length) {
+        control.last_sent = control.data.length;
+        if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
     }
     update_graphs();
 };
@@ -406,18 +413,21 @@ playPauseButton.on('click', run);
 stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
-
+var last_length = -1;
 function update_graphs() {
+
     if (control.tick < control.data.length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j=0; j<=control.tick; j++) {
+            for (let j = 0; j < control.tick; j++) {
                 to_render.push(control.data[j][i])
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step+1, to_render);
+            elements[i].render(step + 1, to_render);
         }
+    } else {
+        control.tick -= 1;
     }
 }
 

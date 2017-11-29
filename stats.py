@@ -9,6 +9,8 @@ import model
 
 def mean_profit_fraction(havven_model: "model.HavvenModel") -> float:
     """Return the average fraction of profit being made by market participants."""
+    if len(havven_model.schedule.agents) == 0:
+        return 0
     return mean(float(a.profit_fraction()) for a in havven_model.schedule.agents)
 
 
@@ -54,18 +56,31 @@ def wealth_sd(havven_model: "model.HavvenModel") -> float:
 def gini(havven_model: "model.HavvenModel") -> float:
     """Return the gini coefficient in the market."""
     n, s_wealth = len(havven_model.schedule.agents), sorted([float(a.wealth()) for a in havven_model.schedule.agents])
-    return float(1 + (1 / n) - 2 * (sum(x * (n - i) for i, x in enumerate(s_wealth)) / (n * sum(s_wealth))))
+    total_wealth = sum(s_wealth)
+
+    if total_wealth == 0 or n == 0:
+        return 0
+
+    return float(1 + (1 / n) - 2 * (sum(x * (n - i) for i, x in enumerate(s_wealth)) / (n * total_wealth)))
 
 
 def max_wealth(havven_model: "model.HavvenModel") -> float:
     """Return the wealth of the richest person in the market."""
     w = [float(a.wealth()) for a in havven_model.schedule.agents]
+
+    if len(w) == 0:
+        return 0
+
     return max(w)
 
 
 def min_wealth(havven_model: "model.HavvenModel") -> float:
     """Return the wealth of the poorest person in the market."""
     w = [float(a.wealth()) for a in havven_model.schedule.agents]
+
+    if len(w) == 0:
+        return 0
+
     return min(w)
 
 

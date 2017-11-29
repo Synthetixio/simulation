@@ -36,13 +36,15 @@ class MarketMaker(MarketPlayer):
     In the case where the market maker believes the price will rise, it will place a sell at a
     set price in the for the future, and slowly buy at higher and higher prices
 
-    |
-    |====================---
-    |            -----
-    |       -----   =====
-    |  -----   =====
-    |--   =====
-    |=====
+    |         =======
+    |  =======        ---
+    |==          -----
+    |       -----   ===
+    |  -----     ===
+    |--       ===
+    |      ===
+    |   ===
+    |===
     | -> Time
     = Market maker's bid/ask spread
     - Predicted price movement
@@ -56,27 +58,25 @@ class MarketMaker(MarketPlayer):
         '''How long since the last market maker's "bet"'''
 
         self.minimal_wait = 10
-        '''How long will the market maker wait since it's last "bet" to let the market recover'''
+        '''How long will the market maker wait since it's last "bet" to let the market move on its own'''
+
         self.bet_length = 30
         '''How long will the market maker do its "bet" for'''
+
         self.bet_percentage = Dec('1')
         '''
         How much of it's wealth will the market maker use on a "bet"
         The bot will constantly update the orders on either side to use all it's wealth
         multiplied by the percentage value
         '''
-        self.bet_margin = Dec('0.99')
+
+        self.initial_bet_margin = Dec('0.03')
         '''
         How off the expected price gradient will the gradient bet be placed
         This also determines how close the bets get at the end (both would be off by the margin)
-        i.e:
-        - starting price would be 0.8, expected max price would be 1.1
-        - gradient is positive (.01)
-        - increase bid by .01 per step
-        - start bid at 0.8*margin
-        - start ask at 1.1*(2-margin)
-        - next bid 0.8*margin + .01 etc...
         '''
+
+        self.ending_bet_margin = Dec('0.01')
 
         # self.trade_market = random.choice([
         #     self.havven_fiat_market,
@@ -87,12 +87,15 @@ class MarketMaker(MarketPlayer):
 
         self.current_bet: Optional[Dict[str, Any[str, int, Dec, 'ob.LimitOrder']]] = None
 
+    @property
+    def name(self):
+        return f"{self.__class__.__name__} {self.unique_id} ({self.trade_market.name})"
+
     def setup(self, init_value):
         self.fiat = init_value*Dec(3)
-        self.model.manager.endow_havvens(self, init_value*Dec(3))
+        self.model.endow_havvens(self, init_value*Dec(3))
 
     def step(self):
-        # TODO: make it check what it needs more of the two options to sell into
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:
                 self.sell_fiat_for_havvens_with_fee(self.available_fiat)
@@ -118,7 +121,7 @@ class MarketMaker(MarketPlayer):
             bid = self.place_bid_func(
                 self.last_bet_end-self.minimal_wait,
                 self.current_bet['gradient'],
-                self.current_bet['initial_bid_price']
+                self.current_bet['initial_price']
             )
             if bid is None:
                 self.current_bet = None
@@ -127,7 +130,7 @@ class MarketMaker(MarketPlayer):
             ask = self.place_ask_func(
                 self.last_bet_end-self.minimal_wait,
                 self.current_bet['gradient'],
-                self.current_bet['initial_ask_price']
+                self.current_bet['initial_price']
             )
             if ask is None:
                 bid.cancel()
@@ -139,74 +142,77 @@ class MarketMaker(MarketPlayer):
 
         # if the minimal wait period has ended, create a bet
         elif self.last_bet_end >= self.minimal_wait:
+            self.last_bet_end = self.minimal_wait
             gradient = self.calculate_gradient(self.trade_market)
             if gradient is None:
                 return
             start_price = self.trade_market.price
-            if gradient > Dec(0.0025):
-                ask_price = (start_price + gradient*self.bet_length)*(2-self.bet_margin)
-                bid_price = start_price*self.bet_margin
-            elif gradient < Dec(0.0025):
-                ask_price = start_price*(2-self.bet_margin)
-                bid_price = (start_price + gradient*self.bet_length)*self.bet_margin
-            else:
-                return
+
             bid = self.place_bid_func(
-                self.last_bet_end - self.minimal_wait,
+                0,
                 gradient,
-                bid_price
+                start_price
             )
             if bid is None:
-                self.last_bet_end = 0
                 return
+
             ask = self.place_ask_func(
-                self.last_bet_end - self.minimal_wait,
+                0,
                 gradient,
-                ask_price
+                start_price
             )
             if ask is None:
                 bid.cancel()
-                self.last_bet_end = 0
                 return
 
             self.current_bet = {
                 'gradient': gradient,
-                'initial_bid_price': bid_price,
-                'initial_ask_price': ask_price,
+                'initial_price': start_price,
                 'bid': bid,
                 'ask': ask
             }
         self.last_bet_end += 1
 
     def place_bid_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Bid":
-        if gradient < 0:
-            # bids change, asks constant
-            price = start_price
-        else:
-            # asks change, bids constant
-            price = start_price + gradient * time_in_effect
-
+        price = start_price + Dec(gradient * time_in_effect)
+        multiplier = 1 - (
+            (Dec((self.bet_length-time_in_effect)/self.bet_length) *
+             (self.initial_bet_margin-self.ending_bet_margin)
+             ) + self.ending_bet_margin
+        )
         if self.trade_market == self.nomin_fiat_market:
-            return self.place_nomin_fiat_bid_with_fee(self.available_fiat*self.bet_percentage/price, price)
+            return self.place_nomin_fiat_bid_with_fee(
+                self.available_fiat*self.bet_percentage/price,
+                price*multiplier
+            )
         elif self.trade_market == self.havven_fiat_market:
-            return self.place_havven_fiat_bid_with_fee(self.available_fiat*self.bet_percentage/price, price)
+            return self.place_havven_fiat_bid_with_fee(
+                self.available_fiat*self.bet_percentage/price,
+                price*multiplier
+            )
         elif self.trade_market == self.havven_nomin_market:
-            return self.place_havven_nomin_bid_with_fee(self.available_havvens*self.bet_percentage/price, price)
+            return self.place_havven_nomin_bid_with_fee(
+                self.available_havvens*self.bet_percentage/price,
+                price*multiplier
+            )
 
     def place_ask_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Ask":
-        if gradient < 0:
-            # bids change, asks constant
-            price = start_price + gradient*time_in_effect
-        else:
-            # asks change, bids constant
-            price = start_price
-
+        """
+        Place an ask at a price dependant on the time in effect and gradient
+        based on the player's margins
+        """
+        price = start_price + Dec(gradient*time_in_effect)
+        multiplier = 1 + (
+            (Dec((self.bet_length-time_in_effect)/self.bet_length) *
+             (self.initial_bet_margin-self.ending_bet_margin)
+             ) + self.ending_bet_margin
+        )
         if self.trade_market == self.nomin_fiat_market:
-            return self.place_nomin_fiat_ask_with_fee(self.available_nomins*self.bet_percentage, price)
+            return self.place_nomin_fiat_ask_with_fee(self.available_nomins*self.bet_percentage, price*multiplier)
         elif self.trade_market == self.havven_fiat_market:
-            return self.place_havven_fiat_ask_with_fee(self.available_havvens*self.bet_percentage, price)
+            return self.place_havven_fiat_ask_with_fee(self.available_havvens*self.bet_percentage, price*multiplier)
         elif self.trade_market == self.havven_nomin_market:
-            return self.place_havven_nomin_ask_with_fee(self.available_nomins*self.bet_percentage, price)
+            return self.place_havven_nomin_ask_with_fee(self.available_nomins*self.bet_percentage, price*multiplier)
 
     def calculate_gradient(self, trade_market: 'ob.OrderBook') -> Optional[Dec]:
         """
