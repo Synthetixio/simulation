@@ -78,12 +78,11 @@ class MarketMaker(MarketPlayer):
 
         self.ending_bet_margin = Dec('0.01')
 
-        # self.trade_market = random.choice([
-        #     self.havven_fiat_market,
-        #     self.nomin_fiat_market,
-        #     self.havven_nomin_market
-        # ])
-        self.trade_market = self.havven_fiat_market
+        self.trade_market = random.choice([
+            self.havven_fiat_market,
+            self.nomin_fiat_market,
+            self.havven_nomin_market
+        ])
 
         self.current_bet: Optional[Dict[str, Any[str, int, Dec, 'ob.LimitOrder']]] = None
 
@@ -92,22 +91,35 @@ class MarketMaker(MarketPlayer):
         return f"{self.__class__.__name__} {self.unique_id} ({self.trade_market.name})"
 
     def setup(self, init_value):
-        self.fiat = init_value*Dec(3)
-        self.model.endow_havvens(self, init_value*Dec(3))
+        if self.trade_market == self.havven_fiat_market:
+            self.fiat = init_value*Dec(3)
+            self.model.endow_havvens(self, init_value*Dec(3))
+        if self.trade_market == self.havven_nomin_market:
+            self.fiat = init_value*Dec(4)
+            self.model.endow_havvens(self, init_value*Dec(2))
+        if self.trade_market == self.nomin_fiat_market:
+            self.fiat = init_value*Dec(6)
 
     def step(self):
+        # don't do anything until only holding one of the two
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:
                 self.sell_fiat_for_havvens_with_fee(self.available_fiat / Dec(2))
                 self.sell_fiat_for_nomins_with_fee(self.available_fiat / Dec(2))
+                if self.available_fiat > 1:
+                    return
         if self.trade_market == self.nomin_fiat_market:
             if self.available_havvens > 0:
                 self.sell_havvens_for_fiat_with_fee(self.available_nomins / Dec(2))
                 self.sell_havvens_for_nomins_with_fee(self.available_nomins / Dec(2))
+                if self.available_havvens > 1:
+                    return
         if self.trade_market == self.havven_fiat_market:
             if self.available_nomins > 0:
                 self.sell_nomins_for_fiat_with_fee(self.available_nomins / Dec(2))
                 self.sell_nomins_for_havvens_with_fee(self.available_nomins / Dec(2))
+                if self.available_nomins > 1:
+                    return
 
         # if the duration has ended, close the trades
         if self.last_bet_end >= self.minimal_wait + self.bet_length:
