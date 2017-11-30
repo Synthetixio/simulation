@@ -222,8 +222,9 @@ class OrderBook:
         self.bid_price_buckets = SortedDict(lambda x: -x)
         self.ask_price_buckets = SortedDict(lambda x: x)
 
-        self.cached_price: Dec = Dec('1.0')
-        self.last_cached_price_time: int = 0
+        # These members save on recomputation of the price when it's consulted multiple times per step.
+        self._cached_price: Dec = Dec('1.0')
+        self._last_cached_price_time: int = 0
 
         self.time: int = 0
 
@@ -245,7 +246,7 @@ class OrderBook:
 
         # A list keeping track of each tick's high, low, open, close
         self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
-        self.price_data: List[Dec] = [self.cached_price]
+        self.price_data: List[Dec] = [self._cached_price]
         self.volume_data: List[Dec] = [Dec(0)]
 
         # Try to match orders after each trade is submitted
@@ -263,8 +264,8 @@ class OrderBook:
         """
         Return the rolling average of the price, only calculate it once per tick
         """
-        if self.model_manager.time <= self.last_cached_price_time:
-            return self.cached_price
+        if self.model_manager.time <= self._last_cached_price_time:
+            return self._cached_price
 
         if self.model_manager.volume_weighted_average:
             return self.weighted_rolling_price_average(self.model_manager.rolling_avg_time_window)
@@ -285,12 +286,12 @@ class OrderBook:
             counted += 1
 
         if counted == 0:
-            self.cached_price = self.cached_price
+            self._cached_price = self._cached_price
         else:
-            self.cached_price = total / Dec(counted)
+            self._cached_price = total / Dec(counted)
 
-        self.last_cached_price_time = self.model_manager.time
-        return self.cached_price
+        self._last_cached_price_time = self.model_manager.time
+        return self._cached_price
 
     def weighted_rolling_price_average(self, time_window: int) -> Dec:
         """
@@ -306,12 +307,12 @@ class OrderBook:
             counted_vol += item.quantity
 
         if counted_vol == Dec(0):
-            self.cached_price = self.cached_price
+            self._cached_price = self._cached_price
         else:
-            self.cached_price = total / counted_vol
+            self._cached_price = total / counted_vol
 
-        self.last_cached_price_time = self.model_manager.time
-        return self.cached_price
+        self._last_cached_price_time = self.model_manager.time
+        return self._cached_price
 
     def step(self) -> None:
         """
@@ -334,7 +335,7 @@ class OrderBook:
                 break
             self.volume_data[-1] += item.quantity
 
-        self.price_data.append(self.cached_price)
+        self.price_data.append(self.price)
 
     def _bid_bucket_add(self, price: Dec, quantity: Dec) -> None:
         """
