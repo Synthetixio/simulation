@@ -325,7 +325,6 @@ class ModelHandler:
                 with model_handler.data_lock:
                     model_handler.step()
 
-
         except Exception as e:
             print("==========-ERROR-==========")
             print(__import__('traceback').print_tb(e))
