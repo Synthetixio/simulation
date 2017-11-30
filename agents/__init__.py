@@ -6,6 +6,7 @@ from .centralbank import CentralBank
 from .speculator import HavvenSpeculator, NaiveSpeculator
 from .nomin_shorter import NominShorter, HavvenEscrowNominShorter
 from .merchant import Merchant, Buyer
+from .market_maker import MarketMaker
 
 # player names for the UI sliders
 player_names = {
@@ -18,5 +19,6 @@ player_names = {
     'HavvenSpeculator': HavvenSpeculator,
     'NaiveSpeculator': NaiveSpeculator,
     'Merchant': Merchant,
-    'Buyer': Buyer
+    'Buyer': Buyer,
+    'MarketMaker': MarketMaker
 }

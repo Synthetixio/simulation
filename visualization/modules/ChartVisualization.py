@@ -27,8 +27,6 @@ class ChartModule(VisualizationElement):
                                      the page, in pixels. Default to 200 x 500
         data_collector_name: Name of the DataCollector object in the model to
                              retrieve data from.
-        template: "chart_module.html" stores the HTML template for the module.
-
 
     Example:
         schelling_chart = ChartModule([{"Label": "happy", "Color": "Black"}],

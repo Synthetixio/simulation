@@ -153,7 +153,7 @@ class MarketPlayer(Agent):
         return self.model.market_manager.transfer_fiat(self, recipient, value)
 
     def transfer_havvens_to(self, recipient: "MarketPlayer",
-                           value: Dec) -> bool:
+                            value: Dec) -> bool:
         """
         Transfer a positive value of havvens to the recipient,
         if balance is sufficient. Return True on success.
