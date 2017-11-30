@@ -48,6 +48,24 @@ def mean_escrownomshort_profit_fraction(havven_model: "model.HavvenModel") -> fl
     return mean(float(a.profit_fraction()) for a in havven_model.agent_manager.agents['HavvenEscrowNominShorter'])
 
 
+def mean_havvenspec_profit_fraction(havven_model: "model.HavvenModel") -> float:
+    if len(havven_model.agent_manager.agents['HavvenSpeculator']) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven_model.agent_manager.agents['HavvenSpeculator'])
+
+
+def mean_naivespec_profit_fraction(havven_model: "model.HavvenModel") -> float:
+    if len(havven_model.agent_manager.agents['NaiveSpeculator']) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven_model.agent_manager.agents['NaiveSpeculator'])
+
+
+def mean_marketmaker_profit_fraction(havven_model: "model.HavvenModel") -> float:
+    if len(havven_model.agent_manager.agents['MarketMaker']) == 0:
+        return 0
+    return mean(float(a.profit_fraction()) for a in havven_model.agent_manager.agents['MarketMaker'])
+
+
 def wealth_sd(havven_model: "model.HavvenModel") -> float:
     """Return the standard deviation of wealth in the market."""
     return stdev(float(a.wealth()) for a in havven_model.schedule.agents)
@@ -155,6 +173,9 @@ def create_datacollector() -> DataCollector:
                     "Rand Profit %": lambda h: round(100 * mean_rand_profit_fraction(h), 3),
                     "NomShort Profit %": lambda h: round(100 * mean_nomshort_profit_fraction(h), 3),
                     "EscrowNomShort Profit %": lambda h: round(100 * mean_escrownomshort_profit_fraction(h), 3),
+                    "HavvenSpec Profit %": lambda h: round(100 * mean_havvenspec_profit_fraction(h), 3),
+                    "NaiveSpec Profit %": lambda h: round(100 * mean_naivespec_profit_fraction(h), 3),
+                    "MarkerMaker Profit %": lambda h: round(100 * mean_marketmaker_profit_fraction(h), 3),
                     "Havven Demand": havven_demand,
                     "Havven Supply": havven_supply,
                     "Nomin Demand": nomin_demand,

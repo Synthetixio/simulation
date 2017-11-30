@@ -55,6 +55,9 @@ def make_server(n_agents: int = 50, ur: float = 0.3,
             {"Label": "Rand Profit %", "Color": "green"},
             {"Label": "NomShort Profit %", "Color": "orchid"},
             {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
+            {"Label": "NaiveSpec Profit %", "Color": "fuchsia"},
+            {"Label": "HavvenSpec Profit %", "Color": "purple"},
+            {"Label": "MarketMaker Profit %", "Color": "teal"},
             {"Label": "0", "Color": ref_colour}
         ]),
 

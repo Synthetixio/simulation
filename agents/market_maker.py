@@ -35,9 +35,9 @@ class MarketMaker(MarketPlayer):
 
     In the case where the market maker believes the price will rise, it will place a sell at a
     set price in the for the future, and slowly buy at higher and higher prices
-
-    |         =======
-    |  =======        ---
+                           _--_
+    |          ========   (moon)
+    |  ========       ---  "--"
     |==          -----
     |       -----   ===
     |  -----     ===
@@ -49,34 +49,34 @@ class MarketMaker(MarketPlayer):
     = Market maker's bid/ask spread
     - Predicted price movement
     the price difference is dependant on the gradient
-
-    TODO: ensure profitability (calculate fees)
     """
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.last_bet_end = random.randint(-20, 10)
+        self.last_bet_end: int = random.randint(-20, 10)
         '''How long since the last market maker's "bet"'''
 
-        self.minimal_wait = 10
+        self.minimal_wait: int = 10
         '''How long will the market maker wait since it's last "bet" to let the market move on its own'''
 
-        self.bet_length = 30
+        self.bet_duration: int = 30
         '''How long will the market maker do its "bet" for'''
 
-        self.bet_percentage = Dec('1')
+        self.bet_percentage: Dec = Dec('1')
         '''
         How much of it's wealth will the market maker use on a "bet"
         The bot will constantly update the orders on either side to use all it's wealth
         multiplied by the percentage value
         '''
 
-        self.initial_bet_margin = Dec('0.05')
+        self.initial_bet_margin: Dec = Dec('0.05')
         '''
-        How off the expected price gradient will the gradient bet be placed
-        This also determines how close the bets get at the end (both would be off by the margin)
+        How off the expected price gradient will the bets be placed initially
         '''
 
-        self.ending_bet_margin = Dec('0.01')
+        self.ending_bet_margin: Dec = Dec('0.01')
+        '''
+        How close the bets get at the end
+        '''
 
         self.trade_market = random.choice([
             self.havven_fiat_market,
@@ -87,10 +87,14 @@ class MarketMaker(MarketPlayer):
         self.current_bet: Optional[Dict[str, Any[str, int, Dec, 'ob.LimitOrder']]] = None
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f"{self.__class__.__name__} {self.unique_id} ({self.trade_market.name})"
 
-    def setup(self, init_value):
+    def setup(self, init_value) -> None:
+        """
+        Initially give the players the two currencies of their trade_market
+        if they trade in nomins, start with fiat instead, to purchase the nomins
+        """
         if self.trade_market == self.havven_fiat_market:
             self.fiat = init_value*Dec(3)
             self.model.endow_havvens(self, init_value*Dec(3))
@@ -100,8 +104,8 @@ class MarketMaker(MarketPlayer):
         if self.trade_market == self.nomin_fiat_market:
             self.fiat = init_value*Dec(6)
 
-    def step(self):
-        # don't do anything until only holding one of the two
+    def step(self) -> None:
+        # don't do anything until only holding the correct two currencies
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:
                 self.sell_fiat_for_havvens_with_fee(self.available_fiat / Dec(2))
@@ -122,7 +126,7 @@ class MarketMaker(MarketPlayer):
                     return
 
         # if the duration has ended, close the trades
-        if self.last_bet_end >= self.minimal_wait + self.bet_length:
+        if self.last_bet_end >= self.minimal_wait + self.bet_duration:
             self.last_bet_end = 0
             self.current_bet['bid'].cancel()
             self.current_bet['ask'].cancel()
@@ -189,9 +193,16 @@ class MarketMaker(MarketPlayer):
         self.last_bet_end += 1
 
     def place_bid_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Bid":
+        """
+        Place a bid at a price dependent on the time in effect and gradient
+        based on the player's margins
+
+        The price chosen is the current predicted price (start + gradient * time_in_effect)
+        multiplied by the current bet margin 1-(fraction of time remaining)*(max-min margin)+min_margin
+        """
         price = start_price + Dec(gradient * time_in_effect)
         multiplier = 1 - (
-            (Dec((self.bet_length-time_in_effect)/self.bet_length) *
+            (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
              (self.initial_bet_margin-self.ending_bet_margin)
              ) + self.ending_bet_margin
         )
@@ -213,12 +224,15 @@ class MarketMaker(MarketPlayer):
 
     def place_ask_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Ask":
         """
-        Place an ask at a price dependant on the time in effect and gradient
+        Place an ask at a price dependent on the time in effect and gradient
         based on the player's margins
+
+        The price chosen is the current predicted price (start + gradient * time_in_effect)
+        multiplied by the current bet margin 1+(fraction of time remaining)*(max-min margin)+min_margin
         """
         price = start_price + Dec(gradient*time_in_effect)
         multiplier = 1 + (
-            (Dec((self.bet_length-time_in_effect)/self.bet_length) *
+            (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
              (self.initial_bet_margin-self.ending_bet_margin)
              ) + self.ending_bet_margin
         )
