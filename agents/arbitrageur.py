@@ -73,6 +73,7 @@ class Arbitrageur(MarketPlayer):
                 self.forward_nomin_cycle_trade()
             else:
                 self.forward_fiat_cycle_trade()
+            return
 
         # Now the reverse direction
         cc_net_wealth = self.model.fiat_value(**self.reverse_havven_cycle_balances()) - wealth
