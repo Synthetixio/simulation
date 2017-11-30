@@ -395,7 +395,7 @@ class OrderBook:
         """
         The quantity of the quoted currency received by a seller (fees deducted).
         """
-        return self._quoted_qty_received_fn_(HavvenManager.round_decimal(price * quantity))
+        return self.quoted_qty_rcvd(HavvenManager.round_decimal(price * quantity))
 
     def buyer_received_quantity(self, price: Dec, quantity: Dec) -> Dec:
         """
