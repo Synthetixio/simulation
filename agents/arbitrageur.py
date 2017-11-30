@@ -6,6 +6,7 @@ from .marketplayer import MarketPlayer
 from managers import HavvenManager as hm
 from orderbook import OrderBook
 
+# TODO: consider if arbitrageurs should balance out their currency fractions periodically.
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
@@ -404,6 +405,3 @@ class Arbitrageur(MarketPlayer):
         """The return after one reverse arbitrage cycle."""
         # As above. If the fees were not just levied as percentages this would need to be updated.
         return hm.round_decimal(self._reverse_multiple_no_fees() / self._cycle_fee_rate())
-
-    def _equalise_tokens(self) -> None:
-        pass
