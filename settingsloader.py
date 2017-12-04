@@ -6,11 +6,16 @@ def load_settings():
     settings = {
         'Server': {
             'cached': True,
+            # TODO: whether to used cached results or not
             'threaded': False,
+            # whether to run the model in a separate thread for each socket connection
+            # it runs worse with threading, so better to just leave it as false...
             'port': 3000,
             'fps_max': 6,
+            # max fps for the model to run at
             'fps_default': 3,
             'max_steps': 1500
+            # max number of steps to generate up to
         },
         'Model': {
             'num_agents_max': 175,
@@ -97,7 +102,7 @@ Using default value of: {settings[section][item]}
                 config.set(section, item, str(settings[section][item]))
         with open("settings.ini", 'w') as f:
             config.write(f)
-
+    # make all the agent fractions floats based on max
     total = sum(settings['AgentFractions'][i] for i in settings['AgentFractions'])
     for i in settings['AgentFractions']:
         settings['AgentFractions'][i] = settings['AgentFractions'][i]/total

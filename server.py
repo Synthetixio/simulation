@@ -129,10 +129,15 @@ def make_server() -> ModularServer:
         'checkbox', "Continuous order matching", settings["Model"]["continuous_order_matching"]
     )
 
-    # the none value will randomize the data on every model reset
-    agent_fraction_selector = UserSettableParameter(
-        'agent_fractions', "Agent fraction selector", settings['AgentFractions']
-    )
+    if settings['Model']['random_agents']:
+        agent_fraction_selector = UserSettableParameter(
+            'agent_fractions', "Agent fraction selector", None
+        )
+    else:
+        # the none value will randomize the data on every model reset
+        agent_fraction_selector = UserSettableParameter(
+            'agent_fractions', "Agent fraction selector", settings['AgentFractions']
+        )
 
     server = ModularServer(settings, model.HavvenModel, charts, "Havven Model (Alpha)",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,

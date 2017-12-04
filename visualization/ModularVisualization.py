@@ -302,7 +302,6 @@ class ModelHandler:
                 model_params[key] = val.value
             else:
                 model_params[key] = val
-        print(model_params)
         self.model = self.model_cls(model_params,
                                     self.model_settings['Fees'],
                                     self.model_settings['Agents'],

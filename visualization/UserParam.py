@@ -128,7 +128,6 @@ class UserSettableParameter:
 
     def randomize_agents(self):
         """Randomize the agent initial values"""
-        print("randomizing agents")
         # import here to avoid circular reference
         from agents import player_names
         v = {
