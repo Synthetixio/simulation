@@ -14,13 +14,17 @@
  running: Boolean on whether we have reached the end of the current model
  * fps: Current frames per second.
  */
+
+var fps_max = $('#fps_max')[0].content;
+var fps_default = $('#fps_default')[0].content;
+
 var MesaVisualizationControl = function() {
     this.tick = -1; // Counts at which tick of the model we are.
     this.last_sent = -1;
     this.run_number = 0;
     this.running = false; // Whether there is currently a model running
     this.done = false;
-    this.fps = 3; // Frames per second
+    this.fps = fps_default; // Frames per second
     this.data = []
 };
 
@@ -33,9 +37,6 @@ var model_params = {};
 var playPauseButton = $('#play-pause');
 var stepButton = $('#step');
 var resetButton = $('#reset');
-
-var fps_max = $('#fps_max')[0].content;
-var fps_default = $('#fps_default')[0].content;
 
 var fpsControl = $('#fps').slider({
     max: fps_max,
