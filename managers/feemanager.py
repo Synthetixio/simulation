@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from decimal import Decimal as Dec
 from random import shuffle
 
@@ -11,23 +11,32 @@ class FeeManager:
     Handles fee calculation.
     """
 
-    def __init__(self, model_manager: HavvenManager) -> None:
-
+    def __init__(self, model_manager: HavvenManager, fee_settings: Dict[str, Any]) -> None:
+        """
+        :param model_manager: a model_manager object
+        :param fee_settings: The settings for fees:
+         - fee_period: how often fees are paid out to havven holders
+         - stable_nomin_fee_level: the fee rate for nomins
+         - stable_havven_fee_level: the fee rate for havvens
+         - stable_fiat_fee_level: the fee rate for fiat
+         - stable_nomin_issuance_fee: the fee rate for nomin issuance
+         - stable_nomin_redemption_fee: the fee rate for nomin redemption
+        """
         self.model_manager = model_manager
 
         # Fees are distributed at regular intervals
-        self.fee_period: int = 50
+        self.fee_period: int = fee_settings['fee_period']
 
         # Multiplicative transfer fee rates
-        self.nomin_fee_rate: Dec = Dec('0.005')
-        self.havven_fee_rate: Dec = Dec('0.005')
-        self.fiat_fee_rate: Dec = Dec('0.005')
+        self.nomin_fee_rate = Dec(fee_settings['stable_nomin_fee_level'])
+        self.havven_fee_rate = Dec(fee_settings['stable_havven_fee_level'])
+        self.fiat_fee_rate = Dec(fee_settings['stable_fiat_fee_level'])
 
         # Multiplicative issuance fee rates
-        self.issuance_fee_rate: Dec = Dec('0.0')
-        self.redemption_fee_rate: Dec = Dec('0.0')
+        self.issuance_fee_rate = Dec(fee_settings['stable_nomin_issuance_fee'])
+        self.redemption_fee_rate = Dec(fee_settings['stable_nomin_redemption_fee'])
 
-        self.fees_distributed: Dec = Dec(0)
+        self.fees_distributed = Dec(0)
 
     def transferred_fiat_received(self, quantity: Dec) -> Dec:
         """

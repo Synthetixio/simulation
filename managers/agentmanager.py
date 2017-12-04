@@ -14,15 +14,18 @@ class AgentManager:
                  havven_model: "model.HavvenModel",
                  num_agents: int,
                  agent_fractions: Dict[str, float],
-                 init_value: Dec,
-                 agent_minimum: int = 1) -> None:
+                 agent_settings: Dict[str, any]) -> None:
         """
         :param havven_model: a reference to the sim itself.
         :param num_agents: the number of agents to include in this simulation (plus or minus a handful).
         :param agent_fractions: the vector which sets the proportions of each agent in the model. Will be normalised.
-        :param init_value: the initial value from which to calculate agent endowments.
-        :param agent_minimum: the minimum number of each type of agent to include in the simulation. 1 by default.
+        :param agent_settings: dict holding values from setting file
+         - init_value: the initial value from which to calculate agent endowments.
+         - agent_minimum: the minimum number of each type of agent to include in the simulation. 1 by default.
         """
+
+        self.wealth_parameter = agent_settings['wealth_parameter']
+        self.agent_minimum = agent_settings['agent_minimum']
 
         # A reference to the Havven sim itself.
         self.havven_model = havven_model
@@ -46,19 +49,19 @@ class AgentManager:
         running_player_total = 0
         for agent_type in agent_fractions:
             total = max(
-                agent_minimum,
+                self.agent_minimum,
                 int(num_agents*agent_fractions[agent_type])
             )
 
             for i in range(total):
                 agent = ag.player_names[agent_type](running_player_total, self.havven_model)
-                agent.setup(init_value)
+                agent.setup(self.wealth_parameter)
                 self.havven_model.schedule.add(agent)
                 self.agents[agent_type].append(agent)
                 running_player_total += 1
 
         # Add a central stabilisation bank
-        # self._add_central_bank(running_player_total, num_agents, init_value)
+        # self._add_central_bank(running_player_total, self.num_agents, self.wealth_parameter)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven_model.schedule.agents:

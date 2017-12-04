@@ -28,7 +28,7 @@ class MarketManager:
             self.fee_manager.transferred_havvens_fee,
             self.fee_manager.transferred_nomins_received,
             self.fee_manager.transferred_havvens_received,
-            self.model_manager.match_on_order
+            self.model_manager.continuous_order_matching
         )
         self.havven_fiat_market = ob.OrderBook(
             model_manager, "havvens", "fiat", self.havven_fiat_match,
@@ -36,7 +36,7 @@ class MarketManager:
             self.fee_manager.transferred_havvens_fee,
             self.fee_manager.transferred_fiat_received,
             self.fee_manager.transferred_havvens_received,
-            self.model_manager.match_on_order
+            self.model_manager.continuous_order_matching
         )
         self.nomin_fiat_market = ob.OrderBook(
             model_manager, "nomins", "fiat", self.nomin_fiat_match,
@@ -44,7 +44,7 @@ class MarketManager:
             self.fee_manager.transferred_nomins_fee,
             self.fee_manager.transferred_fiat_received,
             self.fee_manager.transferred_nomins_received,
-            self.model_manager.match_on_order
+            self.model_manager.continuous_order_matching
         )
 
     def __bid_ask_match(

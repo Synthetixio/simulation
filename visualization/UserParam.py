@@ -86,7 +86,7 @@ class UserSettableParameter:
 
         elif self.param_type == self.AGENT_FRACTIONS:
             if value is not None:
-                valid = isinstance(self.value, dict)
+                valid = isinstance(value, dict)
                 self.got_set = True
             else:
                 # randomize the data if given None

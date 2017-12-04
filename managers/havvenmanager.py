@@ -1,5 +1,6 @@
 from decimal import getcontext, ROUND_HALF_UP
 from decimal import Decimal as Dec
+from typing import Dict, Any
 
 
 class HavvenManager:
@@ -13,33 +14,43 @@ class HavvenManager:
     The decimal context precision should be significantly higher than this.
     """
 
-    def __init__(self, utilisation_ratio_max: Dec = Dec(1),
-                 match_on_order: bool = True) -> None:
+    def __init__(self, utilisation_ratio_max: Dec,
+                 continuous_order_matching: bool, havven_settings: Dict[str, Any]) -> None:
+        """
+        :param utilisation_ratio_max:
+        :param continuous_order_matching:
+        :param havven_settings:
+         - havven_supply: the total amount of havvens in the system
+         - nomin_supply: the amount of nomins the havven system begins with
+         - rolling_avg_time_window: the amount of steps to consider when calculating the
+         rolling price average
+         - use_volume_weighted_avg: whether to use volume in calculating the rolling price average
+        """
         # Set the decimal rounding mode
         getcontext().rounding = ROUND_HALF_UP
 
         # Initiate Time
-        self.time: int = 1
+        self.time: int = 0
 
         # Utilisation Ratio maximum (between 0 and 1)
         self.utilisation_ratio_max: Dec = utilisation_ratio_max
 
         # If true, match orders whenever an order is posted,
         #   otherwise do so at the end of each period
-        self.match_on_order: bool = match_on_order
+        self.continuous_order_matching: bool = continuous_order_matching
 
         # Money Supply
-        self.havven_supply: Dec = Dec('1e9')
-        self.nomin_supply: Dec = Dec(0)
-        self.escrowed_havvens: Dec = Dec(0)
+        self.havven_supply = Dec(havven_settings['havven_supply'])
+        self.nomin_supply = Dec(havven_settings['nomin_supply'])
+        self.escrowed_havvens = Dec(0)
 
         # Havven's own capital supplies
         self.havvens: Dec = self.havven_supply
         self.nomins: Dec = self.nomin_supply
-        self.fiat: Dec = self.escrowed_havvens
+        self.fiat = Dec(0)
 
-        self.rolling_avg_time_window: int = 7
-        self.volume_weighted_average: bool = False
+        self.rolling_avg_time_window: int = havven_settings['rolling_avg_time_window']
+        self.volume_weighted_average: bool = havven_settings['use_volume_weighted_avg']
         """Whether to calculate the rolling average taking into account the volume of the trades"""
 
     @classmethod

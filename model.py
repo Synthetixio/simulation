@@ -1,6 +1,6 @@
 """model.py: The Havven model itself lives here."""
 
-from typing import Dict, Optional
+from typing import Dict, Any
 from decimal import Decimal as Dec
 
 from mesa import Model
@@ -22,14 +22,29 @@ class HavvenModel(Model):
       other quantities including liquidity, volatility, wealth concentration,
       velocity of money and so on.
     """
+    def __init__(self,
+                 model_settings: Dict[str, Any],
+                 fee_settings: Dict[str, Any],
+                 agent_settings: Dict[str, Any],
+                 havven_settings: Dict[str, Any]) -> None:
+        """
 
-    def __init__(self, num_agents: int, init_value: float = 1000.0,
-                 utilisation_ratio_max: float = 1.0,
-                 match_on_order: bool = True,
-                 agent_fractions: Optional[Dict[str, int]] = None,
-                 agent_minimum: int = 1) -> None:
+        :param model_settings: Setting that are modifiable on the frontend
+         - agent_fraction: what percentage of each agent to use
+         - num_agents: the total number of agents to use
+         - utilisation_ratio_max: the max utilisation ratio for nomin issuance against havvens
+         - continuous_order_matching: whether to match orders as they come,
+         or at the end of each tick
+        :param fee_settings: explained in feemanager.py
+        :param agent_settings: explained in agentmanager.py
+        :param havven_settings: explained in havvenmanager.py
+        """
+        agent_fractions = model_settings['agent_fractions']
+        num_agents = model_settings['num_agents']
+        utilisation_ratio_max = model_settings['utilisation_ratio_max']
+        continuous_order_matching = model_settings['continuous_order_matching']
+
         # Mesa setup.
-
         super().__init__()
 
         # The schedule will activate agents in a random order per step.
@@ -39,24 +54,24 @@ class HavvenModel(Model):
         self.datacollector = stats.create_datacollector()
 
         # Initialise simulation managers.
-        self.manager = HavvenManager(Dec(utilisation_ratio_max), match_on_order)
-        self.fee_manager = FeeManager(self.manager)
+        self.manager = HavvenManager(
+            Dec(utilisation_ratio_max),
+            continuous_order_matching,
+            havven_settings
+        )
+        self.fee_manager = FeeManager(
+            self.manager,
+            fee_settings
+        )
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
 
-        if agent_fractions is None:
-            agent_fractions = {
-                'Banker': 0.2,
-                'Arbitrageur': 0.2,
-                'Randomizer': 0.3,
-                'NominShorter': 0.15,
-                'HavvenEscrowNominShorter': 0.15,
-                'Speculator': 0.1
-            }
-
-        self.agent_manager = AgentManager(self, num_agents,
-                                          agent_fractions, Dec(init_value),
-                                          agent_minimum=agent_minimum)
+        self.agent_manager = AgentManager(
+            self,
+            num_agents,
+            agent_fractions,
+            agent_settings
+        )
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
@@ -81,7 +96,7 @@ class HavvenModel(Model):
         self.market_manager.nomin_fiat_market.step_history()
 
         # Resolve outstanding trades.
-        if not self.manager.match_on_order:
+        if not self.manager.continuous_order_matching:
             self.market_manager.havven_nomin_market.match()
             self.market_manager.havven_fiat_market.match()
             self.market_manager.nomin_fiat_market.match()

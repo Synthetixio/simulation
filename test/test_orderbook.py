@@ -4,13 +4,26 @@ import orderbook
 from decimal import Decimal as Dec
 import agents as ag
 from managers.havvenmanager import HavvenManager as hm
+import settingsloader
 
 UID = 0
 """UID is a global id for all agents being added in the tests"""
 
 
-def make_model_without_agents(match_on_order=True):
-    havven_model = model.HavvenModel(0, match_on_order=match_on_order, agent_fractions={}, agent_minimum=0)
+def make_model_without_agents(continuous_order_matching=True):
+    """TODO: make this more generalised"""
+    settings = settingsloader.load_settings()
+    model_settings = settings['Model']
+    model_settings['agent_fractions'] = settings['AgentFractions']
+    model_settings['num_agents'] = 0
+    model_settings['continuous_order_matching'] = continuous_order_matching
+    settings['Agents']['agent_minimum'] = 0
+    havven_model = model.HavvenModel(
+        model_settings,
+        settings['Fees'],
+        settings['Agents'],
+        settings['Havven']
+    )
     for item in havven_model.schedule.agents:
         havven_model.schedule.remove(item)
     havven_model.agent_manager.agents = {"others": []}
@@ -154,10 +167,10 @@ def place_nom_fiat_limit_sell_setup(alice_initial):
     start the two who will have existing buys with 10000 fiat,
     as that isn't what is being tested.
 
-    Have the model match_on_order be False, to test that the
+    Have the model continuous_order_matching be False, to test that the
     bids/asks are created correctly
     """
-    havven_model = make_model_without_agents(match_on_order=False)
+    havven_model = make_model_without_agents(continuous_order_matching=False)
     alice = add_market_player(havven_model)
     alice.nomins = Dec(alice_initial)
     bob = add_market_player(havven_model)
@@ -242,7 +255,7 @@ def test_nomin_fiat_ask_scenarios(initial, quantity, price, success):
 
 
 def nomin_fiat_ask_placement_check(initial, quantity, price, success):
-    havven_model = make_model_without_agents(match_on_order=False)
+    havven_model = make_model_without_agents(continuous_order_matching=False)
     alice = add_market_player(havven_model)
     alice.nomins = Dec(initial)
 
@@ -316,7 +329,7 @@ def test_nomin_fiat_bid_scenarios(initial, quantity, price, success):
 
 
 def nomin_fiat_bid_placement_check(initial, quantity, price, success):
-    havven_model = make_model_without_agents(match_on_order=False)
+    havven_model = make_model_without_agents(continuous_order_matching=False)
     alice = add_market_player(havven_model)
     alice.fiat = Dec(initial)
 
@@ -473,7 +486,7 @@ def nomin_fiat_ask_match_check(player_info):
     a_price = Dec(a_info[2])
     a_type = a_info[3]
 
-    havven_model = make_model_without_agents(match_on_order=False)
+    havven_model = make_model_without_agents(continuous_order_matching=False)
     alice = add_market_player(havven_model)
     alice.nomins = Dec(a_initial)
 

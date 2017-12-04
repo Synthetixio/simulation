@@ -104,9 +104,7 @@ import tornado.web
 import tornado.websocket
 import tornado.escape
 import tornado.gen
-import webbrowser
 import threading
-import queue
 import time
 import copy
 
@@ -124,7 +122,9 @@ class PageHandler(tornado.web.RequestHandler):
                     description=self.application.description,
                     package_includes=self.application.package_includes,
                     local_includes=self.application.local_includes,
-                    scripts=self.application.js_code)
+                    scripts=self.application.js_code,
+                    fps_max=self.application.fps_max,
+                    fps_default=self.application.fps_default)
 
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
@@ -133,6 +133,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
         self.step = 0
+        self.last_step_time = time.time()
         self.current_run_num = 0
         self.last_run_num = 0
 
@@ -140,6 +141,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         When a new user connects to the server via websocket create a new model
         i.e. same IP can have multiple models
+
+        TODO: do cached check here
         """
         # self is the connection, not a single socket object
         self.model_handler = ModelHandler(
@@ -147,7 +150,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             self.application.model_name,
             copy.deepcopy(self.application.model_cls),
             copy.deepcopy(self.application.model_params),
-            copy.deepcopy(self.application.visualization_elements)
+            copy.deepcopy(self.application.visualization_elements),
+            copy.deepcopy(self.application.model_settings)
         )
         self.model_handler.reset_model(self.current_run_num)
         if self.application.threaded:
@@ -164,7 +168,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         data = []
         while len(data) < 1:
-            time.sleep(0.01)
             if fps is None:
                 self.model_handler.max_calc_step = min(
                     step + self.application.calculation_buffer,
@@ -205,7 +208,13 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         "run_num":  self.model_handler.current_run_num
                     }
                 else:
-
+                    curr_time = time.time()
+                    # added first less than just in case the time rolls back to 0...
+                    # this will prevent someone spamming get_steps, to stop both repeated steps being sent,
+                    # as well as clogging up the server with requests
+                    if self.last_step_time < curr_time < self.last_step_time + self.application.min_step_time:
+                        return
+                    self.last_step_time = curr_time
                     self.model_handler.step()
                     message = {
                         "type": "viz_state",
@@ -224,7 +233,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
             param = msg["param"]
             value = msg["value"]
-            # TODO: should be sanitised
             self.model_handler.set_model_kwargs(param, value)
 
         elif msg["type"] == "get_params":
@@ -249,7 +257,10 @@ class ModelHandler:
     """
     Handle the Model data collection and resetting
     """
-    def __init__(self, threaded, name, model_cls, model_params, visualization_elements):
+    model = None
+    current_run_num = -1
+
+    def __init__(self, threaded, name, model_cls, model_params, visualization_elements, model_settings):
         self.threaded = threaded
         self.model_name = name
         self.model_cls = model_cls
@@ -260,6 +271,9 @@ class ModelHandler:
         elif model_cls.__doc__ is not None:
             self.description = model_cls.__doc__
         self.model_kwargs = model_params
+
+        self.model_settings = model_settings
+
         self.resetting = False
         self.current_step = 0
         self.max_calc_step = 10
@@ -288,7 +302,11 @@ class ModelHandler:
                 model_params[key] = val.value
             else:
                 model_params[key] = val
-        self.model = self.model_cls(**model_params)
+        self.model = self.model_cls(model_params,
+                                    self.model_settings['Fees'],
+                                    self.model_settings['Agents'],
+                                    self.model_settings['Havven']
+                                    )
         # clear the data queue
         with self.data_lock:
             self.data = []
@@ -361,17 +379,24 @@ class ModularServer(tornado.web.Application):
 
     EXCLUDE_LIST = ('width', 'height',)
 
-    def __init__(self, threaded, model_cls, visualization_elements, name,
+    def __init__(self, settings, model_cls, visualization_elements, name,
                  model_params={}):
         """ Create a new visualization server with the given elements. """
+        self.model_settings = settings
+        self.port = settings['Server']['port']
+
         # Prep visualization elements:
-        self.threaded = threaded
+        self.cached = settings['Server']['cached']  # TODO: cached data
+        self.threaded = settings['Server']['threaded']
         self.visualization_elements = visualization_elements
         self.model_name = name
         self.model_cls = model_cls
         self.model_params = model_params
-        self.max_steps = 1500
+        self.max_steps = settings['Server']['max_steps']
         self.calculation_buffer = 16
+        self.fps_max = settings['Server']['fps_max']
+        self.min_step_time = 1/(self.fps_max + 5)  # give some extra buffer room, just in case
+        self.fps_default = settings['Server']['fps_default']
 
         self.description = ""
 

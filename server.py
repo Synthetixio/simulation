@@ -9,11 +9,11 @@ from visualization.UserParam import UserSettableParameter
 from visualization.ModularVisualization import ModularServer
 from visualization.VisualizationElement import VisualizationElement
 
+import settingsloader
 import model
 
 
-def make_server(n_agents: int = 50, ur: float = 0.3,
-                cont_orders: bool = True, threaded=True) -> ModularServer:
+def make_server() -> ModularServer:
     """
     Set up the simulation/visualisation server and return it.
 
@@ -21,6 +21,8 @@ def make_server(n_agents: int = 50, ur: float = 0.3,
       (the graphs with only one label wont show the label value, and also show multiple
       values at the same time)
     """
+    settings = settingsloader.load_settings()
+
     ref_colour = "lightgrey"
 
     charts: List[VisualizationElement] = [
@@ -114,23 +116,30 @@ def make_server(n_agents: int = 50, ur: float = 0.3,
     ]
 
     n_slider = UserSettableParameter(
-        'slider', "Number of agents", n_agents, 20, 175, 1
+        'slider', "Number of agents",
+        settings["Model"]["num_agents"], settings["Model"]["num_agents_min"],
+        settings["Model"]["num_agents_max"], 1
     )
 
     ur_slider = UserSettableParameter(
-        'slider', "Utilisation Ratio", ur, 0.0, 1.0, 0.01
+        'slider', "Utilisation Ratio", settings["Model"]["utilisation_ratio_max"], 0.0, 1.0, 0.01
     )
 
     match_checkbox = UserSettableParameter(
-        'checkbox', "Continuous order matching", cont_orders
+        'checkbox', "Continuous order matching", settings["Model"]["continuous_order_matching"]
     )
 
-    # the none value will randomize the data on every model reset
-    agent_fraction_selector = UserSettableParameter(
-        'agent_fractions', "Agent fraction selector", None
-    )
+    if settings['Model']['random_agents']:
+        agent_fraction_selector = UserSettableParameter(
+            'agent_fractions', "Agent fraction selector", None
+        )
+    else:
+        # the none value will randomize the data on every model reset
+        agent_fraction_selector = UserSettableParameter(
+            'agent_fractions', "Agent fraction selector", settings['AgentFractions']
+        )
 
-    server = ModularServer(threaded, model.HavvenModel, charts, "Havven Model (Alpha)",
+    server = ModularServer(settings, model.HavvenModel, charts, "Havven Model (Alpha)",
                            {"num_agents": n_slider, "utilisation_ratio_max": ur_slider,
-                            "match_on_order": match_checkbox, 'agent_fractions': agent_fraction_selector})
+                            "continuous_order_matching": match_checkbox, 'agent_fractions': agent_fraction_selector})
     return server

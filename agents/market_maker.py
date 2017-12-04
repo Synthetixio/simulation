@@ -35,7 +35,7 @@ class MarketMaker(MarketPlayer):
 
     In the case where the market maker believes the price will rise, it will place a sell at a
     set price in the for the future, and slowly buy at higher and higher prices
-                           _--_
+    |                      _--_
     |          ========   (moon)
     |  ========       ---  "--"
     |==          -----
