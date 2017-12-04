@@ -5,22 +5,23 @@ import os.path
 def load_settings():
     settings = {
         'Server': {
-            'cached': True,
             # TODO: whether to used cached results or not
-            'threaded': False,
+            'cached': True,
+
             # whether to run the model in a separate thread for each socket connection
             # it runs worse with threading, so better to just leave it as false...
+            'threaded': False,
             'port': 3000,
-            'fps_max': 6,
-            # max fps for the model to run at
+            'fps_max': 6,  # max fps for the model to run at
             'fps_default': 3,
-            'max_steps': 1500
-            # max number of steps to generate up to
+            'max_steps': 1500  # max number of steps to generate up to
         },
         'Model': {
             'num_agents_max': 175,
             'num_agents_min': 20,
             'num_agents': 50,
+
+            # ignore Agent Fractions, and choose random figures
             'random_agents': False,
             'utilisation_ratio_max': '0.2',
             'continuous_order_matching': True
@@ -38,6 +39,7 @@ def load_settings():
             'wealth_parameter': 1000
         },
         'AgentFractions': {
+            # these are normalised to total 1 later
             'Arbitrageur': 3,
             'Banker': 25,
             'Randomizer': 15,
@@ -70,7 +72,7 @@ def load_settings():
                 continue
             for item in config[section]:
                 if item not in settings[section]:
-                    print(f"{item} is not a valid settings for {section}, skipping.")
+                    print(f"{item} is not a valid setting for {section}, skipping.")
                     continue
                 if type(settings[section][item]) == str:
                     settings[section][item] = config[section][item]

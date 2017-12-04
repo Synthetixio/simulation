@@ -22,12 +22,23 @@ class HavvenModel(Model):
       other quantities including liquidity, volatility, wealth concentration,
       velocity of money and so on.
     """
-
     def __init__(self,
                  model_settings: Dict[str, Any],
                  fee_settings: Dict[str, Any],
                  agent_settings: Dict[str, Any],
                  havven_settings: Dict[str, Any]) -> None:
+        """
+
+        :param model_settings: Setting that are modifiable on the frontend
+         - agent_fraction: what percentage of each agent to use
+         - num_agents: the total number of agents to use
+         - utilisation_ratio_max: the max utilisation ratio for nomin issuance against havvens
+         - continuous_order_matching: whether to match orders as they come,
+         or at the end of each tick
+        :param fee_settings: explained in feemanager.py
+        :param agent_settings: explained in agentmanager.py
+        :param havven_settings: explained in havvenmanager.py
+        """
         agent_fractions = model_settings['agent_fractions']
         num_agents = model_settings['num_agents']
         utilisation_ratio_max = model_settings['utilisation_ratio_max']
@@ -44,9 +55,9 @@ class HavvenModel(Model):
 
         # Initialise simulation managers.
         self.manager = HavvenManager(
-            havven_settings,
             Dec(utilisation_ratio_max),
-            continuous_order_matching
+            continuous_order_matching,
+            havven_settings
         )
         self.fee_manager = FeeManager(
             self.manager,
@@ -85,7 +96,7 @@ class HavvenModel(Model):
         self.market_manager.nomin_fiat_market.step_history()
 
         # Resolve outstanding trades.
-        if not self.manager.match_on_order:
+        if not self.manager.continuous_order_matching:
             self.market_manager.havven_nomin_market.match()
             self.market_manager.havven_fiat_market.match()
             self.market_manager.nomin_fiat_market.match()
