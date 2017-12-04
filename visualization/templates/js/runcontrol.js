@@ -33,12 +33,16 @@ var model_params = {};
 var playPauseButton = $('#play-pause');
 var stepButton = $('#step');
 var resetButton = $('#reset');
+
+var fps_max = $('#fps_max')[0].content;
+var fps_default = $('#fps_default')[0].content;
+
 var fpsControl = $('#fps').slider({
-    max: 6,
+    max: fps_max,
     min: 1,
-    value: 3,
-    ticks: [1, 6],
-    ticks_labels: [1, 6],
+    value: fps_default,
+    ticks: [1, fps_max],
+    ticks_labels: [1, fps_max],
     ticks_position: [0, 100]
 });
 
@@ -453,7 +457,7 @@ function toggle_graph(div) {
 
 function toggle_all(btn) {
   // if someone manually hides all the graphs, it will still say hide all... oh well
-    if (btn.innerHTML === "Hide all") {
+    if (btn.innerHTML === "Collapse all") {
         $(".btn-pad").each(function() {
             $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");
         });
@@ -462,7 +466,7 @@ function toggle_all(btn) {
         $(".btn-pad").each(function() {
             $('#'+(this.innerHTML)).removeClass("hidden");
         });
-        btn.innerHTML = "Hide all";
+        btn.innerHTML = "Collapse all";
     }
 
 }

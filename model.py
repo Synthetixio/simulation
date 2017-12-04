@@ -1,6 +1,6 @@
 """model.py: The Havven model itself lives here."""
 
-from typing import Dict, Optional
+from typing import Dict, Any
 from decimal import Decimal as Dec
 
 from mesa import Model
@@ -23,13 +23,17 @@ class HavvenModel(Model):
       velocity of money and so on.
     """
 
-    def __init__(self, num_agents: int, init_value: float = 1000.0,
-                 utilisation_ratio_max: float = 1.0,
-                 match_on_order: bool = True,
-                 agent_fractions: Optional[Dict[str, int]] = None,
-                 agent_minimum: int = 1) -> None:
-        # Mesa setup.
+    def __init__(self,
+                 model_settings: Dict[str, Any],
+                 fee_settings: Dict[str, Any],
+                 agent_settings: Dict[str, Any],
+                 havven_settings: Dict[str, Any]) -> None:
+        agent_fractions = model_settings['agent_fractions']
+        num_agents = model_settings['num_agents']
+        utilisation_ratio_max = model_settings['utilisation_ratio_max']
+        continuous_order_matching = model_settings['continuous_order_matching']
 
+        # Mesa setup.
         super().__init__()
 
         # The schedule will activate agents in a random order per step.
@@ -39,24 +43,24 @@ class HavvenModel(Model):
         self.datacollector = stats.create_datacollector()
 
         # Initialise simulation managers.
-        self.manager = HavvenManager(Dec(utilisation_ratio_max), match_on_order)
-        self.fee_manager = FeeManager(self.manager)
+        self.manager = HavvenManager(
+            havven_settings,
+            Dec(utilisation_ratio_max),
+            continuous_order_matching
+        )
+        self.fee_manager = FeeManager(
+            self.manager,
+            fee_settings
+        )
         self.market_manager = MarketManager(self.manager, self.fee_manager)
         self.mint = Mint(self.manager, self.market_manager)
 
-        if agent_fractions is None:
-            agent_fractions = {
-                'Banker': 0.2,
-                'Arbitrageur': 0.2,
-                'Randomizer': 0.3,
-                'NominShorter': 0.15,
-                'HavvenEscrowNominShorter': 0.15,
-                'Speculator': 0.1
-            }
-
-        self.agent_manager = AgentManager(self, num_agents,
-                                          agent_fractions, Dec(init_value),
-                                          agent_minimum=agent_minimum)
+        self.agent_manager = AgentManager(
+            self,
+            num_agents,
+            agent_fractions,
+            agent_settings
+        )
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:

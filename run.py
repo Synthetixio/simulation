@@ -2,6 +2,5 @@
 from mesa.visualization.ModularVisualization import ModularServer
 import server
 
-S: ModularServer = server.make_server(threaded=False)
-S.port = 3000
+S: ModularServer = server.make_server()
 S.launch()

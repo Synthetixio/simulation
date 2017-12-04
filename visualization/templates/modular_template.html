@@ -57,11 +57,13 @@
 <!--        <p style="font-style: italic">Scrolling in some browsers (Chrome) causes lag. In those cases, use the page scrollbar.</p>-->
         <div id="elements-topbar" class="container">
             <div class="input-group input-group-lg">
+                <meta id="fps_max" content="{{ fps_max }}">
+                <meta id="fps_default" content="{{ fps_default }}">
                 <label class="label label-primary" for="fps" style="margin-right: 15px">Frames Per Second</label>
                 <input id="fps" data-slider-id='fps' type="text"/>
             </div>
         </div>
-        <button style="padding-left: auto; padding-right: auto" class="btn-danger" onclick="toggle_all(this)">Hide all</button>
+        <button style="padding-left: auto; padding-right: auto" class="btn-danger" onclick="toggle_all(this)">Collapse all</button>
     </div>
 </div>
 
