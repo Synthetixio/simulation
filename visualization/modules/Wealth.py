@@ -121,7 +121,7 @@ class CurrentOrderModule(BarGraphModule):
                 nomin_havven_bid_tot = 0
 
                 for order in orders:
-                    if order.book.quote == "fiat":
+                    if order.book.quoted == "fiat":
                         if order.book.base == "nomins":
                             # FIAT/NOM
                             if type(order) == Ask:
@@ -181,7 +181,7 @@ class PastOrdersModule(BarGraphModule):
                 nomin_havven_bid_tot = 0
 
                 for trade in trades:
-                    if trade.book.quote == "fiat":
+                    if trade.book.quoted == "fiat":
                         if trade.book.base == "nomins":
                             # FIAT/NOM
                             if trade.buyer == item[1]:

@@ -61,7 +61,7 @@ class NominShorter(MarketPlayer):
 
     def _find_best_nom_fiat_trade(self) -> Optional[Tuple[Dec, Dec]]:
         trade_price_quant = None
-        for bid in self.model.market_manager.nomin_fiat_market.highest_bids():
+        for bid in self.nomin_fiat_market.highest_bids():
             if bid.price < self._nomin_sell_rate_threshold:
                 break
             if trade_price_quant is not None:
@@ -79,7 +79,7 @@ class NominShorter(MarketPlayer):
 
     def _find_best_fiat_nom_trade(self) -> Optional[Tuple[Dec, Dec]]:
         trade_price_quant = None
-        for ask in self.model.market_manager.nomin_fiat_market.lowest_asks():
+        for ask in self.nomin_fiat_market.lowest_asks():
             if ask.price > self._nomin_buy_rate_threshold:
                 break
             if trade_price_quant is not None:
