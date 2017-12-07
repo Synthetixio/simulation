@@ -22,6 +22,10 @@ class WealthModule(BarGraphModule):
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
+
+        if len(data_collector.agent_vars["Agents"]) <= 1:
+            self.sent_data = False
+
         if not self.sent_data:
             # short list for names of types, list of actor names, and lists for the wealth breakdowns
             vals: Tuple[List[str], List[str], List[float]] = (["Wealth in fiat"], ["darkgreen"], [1], [], [])
@@ -69,6 +73,9 @@ class PortfolioModule(BarGraphModule):
             model, self.data_collector_name
         )
 
+        if len(data_collector.agent_vars["Agents"]) <= 1:
+            self.sent_data = False
+
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:
             vals: PortfolioTuple = (["Fiat", "Escrowed Havvens", "Havvens", "Nomins", "Issued Nomins"],
@@ -115,6 +122,9 @@ class CurrentOrderModule(BarGraphModule):
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
+
+        if len(data_collector.agent_vars["Agents"]) <= 1:
+            self.sent_data = False
 
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:
@@ -186,6 +196,9 @@ class PastOrdersModule(BarGraphModule):
         data_collector: "DataCollector" = getattr(
             model, self.data_collector_name
         )
+
+        if len(data_collector.agent_vars["Agents"]) <= 1:
+            self.sent_data = False
 
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:

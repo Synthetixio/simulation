@@ -118,7 +118,7 @@ class PageHandler(tornado.web.RequestHandler):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
             element.index = i
-        self.render("cache_template.html", port=self.application.port,
+        self.render("modular_template.html", port=self.application.port,
                     model_name=self.application.model_name,
                     description=self.application.description,
                     package_includes=self.application.package_includes,
@@ -133,7 +133,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
-        self.step = 0
+        self.step = -1
         self.last_step_time = time.time()
         self.current_run_num = 0
         self.last_run_num = 0
@@ -223,19 +223,19 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             }
             self.write_message(message)
 
-        elif msg["type"] == "reset" and not self.application.cached:
+        elif msg["type"] == "reset":
             # message format: {'type':'reset', 'run_num':int}
             with self.resetlock:
                 self.current_run_num = msg["run_num"]
                 self.model_handler.reset_model(self.current_run_num)
 
-        elif msg["type"] == "submit_params" and not self.application.cached:
+        elif msg["type"] == "submit_params":
             # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
             param = msg["param"]
             value = msg["value"]
             self.model_handler.set_model_kwargs(param, value)
 
-        elif msg["type"] == "get_params" and not self.application.cached:
+        elif msg["type"] == "get_params":
             # message format: {'type':'get_params'}
             self.write_message({
                 "type": "model_params",

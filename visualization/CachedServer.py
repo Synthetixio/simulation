@@ -12,7 +12,7 @@ import copy
 import cache_handler
 
 
-class PageHandler(tornado.web.RequestHandler):
+class CachedPageHandler(tornado.web.RequestHandler):
     """ Handler for the HTML template which holds the visualization. """
     def get(self):
         elements = self.application.visualization_elements
@@ -28,7 +28,7 @@ class PageHandler(tornado.web.RequestHandler):
                     fps_default=self.application.fps_default)
 
 
-class SocketHandler(tornado.websocket.WebSocketHandler):
+class CachedSocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -43,7 +43,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         """
         if self.application.verbose:
-            print("Socket opened:", self)
+            print("Socket connection opened")
 
     def on_message(self, message):
         """
@@ -139,8 +139,8 @@ class CachedModularServer(tornado.web.Application):
     port = 3000  # Default port to listen on
 
     # Handlers and other globals:
-    page_handler = (r'/', PageHandler)
-    socket_handler = (r'/ws', SocketHandler)
+    page_handler = (r'/', CachedPageHandler)
+    socket_handler = (r'/ws', CachedSocketHandler)
     static_handler = (r'/static/(.*)', tornado.web.StaticFileHandler,
                       {"path": os.path.dirname(__file__) + "/templates"})
     local_handler = (r'/local/(.*)', tornado.web.StaticFileHandler,

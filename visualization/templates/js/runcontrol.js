@@ -300,7 +300,6 @@ ws.onmessage = function(message) {
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
-                console.log(step, control.data.length);
 
                 if (control.data.length <= step) {
                     control.data.push(dataset);
@@ -359,6 +358,8 @@ var single_step = function() {
 
     if (control.tick > control.data.length - fps*2 && control.last_sent !== control.data.length) {
         control.last_sent = control.data.length;
+        if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
+    } else {
         if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
     }
     update_graphs();

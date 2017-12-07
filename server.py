@@ -123,9 +123,12 @@ def make_server() -> "tornado.web.Application":
     charts: List[VisualizationElement] = get_vis_elements()
 
     if settings["Server"]["cached"]:
+        print("Running Cached data server...")
+
         server = CachedModularServer(settings, charts, "Havven Model (Alpha)")
-        return server
+
     else:
+        print("Running model server...")
 
         n_slider = UserSettableParameter(
             'slider', "Number of agents",
@@ -162,4 +165,4 @@ def make_server() -> "tornado.web.Application":
                 'agent_fractions': agent_fraction_selector
             }
         )
-        return server
+    return server

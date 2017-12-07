@@ -490,7 +490,6 @@ resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
 function update_graphs() {
     if (control.tick < control.data[control.dataset].length) {
-        console.log(control.data[control.dataset]);
         for (var i in elements) {
             let to_render = [];
             for (let j = 0; j <= control.tick; j++) {
@@ -546,11 +545,11 @@ function toggle_all(btn) {
 }
 
 
-// if(window.chrome){
-//     // apply niceScroll only if chrome to avoid freezes from scroll events.
-//     $(function() {
-//         $("body").niceScroll();
-//     });
-// }
-//
-//
+if(window.chrome){
+    // apply niceScroll only if chrome to avoid freezes from scroll events.
+    $(function() {
+        $("body").niceScroll();
+    });
+}
+
+

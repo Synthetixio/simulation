@@ -5,7 +5,7 @@ import pickle
 run_settings = [
     {
         "name": "Default",
-        "max_steps": 20,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 100
@@ -14,7 +14,7 @@ run_settings = [
     },
     {
         "name": "High number of bankers",
-        "max_steps": 20,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 175
@@ -35,7 +35,7 @@ def generate_new_caches(data):
 
     for n, item in enumerate(run_settings):
         vis_elements = get_vis_elements()
-        if item["name"] in data and len(data[item['name']]) == item['max_steps']:
+        if item["name"] in data and len(data[item['name']]['data']) == item['max_steps']:
             print("already have:", item['name'])
             continue
         print("\nGenerating", item["name"])
@@ -72,7 +72,7 @@ def generate_new_caches(data):
 def load_saved():
     try:
         with open("cache_data.txt", 'rb') as f:
-            print("loading from pickle")
+            print("Loading from cache_data.txt...")
             data = pickle.load(f)
     except IOError:
         data = {}
@@ -85,7 +85,7 @@ def save_data(data):
     """overwrite existing cache file"""
     with open("cache_data.txt", "wb") as f:
         pickle.dump(data, f)
-    print("caches saved to cache_data.txt")
+    print("Caches saved to cache_data.txt")
 
 
 if __name__ == "__main__":
