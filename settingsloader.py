@@ -1,8 +1,9 @@
 import configparser
 import os.path
+import copy
 
 
-def load_settings():
+def get_defaults():
     settings = {
         'Server': {
             # TODO: whether to used cached results or not
@@ -56,8 +57,26 @@ def load_settings():
             'nomin_supply': '0',
             'rolling_avg_time_window': 7,
             'use_volume_weighted_avg': True
+        },
+        'AgentDescriptions': {
+            "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
+            "Banker": "The banker acquires as many Havvens as they can and issues nomins to buy more",
+            "Randomizer": "The randomizer places random bids and asks on all markets close to the market price",
+            "NominShorter": "The nomin shorter sells nomins when the price is high and buys when they are low",
+            "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave the same as the nomin shorters, but aquire nomins through escrowing havvens",
+            "HavvenSpeculator": "The havven speculator buys havvens hoping the price will appreciate after some period.",
+            "NaiveSpeculator": "The naive speculator behaves similarly to the havven speculators, but does so on all the markets",
+            "Merchant": "The merchant provides goods for Buyers, selling them for nomins. They sell the nomins back into fiat",
+            "Buyer": "The buyers bring fiat into the system systematically, trading it for nomins, to buy goods from the merchant",
+            "MarketMaker": "The market maker creates liquidity on some market in what they hope to be a profitable manner"
         }
+
     }
+    return copy.deepcopy(settings)
+
+
+def load_settings():
+    settings = get_defaults()
 
     config = configparser.ConfigParser()
     config.optionxform = str  # allow for camelcase
@@ -108,6 +127,7 @@ Using default value of: {settings[section][item]}
     total = sum(settings['AgentFractions'][i] for i in settings['AgentFractions'])
     for i in settings['AgentFractions']:
         settings['AgentFractions'][i] = settings['AgentFractions'][i]/total
+
     return settings
 
 

@@ -23,6 +23,8 @@ class BarGraphModule(VisualizationElement):
         self.width = width
         self.data_collector_name = data_collector_name
 
+        self.sent_data = False
+
         # the code to be rendered on the page, last bool is whether it will be a stack graph
         self.js_code: str = f"""elements.push(new BarGraphModule(
             \"{series[0]['Label']}\",{width},{height}));"""

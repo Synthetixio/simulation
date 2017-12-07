@@ -244,7 +244,7 @@ class OrderBook:
         # A list of all successful trades.
         self.history: List[TradeRecord] = []
 
-        # A list keeping track of each tick's high, low, open, close
+        # A list keeping track of each tick's open, close, high, low
         self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
         self.price_data: List[Dec] = [self._cached_price]
         self.volume_data: List[Dec] = [Dec(0)]
@@ -327,6 +327,9 @@ class OrderBook:
             self.candle_data[-1][1] = self.candle_data[-1][0]
             self.candle_data[-1][2] = self.candle_data[-1][0]
             self.candle_data[-1][3] = self.candle_data[-1][0]
+        elif len(self.candle_data) > 1:
+            self.candle_data[-1][2] = min(self.candle_data[-1])
+            self.candle_data[-1][3] = max(self.candle_data[-1])
         self.candle_data.append([self.candle_data[-1][1], None, None, None])
 
         self.volume_data.append(Dec(0))

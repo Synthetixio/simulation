@@ -109,6 +109,7 @@ import time
 import copy
 
 from visualization.UserParam import UserSettableParameter
+import cache_handler
 
 
 class PageHandler(tornado.web.RequestHandler):
@@ -117,7 +118,7 @@ class PageHandler(tornado.web.RequestHandler):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
             element.index = i
-        self.render("modular_template.html", port=self.application.port,
+        self.render("cache_template.html", port=self.application.port,
                     model_name=self.application.model_name,
                     description=self.application.description,
                     package_includes=self.application.package_includes,
@@ -141,8 +142,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         When a new user connects to the server via websocket create a new model
         i.e. same IP can have multiple models
-
-        TODO: do cached check here
         """
         # self is the connection, not a single socket object
         self.model_handler = ModelHandler(
@@ -159,6 +158,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 target=self.model_handler.run_model,
                 args=(self.model_handler,)
             ).start()
+
         if self.application.verbose:
             print("Socket opened:", self)
 
@@ -187,7 +187,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         Receiving a message from the websocket, parse, and act accordingly.
         """
         if self.application.verbose:
-            print(message, len(self.model_handler.data))
+            print(message)
         msg = tornado.escape.json_decode(message)
 
         if msg["type"] == "get_steps":
@@ -199,14 +199,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 client_current_step = msg['step']
                 if client_current_step > self.application.max_steps:
                     message = {"type": "end"}
+                    self.write_message(message)
+                    return
                 elif self.model_handler.threaded:
                     client_fps = msg['fps']
                     data = self.collect_data_from_step(client_current_step, client_fps)
-                    message = {
-                        "type": "viz_state",
-                        "data": data,
-                        "run_num":  self.model_handler.current_run_num
-                    }
+
                 else:
                     curr_time = time.time()
                     # added first less than just in case the time rolls back to 0...
@@ -216,26 +214,28 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         return
                     self.last_step_time = curr_time
                     self.model_handler.step()
-                    message = {
-                        "type": "viz_state",
-                        "data": [self.model_handler.data[-1]],
-                        "run_num": self.model_handler.current_run_num
-                    }
-                self.write_message(message)
+                    data = [self.model_handler.data[-1]]
+                self.current_run_num = self.model_handler.current_run_num
+            message = {
+                "type": "viz_state",
+                "data": data,
+                "run_num": self.current_run_num
+            }
+            self.write_message(message)
 
-        elif msg["type"] == "reset":
+        elif msg["type"] == "reset" and not self.application.cached:
             # message format: {'type':'reset', 'run_num':int}
             with self.resetlock:
                 self.current_run_num = msg["run_num"]
                 self.model_handler.reset_model(self.current_run_num)
 
-        elif msg["type"] == "submit_params":
+        elif msg["type"] == "submit_params" and not self.application.cached:
             # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
             param = msg["param"]
             value = msg["value"]
             self.model_handler.set_model_kwargs(param, value)
 
-        elif msg["type"] == "get_params":
+        elif msg["type"] == "get_params" and not self.application.cached:
             # message format: {'type':'get_params'}
             self.write_message({
                 "type": "model_params",
@@ -249,7 +249,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """When the user closes the connection destroy the model"""
         if self.application.verbose:
             print("Connection closed:", self)
-        del self.model_handler
         del self
 
 
@@ -386,7 +385,6 @@ class ModularServer(tornado.web.Application):
         self.port = settings['Server']['port']
 
         # Prep visualization elements:
-        self.cached = settings['Server']['cached']  # TODO: cached data
         self.threaded = settings['Server']['threaded']
         self.visualization_elements = visualization_elements
         self.model_name = name

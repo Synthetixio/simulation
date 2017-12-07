@@ -51,30 +51,39 @@ var BarGraphModule = function (graph_id, width, height) {
 	var chart = new Chart(context, {type: 'bar', data: data, options: options});
 
     this.render = function (step, new_data) {
+        var label_data;
         if (new_data.length > 1) {
+            label_data = new_data[0];
         	new_data = new_data[new_data.length - 1];
-    	}
+    	} else if (new_data.length === 1) {
+            label_data = new_data[0];
+            let data = [];
+            for (let i=4; i < new_data[0].length; i++) {
+                data.push(new_data[0][i])
+            }
+            new_data = data;
+        }
         // data should be in the form:
         // [data_labels, bar_labels, data_colors, dataset1, ...]
         chart.data.datasets = [];
         chart.data.labels = [];
 
-        if (new_data.length >= 3) {
-            let data_labels = new_data[0];
-            let data_colors = new_data[1];
-            let data_stack = new_data[2];
-            let bar_labels = new_data[3];
+        if (new_data.length >= 1) {
+            let data_labels = label_data[0];
+            let data_colors = label_data[1];
+            let data_stack = label_data[2];
+            let bar_labels = label_data[3];
 
             for (let i in bar_labels) {
                 chart.data.labels[i] = bar_labels[i];
             }
 
-            for (let i = 4; i < new_data.length; i++) {
+            for (let i = 0; i < new_data.length; i++) {
                 chart.data.datasets.push({
-                    label: data_labels[i-4],
-                    backgroundColor: data_colors[i-4],
-                    borderColor: data_colors[i-4],
-                    stack: data_stack[i-4],
+                    label: data_labels[i],
+                    backgroundColor: data_colors[i],
+                    borderColor: data_colors[i],
+                    stack: data_stack[i],
                     fill: true,
                     pointRadius: 0,
                     data: []
@@ -82,9 +91,9 @@ var BarGraphModule = function (graph_id, width, height) {
             }
 
             // meta is the "label" that shows up when hovering
-            for (let i = 4; i < new_data.length; i++) {
+            for (let i = 0; i < new_data.length; i++) {
                 for (let j = 0; j < new_data[i].length; j++) {
-                    chart.data.datasets[i - 4].data.push(this.round(new_data[i][j]));
+                    chart.data.datasets[i].data.push(this.round(new_data[i][j]));
                 }
             }
 
