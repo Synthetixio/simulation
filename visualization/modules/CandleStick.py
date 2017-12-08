@@ -18,7 +18,7 @@ class CandleStickModule(VisualizationElement):
 
     def __init__(
             self, series: List[Dict[str, str]], height: int = 150,
-            width: int = 500, data_collector_name: str = "datacollector") -> None:
+            width: int = 500, data_collector_name: str = "datacollector", desc: str = "") -> None:
 
         self.series = series
         self.height = height
@@ -27,8 +27,8 @@ class CandleStickModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         self.js_code = f"""elements.push(
-            new CandleStickModule(
-                \"{series[0]['Label']}\",{width},{height},
+            new CandleStickModule("{desc}",
+                "{series[0]['Label']}",{width},{height},
                 "{series[0]['AvgColor']}","{series[0]['VolumeColor']}"
             )
         );"""

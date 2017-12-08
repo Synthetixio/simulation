@@ -19,7 +19,7 @@ var fps_max = $('#fps_max')[0].content;
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
-    this.tick = -1; // Counts at which tick of the model we are.
+    this.tick = 0; // Counts at which tick of the model we are.
     this.step = 0;
     this.done = false;
     this.fps = fps_default; // Frames per second
@@ -34,6 +34,7 @@ var model_params = [];
 
 // Playback buttons
 var playPauseButton = $('#play-pause');
+var backButton = $('#back');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 
@@ -44,6 +45,15 @@ var fpsControl = $('#fps').slider({
     ticks: [1, fps_max],
     ticks_labels: [1, fps_max],
     ticks_position: [0, 100]
+});
+
+var tickControl = $('#tick').slider({
+    max: 0,
+    min: 0,
+    ticks: [0, 0],
+    ticks_labels: [0, 0],
+    ticks_position: [0, 100],
+    width: '100%'
 });
 
 // Sidebar dom access
@@ -127,7 +137,7 @@ var initGUI = function() {
             ticks: false,
             ticks_labels: false,
             ticks_positions: false
-        });
+        }).slider('disable');
         $(slider_input).on('change', function() {
             onSubmitCallback(param, Number($(this).val()));
         });
@@ -177,6 +187,11 @@ var initGUI = function() {
 
         let slider_objs = {};
 
+        let total = 0;
+        for (let i in data) {
+            total += parseFloat(data[i].value);
+        }
+
         for (let i in data) {
             agent_values[i] = data[i].value;
             let label = $("<p></p>")[0];
@@ -201,14 +216,14 @@ var initGUI = function() {
                 name: data[i].name,
                 min: min_val,
                 max: max_val,
-                value: parseFloat(data[i].value)*max_val,
+                value: parseFloat(data[i].value)/total*max_val,
                 step: step,
                 tooltip_position:'right',
                 ticks: false,
                 ticks_labels: false,
                 ticks_positions: false,
                 width: '100%'
-            });
+            }).slider('disable');
             $(slider_input).on('change', function() {
                 var slider = $(slider_input)[0];
                 var sum = 0;
@@ -273,6 +288,11 @@ var initGUI = function() {
         }
     };
 
+    $("#settings_body")[0].innerHTML = '';
+    $("#agent_settings")[0].innerHTML = '';
+
+        console.log(model_params);
+
     for (var option in model_params) {
         var type = typeof(model_params[option]);
         var param_str = String(option);
@@ -299,6 +319,7 @@ var parseDatasetInfo = function(dataset) {
             data = control.dataset_info[i];
         }
     }
+    console.log(data);
     if (data === undefined) {
         console.warn("Error: dataset doesn't exist");
         return;
@@ -359,7 +380,20 @@ ws.onmessage = function(message) {
                     control.data[control.dataset].push(dataset);
                 }
             }
+
+            let max = control.data[control.dataset].length - 1;
+            tickControl.slider(
+                'setAttribute', 'max', max
+            ).slider(
+                'setAttribute', 'ticks', [0, max]
+            ).slider(
+                'setAttribute', 'ticks_labels', [0, max]
+            );
+
+            $("#tick")[0].children[4].children[1].innerHTML = max;
+
             break;
+
         case "end":
             // We have reached the end of the model
             control.done = true;
@@ -410,12 +444,15 @@ var reset = function($e) {
     if (!(control.dataset in control.data)) {
         control.data[control.dataset] = []
     }
-    control.tick = -1;
+    tickControl.slider('setValue', control.tick);
+    control.tick = 0;
     control.last_sent = control.data[control.dataset].length - 1;
     control.done = false;
-    send({"type": "reset"});
     // Reset all the visualizations
     clear_graphs();
+    parseDatasetInfo(control.dataset);
+    initGUI();
+
     if (!control.running) {
         $(playPauseButton.children()[0]).text("Start");
     } else {
@@ -428,7 +465,11 @@ var reset = function($e) {
 
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
+    if (control.tick < 0) {
+        control.tick = 0;
+    }
     control.tick += 1;
+    tickControl.slider('setValue', control.tick);
     let fps = parseInt(fpsControl[0].value);
     if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
         control.last_sent = control.data[control.dataset].length;
@@ -437,18 +478,51 @@ var single_step = function() {
     update_graphs();
 };
 
+
+/** Step the model forward. */
+var back = function($e) {
+    if ($e !== undefined) $e.preventDefault();
+
+    if (!control.running) {
+        control.tick -= 2;
+        single_step()
+    }
+
+    return false;
+};
+
+
 /** Step the model forward. */
 var step = function($e) {
     if ($e !== undefined) $e.preventDefault();
 
     if (!control.running && !control.done) {
-        single_step()
+        single_step();
     }
     else if (!control.done) {
         run();
     }
     return false;
 };
+
+
+var changeTick = function($e) {
+    if ($e !== undefined) $e.preventDefault();
+    control.tick = Number(tickControl.val());
+
+    if (control.tick <= 0) {
+        control.tick = 1;
+    }
+
+    if (!control.running && !control.done) {
+        update_graphs();
+    }
+    else if (!control.done) {
+        run();
+    }
+    return false;
+};
+
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
 var run = function($e) {
@@ -485,19 +559,22 @@ var updateFPS = function($e) {
 
 // Initilaize buttons on top bar
 playPauseButton.on('click', run);
+backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
+tickControl.on('change', changeTick);
+
 function update_graphs() {
-    if (control.tick < control.data[control.dataset].length) {
+    if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j = 0; j <= control.tick; j++) {
+            for (let j = 0; j < control.tick; j++) {
                 to_render.push(control.data[control.dataset][j][i])
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step + 1, to_render);
+            elements[i].render(undefined, to_render);
         }
     } else {
         control.tick -= 1;

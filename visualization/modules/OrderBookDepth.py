@@ -18,7 +18,7 @@ class OrderBookModule(VisualizationElement):
 
     def __init__(
             self, series: List[Dict[str, str]], height: int = 150,
-            width: int = 500, data_collector_name: str = "datacollector") -> None:
+            width: int = 500, data_collector_name: str = "datacollector", desc: str = "") -> None:
 
         self.series = series
         self.height = height
@@ -27,7 +27,7 @@ class OrderBookModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         self.js_code = f"""elements.push(
-            new DepthGraphModule(\"{series[0]['Label']}\",{width},{height})
+            new DepthGraphModule("{desc}", "{series[0]['Label']}",{width},{height})
         );"""
 
     def render(self, model: HavvenModel) -> List[List[Tuple[float, float]]]:

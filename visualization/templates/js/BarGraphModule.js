@@ -1,7 +1,8 @@
 // BarGraphModule.js
 
-var BarGraphModule = function (graph_id, width, height) {
-    var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
+var BarGraphModule = function (desc, graph_id, width, height) {
+    var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')" data-toggle="tooltip" title="'+desc+'">'+graph_id+'</button>');
+    button.tooltip();
     var div = $("<div id='"+graph_id+"' class=''></div>");
 
 	// Create the tag:

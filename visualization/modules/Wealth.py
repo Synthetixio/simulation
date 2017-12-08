@@ -63,8 +63,8 @@ class PortfolioModule(BarGraphModule):
 
     def __init__(self, series: List[Dict[str, str]], height: int = 150,
                  width: int = 500, data_collector_name: str = "datacollector",
-                 fiat_values: bool = False) -> None:
-        super().__init__(series, height, width, data_collector_name)
+                 fiat_values: bool = False, desc: str = "") -> None:
+        super().__init__(series, height, width, data_collector_name, desc)
         self.fiat_values = fiat_values
         self.sent_data = False
 

@@ -45,6 +45,7 @@
         </ul>
         <ul class="nav navbar-nav navbar-right" style="padding-right: 20px">
             <li id="play-pause"><a href="#">Start</a></li>
+            <li id="back"><a href="#">Back</a></li>
             <li id="step"><a href="#">Step</a></li>
             <li id="reset"><a href="#">Reset</a></li>
         </ul>
@@ -59,6 +60,10 @@
               <label for="sel1">Select Dataset: (Reset after selecting)</label>
                 <select class="form-control" id="dataset_selector">
                 </select>
+            </div>
+            <div class="input-group input-group-lg">
+                <label class="label label-primary" for="tick" style="margin-right: 15px">Tick</label>
+                <input id="tick" data-slider-id='tick' type="number"/>
             </div>
             <div class="input-group input-group-lg">
                 <meta id="fps_max" content="{{ fps_max }}">

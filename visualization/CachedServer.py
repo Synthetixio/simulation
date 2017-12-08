@@ -119,7 +119,7 @@ class CachedDataHandler:
             for section in i["settings"]:
                 if section not in settings:
                     continue
-                for item in section:
+                for item in i['settings'][section]:
                     if item in settings[section]:
                         settings[section][item] = i["settings"][section][item]
             to_send.append(
