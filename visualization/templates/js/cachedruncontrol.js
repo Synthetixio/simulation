@@ -20,7 +20,6 @@ var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
     this.tick = 0; // Counts at which tick of the model we are.
-    this.step = 0;
     this.done = false;
     this.fps = fps_default; // Frames per second
     this.dataset_info = {};
@@ -373,6 +372,15 @@ ws.onmessage = function(message) {
         case "viz_state":
 
             var data = msg["data"];
+
+            // workaround for first step being skipped
+            if (control.data[control.dataset].length === 0 && data.length > 0) {
+                if (data[0][0] !== 1) {
+                    control.tick = -1;
+                    return;
+                }
+            }
+
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
@@ -458,8 +466,7 @@ var reset = function($e) {
     } else {
         $(playPauseButton.children()[0]).text("Stop");
     }
-    send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": parseInt(fpsControl[0].value), "dataset": control.dataset});
-
+    single_step();
     return false;
 };
 
@@ -514,10 +521,10 @@ var changeTick = function($e) {
         control.tick = 1;
     }
 
-    if (!control.running && !control.done) {
+    if (!control.running || !control.done) {
         update_graphs();
     }
-    else if (!control.done) {
+    else if (control.done) {
         run();
     }
     return false;
