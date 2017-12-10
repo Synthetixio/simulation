@@ -6,7 +6,7 @@ import tqdm
 run_settings = [
     {
         "name": "Default",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 100
@@ -15,7 +15,7 @@ run_settings = [
     },
     {
         "name": "High number of bankers, low utilisation ratio",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -28,7 +28,7 @@ run_settings = [
     },
     {
         "name": "High number of bankers, default utilisation ratio",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -40,7 +40,7 @@ run_settings = [
     },
     {
         "name": "High number of bankers, high utilisation ratio",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -53,7 +53,7 @@ run_settings = [
     },
     {
         "name": "High number of randomizers",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -66,7 +66,7 @@ run_settings = [
     },
     {
         "name": "One of each market player",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 0,
@@ -76,7 +76,7 @@ run_settings = [
     },
     {
         "name": "Low number of Nomin Shorters",
-        "max_steps": 150,
+        "max_steps": 1500,
         "settings": {
             "Model": {
                 'num_agents': 125,
