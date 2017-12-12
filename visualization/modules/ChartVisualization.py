@@ -43,7 +43,7 @@ class ChartModule(VisualizationElement):
     package_includes = ["ChartModule.js"]
 
     def __init__(self, series, canvas_height=150, canvas_width=500,
-                 data_collector_name="datacollector"):
+                 data_collector_name="datacollector", desc: str = ""):
         """
         Create a new line chart visualization.
 
@@ -61,8 +61,8 @@ class ChartModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         series_json = json.dumps(self.series)
-        new_element = "new ChartModule({}, {}, {})"
-        new_element = new_element.format(series_json, canvas_width,
+        new_element = "new ChartModule(\"{}\", {}, {}, {})"
+        new_element = new_element.format(desc, series_json, canvas_width,
                                          canvas_height)
         self.js_code = "elements.push(" + new_element + ");"
 

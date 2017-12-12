@@ -16,16 +16,18 @@ class BarGraphModule(VisualizationElement):
     local_includes: List[str] = []
 
     def __init__(self, series: List[Dict[str, str]], height: int = 150,
-                 width: int = 500, data_collector_name: str = "datacollector") -> None:
+                 width: int = 500, data_collector_name: str = "datacollector", desc: str = "") -> None:
         self.series = series
         self.height = height
         # currently width does nothing, as it stretches the whole page
         self.width = width
         self.data_collector_name = data_collector_name
 
+        self.sent_data = False
+
         # the code to be rendered on the page, last bool is whether it will be a stack graph
-        self.js_code: str = f"""elements.push(new BarGraphModule(
-            \"{series[0]['Label']}\",{width},{height}));"""
+        self.js_code: str = f"""elements.push(new BarGraphModule("{desc}",
+            "{series[0]['Label']}",{width},{height}));"""
 
     def render(self, model: HavvenModel) -> List[Tuple[str, float]]:
         """

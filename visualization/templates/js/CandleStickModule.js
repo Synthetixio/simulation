@@ -1,7 +1,9 @@
-var CandleStickModule = function(label, width, height, line_colour, bar_colour) {
+var CandleStickModule = function(desc, label, width, height, line_colour, bar_colour) {
 	let graph_id = (label).replace(/[^a-zA-Z]/g, "");
 	// Create the elements
-	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')">'+graph_id+'</button>');
+	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')" data-toggle="tooltip" title="'+desc+'">'+graph_id+'</button>');
+    button.tooltip();
+
     var div = $("<div id='"+graph_id+"' class=''></div>");
 
 	// Create the tag:

@@ -3,7 +3,6 @@
 Container for all built-in visualization modules.
 """
 
-from visualization.modules.CanvasGridVisualization import CanvasGrid
 from visualization.modules.ChartVisualization import ChartModule
 from visualization.modules.TextVisualization import TextElement
 from visualization.modules.BarGraph import BarGraphModule

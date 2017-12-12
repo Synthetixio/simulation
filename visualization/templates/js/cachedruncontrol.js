@@ -19,22 +19,21 @@ var fps_max = $('#fps_max')[0].content;
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
-    this.tick = -1; // Counts at which tick of the model we are.
-    this.last_sent = -1;
-    this.run_number = 0;
-    this.running = false; // Whether there is currently a model running
+    this.tick = 0; // Counts at which tick of the model we are.
     this.done = false;
     this.fps = fps_default; // Frames per second
-    this.data = []
+    this.dataset_info = {};
+    this.data = {};
 };
 
 var player; // Variable to store the continuous player
 var control = new MesaVisualizationControl();
 var elements = [];  // List of Element objects
-var model_params = {};
+var model_params = [];
 
 // Playback buttons
 var playPauseButton = $('#play-pause');
+var backButton = $('#back');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 
@@ -45,6 +44,15 @@ var fpsControl = $('#fps').slider({
     ticks: [1, fps_max],
     ticks_labels: [1, fps_max],
     ticks_position: [0, 100]
+});
+
+var tickControl = $('#tick').slider({
+    max: 0,
+    min: 0,
+    ticks: [0, 0],
+    ticks_labels: [0, 0],
+    ticks_position: [0, 100],
+    width: '100%'
 });
 
 // Sidebar dom access
@@ -58,10 +66,12 @@ var ws = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws:/
 
 ws.onopen = function() {
     console.log("Connection opened!");
-    send({"type": "get_params"}); // Request model parameters when websocket is ready
-    reset();
-    single_step();
-    control.tick -= 1; // leave tick at -1 for now
+    send({"type": "get_datasets"}); // Request model parameters when websocket is ready
+    control.ready = false;
+    return;
+    // reset();
+    // single_step();
+    // control.tick -= 1; // leave tick at -1 for now
 };
 
 // Add model parameters that can be edited prior to a model run
@@ -123,13 +133,14 @@ var initGUI = function() {
             max: obj.max_value,
             value: obj.value,
             step: obj.step,
-            ticks: [obj.min_value, obj.max_value],
-            ticks_labels: [obj.min_value, obj.max_value],
-            ticks_positions: [0, 100]
-        });
+            ticks: false,
+            ticks_labels: false,
+            ticks_positions: false
+        }).slider('disable');
         $(slider_input).on('change', function() {
             onSubmitCallback(param, Number($(this).val()));
-        })
+        });
+        $(input_group).click();
     };
 
     var addChoiceInput = function(param, obj) {
@@ -175,20 +186,24 @@ var initGUI = function() {
 
         let slider_objs = {};
 
+        let total = 0;
+        for (let i in data) {
+            total += parseFloat(data[i].value);
+        }
+
         for (let i in data) {
             agent_values[i] = data[i].value;
-            let dom_id = param+"_"+i;
             let label = $("<p></p>")[0];
-            let tooltip = $("<a data-toggle='tooltip' data-placement='top' class='label label-primary'>" + i + "</a>")[0];
-            if (data[i].description !== undefined) {
+            let tooltip = $("<a data-toggle='tooltip' data-placement='top' class='label label-primary'>" + data[i].name + "</a>")[0];
+            if (data[i].name !== undefined) {
                 $(tooltip).tooltip({
                     title: data[i].description,
-                    placement: 'right'
+                    placement: 'left'
                 });
             }
             label.append(tooltip);
 
-            let slider_input = $("<input class='agent_sliders' id='" + i + "' type='text'/>")[0];
+            let slider_input = $("<input class='agent_sliders' id='" + data[i].name + "' type='text'/>")[0];
             let input_group = $("<div class='input-group input-group-lg'></div>")[0];
             agent_settings.append(input_group);
             input_group.append(label);
@@ -197,16 +212,17 @@ var initGUI = function() {
             slider_objs[i] = slider_input;
 
             $(slider_input).slider({
-                name: i,
+                name: data[i].name,
                 min: min_val,
                 max: max_val,
-                value: parseFloat(data[i])*max_val,
+                value: parseFloat(data[i].value)/total*max_val,
                 step: step,
-                ticks: [min_val, max_val],
-                ticks_labels: [min_val, max_val],
-                ticks_positions: [0, 100],
+                tooltip_position:'right',
+                ticks: false,
+                ticks_labels: false,
+                ticks_positions: false,
                 width: '100%'
-            });
+            }).slider('disable');
             $(slider_input).on('change', function() {
                 var slider = $(slider_input)[0];
                 var sum = 0;
@@ -228,7 +244,11 @@ var initGUI = function() {
                     let item = $(this)[0];
                     if (item !== slider) {
                         let diff = max_val - sum;
-                        $(item).slider('setValue', parseFloat(item.value) + (parseFloat(item.value)/sum_others)*diff);
+                        if (sum_others !== 0) {
+                            $(item).slider('setValue', parseFloat(item.value) + (parseFloat(item.value) / sum_others) * diff);
+                        } else {
+                            $(item).slider('setValue', 0.01);
+                        }
                     }
                     return_val[item.id] = parseFloat(item.value)/max_val;
                 });
@@ -239,6 +259,7 @@ var initGUI = function() {
     };
 
     var addParamInput = function(param, option) {
+        param = option.name;
         switch (option['param_type']) {
             case 'checkbox':
                 addBooleanInput(param, option);
@@ -266,8 +287,12 @@ var initGUI = function() {
         }
     };
 
-    for (var option in model_params) {
+    $("#settings_body")[0].innerHTML = '';
+    $("#agent_settings")[0].innerHTML = '';
 
+        console.log(model_params);
+
+    for (var option in model_params) {
         var type = typeof(model_params[option]);
         var param_str = String(option);
 
@@ -285,36 +310,123 @@ var initGUI = function() {
     }
 };
 
+
+var parseDatasetInfo = function(dataset) {
+    let data;
+    for (let i in control.dataset_info) {
+        if (control.dataset_info[i].name === dataset) {
+            data = control.dataset_info[i];
+        }
+    }
+    console.log(data);
+    if (data === undefined) {
+        console.warn("Error: dataset doesn't exist");
+        return;
+    }
+
+    let agent_fractions = data["settings"]["AgentFractions"];
+
+    let agent_fraction_param = {
+        name: "Agent fractions",
+        param_type: "agent_fractions",
+        value: []
+    };
+
+    for (let i in agent_fractions) {
+        agent_fraction_param.value.push(
+            {
+                name: i,
+                value: agent_fractions[i],
+                description: data["settings"]["AgentDescriptions"][i]
+            }
+        )
+    };
+
+    let number_agents_param = {
+        name: "Number of agents",
+        param_type: 'slider',
+        value: data["settings"]["Model"]['num_agents'],
+        min_value: data["settings"]["Model"]['num_agents_min'],
+        max_value: data["settings"]["Model"]['num_agents_max'],
+        step: 1
+    };
+
+    let ur_param = {
+        name: "Utilisation ratio max",
+        param_type: 'slider',
+        value: data["settings"]["Model"]['utilisation_ratio_max'],
+        min_value: 0,
+        max_value: 1,
+        step: 0.05
+    };
+
+    model_params = [agent_fraction_param, number_agents_param, ur_param];
+
+};
+
+
 /** Parse and handle an incoming message on the WebSocket connection. */
 ws.onmessage = function(message) {
     var msg = JSON.parse(message.data);
     switch (msg["type"]) {
         case "viz_state":
-            // ignore any old data
-            var run_num = msg["run_num"];
-            if (parseInt(run_num) !== control.run_number) {
-                break;
-            }
 
             var data = msg["data"];
+
+            // workaround for first step being skipped
+            if (control.data[control.dataset].length === 0 && data.length > 0) {
+                if (data[0][0] !== 1) {
+                    control.tick = -1;
+                    return;
+                }
+            }
+
             for (var i in data) {
                 let step = data[i][0];
                 let dataset = data[i][1];
-
-                if (control.data.length <= step) {
-                    control.data.push(dataset);
+                if (control.data[control.dataset].length <= step) {
+                    control.data[control.dataset].push(dataset);
                 }
             }
+
+            let max = control.data[control.dataset].length - 1;
+            tickControl.slider(
+                'setAttribute', 'max', max
+            ).slider(
+                'setAttribute', 'ticks', [0, max]
+            ).slider(
+                'setAttribute', 'ticks_labels', [0, max]
+            );
+
+            $("#tick")[0].children[4].children[1].innerHTML = max;
+
             break;
+
         case "end":
             // We have reached the end of the model
             control.done = true;
             console.log("Done!");
             $(playPauseButton.children()[0]).text("Done");
             break;
-        case "model_params":
-            model_params = msg["params"];
+        case "dataset_info":
+            control.dataset_info = msg["data"];
+
+            let selector = $("#dataset_selector");
+            selector.html = "";
+            for (let i in control.dataset_info) {
+                selector.append($('<option>', {
+                    value: control.dataset_info[i]['name'],
+                    text: control.dataset_info[i]['name']
+                }));
+            }
+
+            control.dataset = "Default";
+            selector.val('Default').trigger('change');
+
+            parseDatasetInfo(control.dataset);
             initGUI();
+            control.ready = true;
+            reset();
             break;
         default:
             // There shouldn't be any other message
@@ -333,50 +445,91 @@ var reset = function($e) {
     if ($e !== undefined)
         $e.preventDefault();
 
-    control.tick = -1;
-    control.last_sent = -1;
+    if (!control.ready) {
+        return false
+    }
+    control.dataset = $("#dataset_selector").val();
+    if (!(control.dataset in control.data)) {
+        control.data[control.dataset] = []
+    }
+    tickControl.slider('setValue', control.tick);
+    control.tick = 0;
+    control.last_sent = control.data[control.dataset].length - 1;
     control.done = false;
-    control.data = [];
-    control.run_number += 1;
-    send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
+    parseDatasetInfo(control.dataset);
+    initGUI();
+
     if (!control.running) {
         $(playPauseButton.children()[0]).text("Start");
     } else {
         $(playPauseButton.children()[0]).text("Stop");
     }
-    send({"type": "get_steps", "step": control.data.length, "fps": 10, "run_num": control.run_number});
-
+    single_step();
     return false;
 };
 
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
+    if (control.tick < 0) {
+        control.tick = 0;
+    }
     control.tick += 1;
+    tickControl.slider('setValue', control.tick);
     let fps = parseInt(fpsControl[0].value);
-
-    if (control.tick > control.data.length - fps*2 && control.last_sent !== control.data.length) {
-        control.last_sent = control.data.length;
-        if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
-    } else {
-        if (!control.done) send({"type": "get_steps", "step": control.data.length, "fps": fps, "run_num": control.run_number});
+    if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
+        control.last_sent = control.data[control.dataset].length;
+        if (!control.done) send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": fps, "dataset": control.dataset});
     }
     update_graphs();
 };
+
+
+/** Step the model forward. */
+var back = function($e) {
+    if ($e !== undefined) $e.preventDefault();
+
+    if (!control.running) {
+        control.tick -= 2;
+        single_step()
+    }
+
+    return false;
+};
+
 
 /** Step the model forward. */
 var step = function($e) {
     if ($e !== undefined) $e.preventDefault();
 
     if (!control.running && !control.done) {
-        single_step()
+        single_step();
     }
     else if (!control.done) {
         run();
     }
     return false;
 };
+
+
+var changeTick = function($e) {
+    if ($e !== undefined) $e.preventDefault();
+    control.tick = Number(tickControl.val());
+
+    if (control.tick <= 0) {
+        control.tick = 1;
+    }
+
+    if (!control.running || !control.done) {
+        update_graphs();
+    }
+    else if (control.done) {
+        run();
+    }
+    return false;
+};
+
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
 var run = function($e) {
@@ -413,20 +566,22 @@ var updateFPS = function($e) {
 
 // Initilaize buttons on top bar
 playPauseButton.on('click', run);
+backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
-var last_length = -1;
+tickControl.on('change', changeTick);
+
 function update_graphs() {
-    if (control.tick < control.data.length) {
+    if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
             for (let j = 0; j < control.tick; j++) {
-                to_render.push(control.data[j][i])
+                to_render.push(control.data[control.dataset][j][i])
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step + 1, to_render);
+            elements[i].render(undefined, to_render);
         }
     } else {
         control.tick -= 1;
