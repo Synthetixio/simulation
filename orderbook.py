@@ -323,14 +323,8 @@ class OrderBook:
     def step_history(self) -> None:
         """Add new data points to update"""
 
-        if len(self.candle_data) > 1 and self.candle_data[-1][3] is None:
-            self.candle_data[-1][1] = self.candle_data[-1][0]
-            self.candle_data[-1][2] = self.candle_data[-1][0]
-            self.candle_data[-1][3] = self.candle_data[-1][0]
-        elif len(self.candle_data) > 1:
-            self.candle_data[-1][2] = min(self.candle_data[-1])
-            self.candle_data[-1][3] = max(self.candle_data[-1])
-        self.candle_data.append([self.candle_data[-1][1], None, None, None])
+        # use old close price as new data for next tick, as all the other values are updated when needed
+        self.candle_data.append([self.candle_data[-1][1]] * 4)
 
         self.volume_data.append(Dec(0))
         for item in reversed(self.history):
@@ -857,16 +851,14 @@ class OrderBook:
                 trade.buyer.notify_trade(trade)
                 trade.seller.notify_trade(trade)
 
-                # if no closing data yet, initialise
-                if not self.candle_data[-1][1]:
-                    self.candle_data[-1][2] = trade.price
-                    self.candle_data[-1][3] = trade.price
-
+                # update closing price every time there is a new trade
                 self.candle_data[-1][1] = trade.price
 
+                # if the price is higher than max, update
                 if trade.price > self.candle_data[-1][2]:
                     self.candle_data[-1][2] = trade.price
 
+                # if price lower than min, update
                 if trade.price < self.candle_data[-1][3]:
                     self.candle_data[-1][3] = trade.price
 

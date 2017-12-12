@@ -1,9 +1,26 @@
+"""
+cache_handler.py
+
+Functions to help with loading and generating caches of model runs
+given certain parameters.
+
+This should work hand-in-hand with CachedServer to allow users to view
+these cached runs, without using large amounts of server resources by
+generating new data per user.
+"""
+
 import settingsloader
 import model
 import pickle
 import tqdm
 
 run_settings = [
+    # settings for each individual run to create a cache for.
+    # name: having a "Default" run is required
+    #   - all names have to be unique
+    # max_steps: required, and ignore whatever is in settings.ini
+    # settings: change the defaults set in settings.ini, per run
+    #   - any settings that are not in settings.ini are ignored
     {
         "name": "Default",
         "max_steps": 1500,
@@ -93,12 +110,18 @@ run_settings = [
 
 def generate_new_caches(data):
     """
-    generate new data for every "name" not present
+    generate a new dataset for each dataset that doesn't already exist in data
+
+    overwrites the defined default settings for every run
+
+    generate visualisation results for every step up to max_steps, and save it to 'result'
+
+    store the result in the format:
+      data["name"] = {"data": result, "settings": settings, "max_steps": max_steps}
     """
     from server import get_vis_elements
 
     for n, item in enumerate(run_settings):
-        vis_elements = get_vis_elements()
         if item["name"] in data and len(data[item['name']]['data']) == item['max_steps']:
             print("already have:", item['name'])
             continue
@@ -119,8 +142,11 @@ def generate_new_caches(data):
             settings['Agents'],
             settings['Havven']
         )
+        vis_elements = get_vis_elements()
 
         for i in tqdm.tqdm(range(item["max_steps"])):
+            # # The following is for running the loop without tqdm
+            # # as when profiling the model tqdm shows up as ~17% runtime
             # if not i % 100:
             #     print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +
             #           f"] {i}/{item['max_steps']}")
@@ -155,7 +181,7 @@ def load_saved():
 
 
 def save_data(data):
-    """overwrite existing cache file"""
+    """overwrite existing cache file with the presented data"""
     with open("cache_data.txt", "wb") as f:
         pickle.dump(data, f)
     print("Caches saved to cache_data.txt")
