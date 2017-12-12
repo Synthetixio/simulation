@@ -327,10 +327,7 @@ class OrderBook:
             self.candle_data[-1][1] = self.candle_data[-1][0]
             self.candle_data[-1][2] = self.candle_data[-1][0]
             self.candle_data[-1][3] = self.candle_data[-1][0]
-        elif len(self.candle_data) > 1:
-            self.candle_data[-1][2] = min(self.candle_data[-1])
-            self.candle_data[-1][3] = max(self.candle_data[-1])
-        self.candle_data.append([self.candle_data[-1][1], None, None, None])
+        self.candle_data.append([self.candle_data[-1][1], self.candle_data[-1][1], self.candle_data[-1][1], self.candle_data[-1][1]])
 
         self.volume_data.append(Dec(0))
         for item in reversed(self.history):
@@ -856,11 +853,6 @@ class OrderBook:
                 self.history.append(trade)
                 trade.buyer.notify_trade(trade)
                 trade.seller.notify_trade(trade)
-
-                # if no closing data yet, initialise
-                if not self.candle_data[-1][1]:
-                    self.candle_data[-1][2] = trade.price
-                    self.candle_data[-1][3] = trade.price
 
                 self.candle_data[-1][1] = trade.price
 
