@@ -323,10 +323,6 @@ class OrderBook:
     def step_history(self) -> None:
         """Add new data points to update"""
 
-        if len(self.candle_data) > 1 and self.candle_data[-1][3] is None:
-            self.candle_data[-1][1] = self.candle_data[-1][0]
-            self.candle_data[-1][2] = self.candle_data[-1][0]
-            self.candle_data[-1][3] = self.candle_data[-1][0]
         self.candle_data.append([self.candle_data[-1][1], self.candle_data[-1][1], self.candle_data[-1][1], self.candle_data[-1][1]])
 
         self.volume_data.append(Dec(0))
