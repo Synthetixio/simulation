@@ -16,6 +16,8 @@ from orderbook import Bid, Ask
 class WealthModule(BarGraphModule):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # ensure the data for agent names/colours only appears in the first tick
         self.sent_data = False
 
     def render(self, model: HavvenModel) -> Tuple[List[str], List[str], List[float]]:
@@ -66,6 +68,8 @@ class PortfolioModule(BarGraphModule):
                  fiat_values: bool = False, desc: str = "") -> None:
         super().__init__(series, height, width, data_collector_name, desc)
         self.fiat_values = fiat_values
+
+        # ensure the data for agent names/colours only appears in the first tick
         self.sent_data = False
 
     def render(self, model: HavvenModel) -> PortfolioTuple:
@@ -116,6 +120,8 @@ OrderbookValueTuple = Tuple[List[str], List[str], List[int], List[str], List[flo
 class CurrentOrderModule(BarGraphModule):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # ensure the data for agent names/colours only appears in the first tick
         self.sent_data = False
 
     def render(self, model: HavvenModel) -> OrderbookValueTuple:
@@ -190,6 +196,8 @@ class CurrentOrderModule(BarGraphModule):
 class PastOrdersModule(BarGraphModule):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # ensure the data for agent names/colours only appears in the first tick
         self.sent_data = False
 
     def render(self, model: HavvenModel) -> OrderbookValueTuple:
