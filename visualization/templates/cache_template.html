@@ -53,10 +53,6 @@
 </nav>
 
 
-
-
-
-
 <div class="container-fluid">
       <div class="row row-offcanvas row-offcanvas-right">
         <div class="col-xs-12 col-sm-10 col-sm-push-2">
@@ -72,17 +68,17 @@
                 </select>
             </div>
             <div class="input-group input-group-lg">
-                <label class="label label-primary" for="tick" style="margin-right: 15px">Tick</label>
-                <input id="tick" data-slider-id='tick' type="number"/>
+                <p id="tick"/>Loading...</p>
             </div>
             <meta id="fps_default" content="{{ fps_default }}">
         </div>
+            <div id="DatasetDescription" data-for="sidebar-hideall" class='graph_div hidden'></div>
         </div>
         </div><!--/.col-xs-12.col-sm-9-->
 
         <div class="col-xs-6 col-sm-2 col-sm-pull-10 sidebar-offcanvas" id="sidebar">
           <div class="list-group" id="sidebar-list">
-            <a href="#" onclick="show_group(this)" class="list-group-item active">Hide all</a>
+            <a href="#" id="sidebar-hideall" onclick="show_group(this)" class="list-group-item active">Dataset Description</a>
           </div>
         </div><!--/.sidebar-offcanvas-->
       </div><!--/row-->

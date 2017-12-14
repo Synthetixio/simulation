@@ -23,6 +23,9 @@ var MesaVisualizationControl = function() {
     this.fps = fps_default; // Frames per second
     this.dataset_info = {};
     this.data = {};
+    this.description = "";
+    this.dataset_name = "";
+    this.dataset_max_steps = 1;
 };
 
 var player; // Variable to store the continuous player
@@ -37,14 +40,7 @@ var stepButton = $('#step');
 var resetButton = $('#reset');
 
 
-var tickControl = $('#tick').slider({
-    max: 0,
-    min: 0,
-    ticks: [0, 0],
-    ticks_labels: [0, 0],
-    ticks_position: [0, 100],
-    width: '100%'
-});
+var tickControl = $('#tick');
 
 // Sidebar dom access
 var sidebar = $("#settings_body");
@@ -312,6 +308,10 @@ var parseDatasetInfo = function(dataset) {
         return;
     }
 
+    control.description = data['description'];
+    control.dataset_name = data['name'];
+    control.dataset_max_steps = data['max_steps'];
+
     let agent_fractions = data["settings"]["AgentFractions"];
 
     let agent_fraction_param = {
@@ -340,7 +340,7 @@ var parseDatasetInfo = function(dataset) {
     };
 
     let ur_param = {
-        name: "Utilisation ratio max",
+        name: "Collateralisation ratio max",
         param_type: 'slider',
         value: data["settings"]["Model"]['utilisation_ratio_max'],
         min_value: 0,
@@ -377,16 +377,7 @@ ws.onmessage = function(message) {
                 }
             }
 
-            let max = control.data[control.dataset].length - 1;
-            tickControl.slider(
-                'setAttribute', 'max', max
-            ).slider(
-                'setAttribute', 'ticks', [0, max]
-            ).slider(
-                'setAttribute', 'ticks_labels', [0, max]
-            );
-
-            $("#tick")[0].children[4].children[1].innerHTML = max;
+            tickControl[0].innerHTML = "Tick: " + control.data[control.dataset].length + "/" + control.dataset_max_steps;
 
             break;
 
@@ -410,11 +401,6 @@ ws.onmessage = function(message) {
 
             control.dataset = "Default";
             selector.val('Default').trigger('change');
-
-            parseDatasetInfo(control.dataset);
-            initGUI();
-            control.ready = true;
-            reset();
             break;
         default:
             // There shouldn't be any other message
@@ -440,7 +426,6 @@ var reset = function($e) {
     if (!(control.dataset in control.data)) {
         control.data[control.dataset] = []
     }
-    tickControl.slider('setValue', control.tick);
     control.tick = 0;
     control.last_sent = control.data[control.dataset].length - 1;
     control.done = false;
@@ -455,7 +440,7 @@ var reset = function($e) {
         $(playPauseButton.children()[0]).text("Stop");
     }
     single_step();
-    update_graphs(false);
+    update_graphs(true);
     return false;
 };
 
@@ -465,7 +450,6 @@ var single_step = function() {
         control.tick = 0;
     }
     control.tick += 1;
-    tickControl.slider('setValue', control.tick);
     let fps = parseInt(control.fps);
     if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
         control.last_sent = control.data[control.dataset].length;
@@ -504,24 +488,6 @@ var step = function($e) {
 };
 
 
-var changeTick = function($e) {
-    if ($e !== undefined) $e.preventDefault();
-    control.tick = Number(tickControl.val());
-
-    if (control.tick <= 0) {
-        control.tick = 1;
-    }
-
-    if (!control.running || !control.done) {
-        update_graphs(true);
-    }
-    else if (control.done) {
-        run();
-    }
-    return false;
-};
-
-
 /** Call the step function at fixed intervals, until getting an end message from the server. */
 var run = function($e) {
     // stop the page scrolling on function call
@@ -553,13 +519,24 @@ playPauseButton.on('click', run);
 backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
-tickControl.on('change', changeTick);
+
+$("#dataset_selector").on('change', function() {
+    parseDatasetInfo(control.dataset);
+    initGUI();
+    control.ready = true;
+    reset();
+    $("#DatasetDescription")[0].innerHTML =
+        "<h4>Description for: "+control.dataset_name+"</h4><p>" +
+        control.description + '</p>';
+    show_group($("#sidebar-hideall")[0]);
+});
+
 
 function update_graphs(force_draw) {
     if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j = 0; j < control.tick; j++) {
+            for (let j = 0; j < control.tick;  j++) {
                 to_render.push(control.data[control.dataset][j][i])
             }
             // send all data up to current tick to be rendered

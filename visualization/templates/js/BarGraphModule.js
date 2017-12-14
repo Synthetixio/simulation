@@ -22,7 +22,14 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
 	var chart = Highcharts.chart(graph_id, {
 	    title: {
 	        text: title
-        }
+        },
+        chart: {
+			animation: false
+		},
+        credits: {
+			enabled: false
+		},
+
     });
     var chart_setup = false;
 
@@ -68,6 +75,7 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
     };
 
     this.reset = function () {
+        chart_setup = false;
     };
 
     this.round = function (value) {

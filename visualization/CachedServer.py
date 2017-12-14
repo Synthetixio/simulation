@@ -127,6 +127,7 @@ class CachedDataHandler:
                     "name": name,
                     "settings": settings,
                     "max_steps": i["max_steps"],
+                    "description": i["description"]
                 }
             )
         return to_send

@@ -20,6 +20,7 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
 
     var chart = Highcharts.chart(graph_id, {
         chart: {
+			animation: false,
             type: 'area'
         },
         title: {
@@ -28,6 +29,10 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
         subtitle: {
             text: ''
         },
+        credits: {
+			enabled: false
+		},
+
         xAxis: {
             allowDecimals: true,
             labels: {

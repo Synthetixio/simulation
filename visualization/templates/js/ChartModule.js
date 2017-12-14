@@ -27,8 +27,6 @@ var ChartModule = function(group, title, desc, series, width, height) {
 		datasets.push(new_series);
 	}
 
-	console.log(div);
-
 	// Create the context and the drawing controller:
 	var chart = Highcharts.chart(graph_id, {
 		plotOptions: {
@@ -53,7 +51,14 @@ var ChartModule = function(group, title, desc, series, width, height) {
 			shared: true
 		},
 
-		series: datasets
+		series: datasets,
+		chart: {
+			animation: false
+		},
+        credits: {
+			enabled: false
+		},
+
 	});
 
 	this.render = function(force_draw, data) {

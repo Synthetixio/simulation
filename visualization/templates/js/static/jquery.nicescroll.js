@@ -79,8 +79,8 @@
     cursorwidth: "6px",
     cursorborder: "1px solid #fff",
     cursorborderradius: "5px",
-    scrollspeed: 40,
-    mousescrollstep: 9,
+    scrollspeed: 60,
+    mousescrollstep: 40,
     touchbehavior: false,   // deprecated
     emulatetouch: false,    // replacing touchbehavior
     hwacceleration: true,
@@ -122,7 +122,7 @@
     enablescrollonselection: true,
     overflowx: true,
     overflowy: true,
-    cursordragspeed: 0.3,
+    cursordragspeed: 0,
     rtlmode: "auto",
     cursordragontouch: false,
     oneaxismousemode: "auto",

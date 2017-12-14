@@ -23,6 +23,7 @@ run_settings = [
     #   - any settings that are not in settings.ini are ignored
     {
         "name": "Default",
+        "description": "Default settings <hr/>",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -31,8 +32,9 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, low utilisation ratio",
-        "max_steps": 1500,
+        "name": "High number of bankers, low collateralisation ratio",
+        "description": "Lots of bankers with low CR",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -44,8 +46,9 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, default utilisation ratio",
-        "max_steps": 1500,
+        "name": "High number of bankers, default collateralisation ratio",
+        "description": "Lots of bankers with default CR",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -56,8 +59,9 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, high utilisation ratio",
-        "max_steps": 1500,
+        "name": "High number of bankers, high collateralisation ratio",
+        "description": "Lots of bankers with high CR",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -70,11 +74,11 @@ run_settings = [
     },
     {
         "name": "High number of randomizers",
-        "max_steps": 1500,
+        "description": "Lots of randomizers with default settings.",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 125,
-                "utilisation_ratio_max": 0.5
             },
             "AgentFractions": {
                 "Randomizer": 100
@@ -83,21 +87,21 @@ run_settings = [
     },
     {
         "name": "One of each market player",
-        "max_steps": 1500,
+        "description": "one of each player... thats it.",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 0,
-                "utilisation_ratio_max": 0.5
             }
         }
     },
     {
         "name": "Low number of Nomin Shorters",
-        "max_steps": 1500,
+        "description": "<b>Low</b><p>number of nomin shorters.</p><p>lorem ipsum</p><p>dolor sit amet</p>",
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 125,
-                "utilisation_ratio_max": 0.5
             },
             "AgentFractions": {
                 "NominShorter": 0,
@@ -164,8 +168,12 @@ def generate_new_caches(data):
                 step_data.append(element_data)
 
             result.append(step_data)
-        data[item["name"]] = {"data": result, "settings": settings, "max_steps": item["max_steps"]}
-        __import__('pprint').pprint([i[3] for i in data[item['name']]['data']])
+        data[item["name"]] = {
+            "data": result,
+            "settings": settings,
+            "max_steps": item["max_steps"],
+            "description": item["description"]
+        }
     return data
 
 
@@ -189,14 +197,14 @@ def save_data(data):
 
 
 if __name__ == "__main__":
-    # _data = load_saved()
-    # all_cached = False
-    # for i in run_settings:
-    #     if i['name'] not in _data:
-    #         break
-    # else:
-    #     all_cached = True
-    #
-    # if not all_cached:
-    _data = generate_new_caches({})
-        # save_data(_data)
+    _data = load_saved()
+    all_cached = False
+    for i in run_settings:
+        if i['name'] not in _data:
+            break
+    else:
+        all_cached = True
+
+    if not all_cached:
+        _data = generate_new_caches({})
+        save_data(_data)
