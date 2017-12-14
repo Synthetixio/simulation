@@ -183,14 +183,14 @@ def get_vis_elements() -> List[VisualizationElement]:
         OrderBookModule(
             [{"Label": "HavvenFiatOrderBook"}],
             desc="The Havven/Fiat market orderbook (tallied bid/ask volume by price)",
-            title="Nomin/Fiat Orderbook",
+            title="Havven/Fiat Orderbook",
             group="Orderbooks"
         ),
 
         OrderBookModule(
             [{"Label": "HavvenNominOrderBook"}],
             desc="The Havven/Nomin market orderbook (tallied bid/ask volume by price)",
-            title="Nomin/Fiat Orderbook",
+            title="Havven/Nomin Orderbook",
             group="Orderbooks"
         )
     ]

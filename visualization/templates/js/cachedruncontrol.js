@@ -600,53 +600,31 @@ function clear_graphs() {
     }
 }
 
-// function to hide graph divs
-// don't bother stopping the data coming in, as the graph should always have
-//   the data ready to show...
-function toggle_graph(div) {
-    let doc = document.documentElement;
-    let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
 
-    $(div).toggleClass("hidden");
-
-    // scroll so page doesn't shift on toggle
-    $('html, body').animate({
-        scrollTop: top
-    }, 0);
+function show_group(group) {
+    $(".list-group-item").removeClass("active");
+    $(group).addClass("active");
+    $(".graph_div").each(function() {
+        if (group === undefined || this.dataset.for !== group.id) {
+            $(this).removeClass("hidden").addClass("hidden");
+        } else {
+            $(this).removeClass("hidden");
+        }
+    });
     update_graphs(true);
     window.dispatchEvent(new Event('resize'));
-    return false;
 }
-
-function toggle_all(btn) {
-    // if someone manually hides all the graphs, it will still say collapse all...
-    if (btn.innerHTML === "Collapse all") {
-        $(".btn-pad").each(function() {
-            let graph_id = (this.innerHTML).replace(/[^a-zA-Z]/g, "");
-            console.log(graph_id);
-            $('#'+(graph_id)).removeClass("hidden").addClass("hidden");
-        });
-        btn.innerHTML = "Show all";
-        update_graphs(true);
-    } else {
-        $(".btn-pad").each(function() {
-            let graph_id = (this.innerHTML).replace(/[^a-zA-Z]/g, "");
-            $('#'+graph_id).removeClass("hidden");
-        });
-        btn.innerHTML = "Collapse all";
-    }
-    window.dispatchEvent(new Event('resize'));
-
-}
+//
+// if(window.chrome){
+//     // apply niceScroll only if chrome to avoid freezes from scroll events.
+//     $(function() {
+//         $("body").niceScroll();
+//     });
+// }
 
 
-var tid = setInterval( function () {
-    if ( document.readyState !== 'complete' ) return;
-    clearInterval( tid );
-    if(window.chrome){
-        // apply niceScroll only if chrome to avoid freezes from scroll events.
-        $(function() {
-            $("body").niceScroll();
-        });
-    }
-}, 100 );
+$(document).ready(function() {
+  $('[data-toggle=offcanvas]').click(function() {
+    $('.row-offcanvas').toggleClass('active');
+  });
+});

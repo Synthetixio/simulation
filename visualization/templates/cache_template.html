@@ -52,13 +52,23 @@
     </div>
 </nav>
 
-<div class="container" style="padding-top: 100px">
+
+
+
+
+
+<div class="container-fluid">
+      <div class="row row-offcanvas row-offcanvas-right">
+        <div class="col-xs-12 col-sm-10 col-sm-push-2">
+          <button type="button" class="pull-left btn btn-default visible-xs" data-toggle="offcanvas" aria-expanded="false" aria-controls="navbar">
+            <p class="fa fa-navicon">V</p>
+          </button>
     <!--<div class="col-lg-4 col-md-4 col-sm-4 col-xs-3" id="sidebar"></div>-->
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="elements">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="elements">
         <div id="elements-topbar" class="container">
             <div class="form-group">
-              <label for="sel1">Select Dataset: (Reset after selecting)</label>
-                <select class="form-control" id="dataset_selector">
+              <label for="sel1">Select Dataset:</label>
+                <select class="form-control" id="dataset_selector" style="width:70%">
                 </select>
             </div>
             <div class="input-group input-group-lg">
@@ -72,9 +82,18 @@
                 <input id="fps" data-slider-id='fps' type="text"/>
             </div>
         </div>
-        <button style="padding-left: auto; padding-right: auto" class="btn-danger" onclick="toggle_all(this)">Show all</button>
-    </div>
-</div>
+        </div>
+        </div><!--/.col-xs-12.col-sm-9-->
+
+        <div class="col-xs-6 col-sm-2 col-sm-pull-10 sidebar-offcanvas" id="sidebar">
+          <div class="list-group" id="sidebar-list">
+            <a href="#" onclick="show_group(this)" class="list-group-item active">Hide all</a>
+          </div>
+        </div><!--/.sidebar-offcanvas-->
+      </div><!--/row-->
+    </div><!--/.container-->
+
+
 
 <!-- About modal -->
 <div id="about" class="modal fade" tabindex="-1" role="dialog">
