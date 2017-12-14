@@ -290,8 +290,6 @@ var initGUI = function() {
     $("#settings_body")[0].innerHTML = '';
     $("#agent_settings")[0].innerHTML = '';
 
-        console.log(model_params);
-
     for (var option in model_params) {
         var type = typeof(model_params[option]);
         var param_str = String(option);
@@ -318,7 +316,6 @@ var parseDatasetInfo = function(dataset) {
             data = control.dataset_info[i];
         }
     }
-    console.log(data);
     if (data === undefined) {
         console.warn("Error: dataset doesn't exist");
         return;
@@ -467,6 +464,7 @@ var reset = function($e) {
         $(playPauseButton.children()[0]).text("Stop");
     }
     single_step();
+    update_graphs(false);
     return false;
 };
 
@@ -482,7 +480,7 @@ var single_step = function() {
         control.last_sent = control.data[control.dataset].length;
         if (!control.done) send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": fps, "dataset": control.dataset});
     }
-    update_graphs();
+
 };
 
 
@@ -492,7 +490,8 @@ var back = function($e) {
 
     if (!control.running) {
         control.tick -= 2;
-        single_step()
+        single_step();
+        update_graphs(true);
     }
 
     return false;
@@ -505,6 +504,7 @@ var step = function($e) {
 
     if (!control.running && !control.done) {
         single_step();
+        update_graphs(true);
     }
     else if (!control.done) {
         run();
@@ -522,7 +522,7 @@ var changeTick = function($e) {
     }
 
     if (!control.running || !control.done) {
-        update_graphs();
+        update_graphs(true);
     }
     else if (control.done) {
         run();
@@ -546,7 +546,12 @@ var run = function($e) {
     }
     else if (!control.done) {
         control.running = true;
-        player = setInterval(single_step, 1000/control.fps);
+        player = setInterval(
+            function() {
+                single_step();
+                update_graphs(false);
+            }, 1000/control.fps
+        );
         anchor.text("Stop");
     }
     return false;
@@ -572,7 +577,7 @@ resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
 tickControl.on('change', changeTick);
 
-function update_graphs() {
+function update_graphs(force_draw) {
     if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
@@ -581,7 +586,7 @@ function update_graphs() {
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(undefined, to_render);
+            elements[i].render(force_draw, to_render);
         }
     } else {
         control.tick -= 1;
@@ -608,32 +613,40 @@ function toggle_graph(div) {
     $('html, body').animate({
         scrollTop: top
     }, 0);
-
+    update_graphs(true);
+    window.dispatchEvent(new Event('resize'));
     return false;
 }
 
 function toggle_all(btn) {
-  // if someone manually hides all the graphs, it will still say hide all... oh well
+    // if someone manually hides all the graphs, it will still say collapse all...
     if (btn.innerHTML === "Collapse all") {
         $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");
+            let graph_id = (this.innerHTML).replace(/[^a-zA-Z]/g, "");
+            console.log(graph_id);
+            $('#'+(graph_id)).removeClass("hidden").addClass("hidden");
         });
         btn.innerHTML = "Show all";
+        update_graphs(true);
     } else {
         $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden");
+            let graph_id = (this.innerHTML).replace(/[^a-zA-Z]/g, "");
+            $('#'+graph_id).removeClass("hidden");
         });
         btn.innerHTML = "Collapse all";
     }
+    window.dispatchEvent(new Event('resize'));
 
 }
 
 
-if(window.chrome){
-    // apply niceScroll only if chrome to avoid freezes from scroll events.
-    $(function() {
-        $("body").niceScroll();
-    });
-}
-
-
+var tid = setInterval( function () {
+    if ( document.readyState !== 'complete' ) return;
+    clearInterval( tid );
+    if(window.chrome){
+        // apply niceScroll only if chrome to avoid freezes from scroll events.
+        $(function() {
+            $("body").niceScroll();
+        });
+    }
+}, 100 );

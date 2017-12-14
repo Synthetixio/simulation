@@ -23,7 +23,7 @@ run_settings = [
     #   - any settings that are not in settings.ini are ignored
     {
         "name": "Default",
-        "max_steps": 1500,
+        "max_steps": 150,
         "settings": {
             "Model": {
                 'num_agents': 100
@@ -165,6 +165,7 @@ def generate_new_caches(data):
 
             result.append(step_data)
         data[item["name"]] = {"data": result, "settings": settings, "max_steps": item["max_steps"]}
+        __import__('pprint').pprint([i[3] for i in data[item['name']]['data']])
     return data
 
 
@@ -188,14 +189,14 @@ def save_data(data):
 
 
 if __name__ == "__main__":
-    _data = load_saved()
-    all_cached = False
-    for i in run_settings:
-        if i['name'] not in _data:
-            break
-    else:
-        all_cached = True
-
-    if not all_cached:
-        _data = generate_new_caches(_data)
-        save_data(_data)
+    # _data = load_saved()
+    # all_cached = False
+    # for i in run_settings:
+    #     if i['name'] not in _data:
+    #         break
+    # else:
+    #     all_cached = True
+    #
+    # if not all_cached:
+    _data = generate_new_caches({})
+        # save_data(_data)

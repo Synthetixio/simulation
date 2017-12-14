@@ -1,114 +1,115 @@
 // BarGraphModule.js
 
-var BarGraphModule = function (desc, graph_id, width, height) {
+var BarGraphModule = function (group, title, desc, graph_id, width, height) {
     var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')" data-toggle="tooltip" title="'+desc+'">'+graph_id+'</button>');
     button.tooltip();
-    var div = $("<div id='"+graph_id+"' class=''></div>");
+    var div = $("<div id='"+graph_id+"' class='hidden'></div>");
 
-	// Create the tag:
-	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
-	canvas_tag += "style='border:1px dotted'></canvas>";
-	// Append it to body:
-	var canvas = $(canvas_tag)[0];
-	div.append(canvas);
-	//$("body").append(canvas);
 	$("#elements").append(button);
 	$("#elements").append(div);
-	// Create the context and the drawing controller:
-	var context = canvas.getContext("2d");
 
-	var data = {
-		labels: [],
-		datasets: []
-	};
-
-	var options = {
-		responsive: true,
-		maintainAspectRatio: false,
-
-		tooltips: {
-		    enabled: false,
-			mode: 'index',
-			intersect: false,
-            position: "nearest",
-		},
-		hover: {
-			mode: 'nearest',
-			intersect: true
-		},
-		scales: {
-			xAxes: [{
-				display: false,
-				stacked: true
-			}],
-			yAxes: [{
-				display: true,
-                stacked: true
-			}]
-		},
-		animation: false
-	};
     // Create the chart object
-	var chart = new Chart(context, {type: 'bar', data: data, options: options});
-
-    this.render = function (step, new_data) {
-        var label_data;
-        if (new_data.length > 1) {
-            label_data = new_data[0];
-        	new_data = new_data[new_data.length - 1];
-    	} else if (new_data.length === 1) {
-            label_data = new_data[0];
-            let data = [];
-            for (let i=4; i < new_data[0].length; i++) {
-                data.push(new_data[0][i])
-            }
-            new_data = data;
+	var chart = Highcharts.chart(graph_id, {
+	    title: {
+	        text: title
         }
-        // data should be in the form:
-        // [data_labels, bar_labels, data_colors, dataset1, ...]
-        chart.data.datasets = [];
-        chart.data.labels = [];
+    });
+    var chart_setup = false;
 
-        if (new_data.length >= 1) {
-            let data_labels = label_data[0];
-            let data_colors = label_data[1];
-            let data_stack = label_data[2];
-            let bar_labels = label_data[3];
+    this.render = function (force_draw, data) {
 
-            for (let i in bar_labels) {
-                chart.data.labels[i] = bar_labels[i];
-            }
+	    if (div.hasClass("hidden")) {
+	        chart.was_hidden = true;
+	        return false;
+        }
 
-            for (let i = 0; i < new_data.length; i++) {
-                chart.data.datasets.push({
-                    label: data_labels[i],
-                    backgroundColor: data_colors[i],
-                    borderColor: data_colors[i],
-                    stack: data_stack[i],
-                    fill: true,
-                    pointRadius: 0,
-                    data: []
-                });
-            }
+        let new_data;
 
-            // meta is the "label" that shows up when hovering
-            for (let i = 0; i < new_data.length; i++) {
-                for (let j = 0; j < new_data[i].length; j++) {
-                    chart.data.datasets[i].data.push(this.round(new_data[i][j]));
+        if (data.length < 1) {
+            return false;
+        }
+
+        if (chart_setup === false && data.length > 0) {
+            chart = this.create_chart(data[0]);
+            chart_setup = true;
+        }
+
+        if (chart.was_hidden || force_draw || data.length % 5 === 0) {
+            if (data.length > 1) {
+                new_data = data[data.length - 1];
+            } else {
+                new_data = [];
+                for (let i = 4; i < data[0].length; i++) {
+                    new_data.push(data[0][i])
                 }
             }
 
+            if (new_data.length >= 1) {
+                for (let i = 0; i < new_data.length; i++) {
+                    let _data = [];
+                    for (let j = 0; j < new_data[i].length; j++) {
+                        _data.push(this.round(new_data[i][j]))
+                    }
+                    chart.series[i].setData(_data);
+                }
+            }
         }
-        chart.update();
+        chart.was_hidden = false;
     };
 
     this.reset = function () {
-        chart.data.datasets = [];
-        chart.data.labels = [];
-        chart.update();
     };
 
     this.round = function (value) {
-        return Math.floor(value*10000)/10000
+        return Math.floor(value*1000)/1000
     };
+
+    this.create_chart = function(label_data) {
+        let options = chart.options;
+
+        let data_labels = label_data[0];
+        let data_colors = label_data[1];
+        let data_stacks = label_data[2];
+
+        // player names
+        options.xAxis.categories = label_data[3];
+        options.series = [];
+
+        for (let i = 0; i < label_data[0].length; i++) {
+            options.series.push({
+                name: data_labels[i],
+                color: data_colors[i],
+                stack: data_stacks[i],
+                data: []
+            })
+        }
+
+        options.plotOptions = {
+            column: {
+                stacking: 'normal',
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        };
+
+        options.chart = {
+            type: 'column',
+            animation: false
+        };
+
+        options.tooltip = {
+            shared:true,
+            followPointer: true,
+            formatter:
+                function () {
+                    let result = '<b>' + chart.options.xAxis.categories[this.x] + '</b><br/>';
+                    for (let i in chart.series) {
+                        result += chart.series[i].name + ': ' + chart.series[i].data[this.x].y + '<br/>';
+                    }
+                    return result;
+                }
+        };
+
+        return Highcharts.chart(chart.renderTo.id, options);
+    }
 };

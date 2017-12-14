@@ -65,8 +65,8 @@ class PortfolioModule(BarGraphModule):
 
     def __init__(self, series: List[Dict[str, str]], height: int = 150,
                  width: int = 500, data_collector_name: str = "datacollector",
-                 fiat_values: bool = False, desc: str = "") -> None:
-        super().__init__(series, height, width, data_collector_name, desc)
+                 fiat_values: bool = False, desc: str = "", title: str = "", group: str = "") -> None:
+        super().__init__(series, height, width, data_collector_name, desc, title, group)
         self.fiat_values = fiat_values
 
         # ensure the data for agent names/colours only appears in the first tick
