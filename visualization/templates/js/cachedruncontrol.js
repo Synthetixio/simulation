@@ -15,7 +15,6 @@
  * fps: Current frames per second.
  */
 
-var fps_max = $('#fps_max')[0].content;
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
@@ -37,14 +36,6 @@ var backButton = $('#back');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 
-var fpsControl = $('#fps').slider({
-    max: fps_max,
-    min: 1,
-    value: fps_default,
-    ticks: [1, fps_max],
-    ticks_labels: [1, fps_max],
-    ticks_position: [0, 100]
-});
 
 var tickControl = $('#tick').slider({
     max: 0,
@@ -475,7 +466,7 @@ var single_step = function() {
     }
     control.tick += 1;
     tickControl.slider('setValue', control.tick);
-    let fps = parseInt(fpsControl[0].value);
+    let fps = parseInt(control.fps);
     if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
         control.last_sent = control.data[control.dataset].length;
         if (!control.done) send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": fps, "dataset": control.dataset});
@@ -557,24 +548,11 @@ var run = function($e) {
     return false;
 };
 
-var updateFPS = function($e) {
-    if ($e !== undefined) $e.preventDefault();
-
-    control.fps = Number(fpsControl.val());
-    if (control.running) {
-        // run twice to set interval, and clear it
-        run();
-        run();
-    }
-    return false;
-};
-
 // Initilaize buttons on top bar
 playPauseButton.on('click', run);
 backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
-fpsControl.on('change', updateFPS);
 tickControl.on('change', changeTick);
 
 function update_graphs(force_draw) {
@@ -615,16 +593,16 @@ function show_group(group) {
     window.dispatchEvent(new Event('resize'));
 }
 //
-// if(window.chrome){
-//     // apply niceScroll only if chrome to avoid freezes from scroll events.
-//     $(function() {
-//         $("body").niceScroll();
-//     });
-// }
+if(window.chrome){
+    // apply niceScroll only if chrome to avoid freezes from scroll events.
+    $(function() {
+        $("html").niceScroll();
+    });
+}
 
-
-$(document).ready(function() {
-  $('[data-toggle=offcanvas]').click(function() {
-    $('.row-offcanvas').toggleClass('active');
-  });
-});
+//
+// $(document).ready(function() {
+//   $('[data-toggle=offcanvas]').click(function() {
+//     $('.row-offcanvas').toggleClass('active');
+//   });
+// });
