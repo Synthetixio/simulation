@@ -23,7 +23,10 @@ run_settings = [
     #   - any settings that are not in settings.ini are ignored
     {
         "name": "Default",
-        "description": "Default settings <hr/>",
+        "description": """<p>This dataset runs the simulation with the default model settings,
+        viewable in <i>settings</i>.</p><p>The agent fractions selected feel like a good balance of what
+        could be expected in a real system. For more information about what the actors represent, read the
+        <i>About</i> section.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -33,7 +36,11 @@ run_settings = [
     },
     {
         "name": "High number of bankers, low collateralisation ratio",
-        "description": "Lots of bankers with low CR",
+        "description": """<p>This dataset, along with default collateralisation
+        and high collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
+        as controlling nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
+        in relation to the havven price. This forces the havven price to need rise much faster than the nomin
+        price, to allow for enough nomins to be created to keep the price at 1.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -47,7 +54,12 @@ run_settings = [
     },
     {
         "name": "High number of bankers, default collateralisation ratio",
-        "description": "Lots of bankers with default CR",
+        "description": """<p>This dataset, along with low collateralisation
+        and high collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
+        as controlling nomin supply.</p><p>The default collateralisation ratio max (0.25)
+        creates a nice balance of a supply of nomins quite harshly
+        in relation to the havven price. This forces the havven price to need rise faster than the nomin
+        demand, to allow for enough nomins to be created to keep the price at 1.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -60,7 +72,11 @@ run_settings = [
     },
     {
         "name": "High number of bankers, high collateralisation ratio",
-        "description": "Lots of bankers with high CR",
+        "description": """<p>This dataset, along with low collateralisation
+        and default collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
+        as controlling nomin supply.</p><p>The high collateralisation ratio max (0.5)
+        allows for the issuance of a large amount of nomins, which causes the intrinsic value of havven's to skyrocket
+        as the value they can issue is so high. This creates massive oversupply of nomins, killing the price</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -74,7 +90,8 @@ run_settings = [
     },
     {
         "name": "High number of randomizers",
-        "description": "Lots of randomizers with default settings.",
+        "description": """<p>This dataset has a lot of irrational behavior, to see how well the price stays at 1,
+        even with actors not caring about their actions.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -87,7 +104,8 @@ run_settings = [
     },
     {
         "name": "One of each market player",
-        "description": "one of each player... thats it.",
+        "description": """<p>This dataset just shows off 1 of each market player type that exists in the system.
+        This highlights how they all interact with each other.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {
@@ -97,7 +115,9 @@ run_settings = [
     },
     {
         "name": "Low number of Nomin Shorters",
-        "description": "<b>Low</b><p>number of nomin shorters.</p><p>lorem ipsum</p><p>dolor sit amet</p>",
+        "description": """<p>This dataset removes a lot of the price control the nomin shorters bring,
+        to see how well the price stays at 1 without the user expectation that the price would be near 1.</p>
+        <p>This will show whether controlling the supply is enough to keep the price stable.</p>""",
         "max_steps": 150,
         "settings": {
             "Model": {

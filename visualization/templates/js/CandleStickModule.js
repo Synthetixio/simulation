@@ -97,7 +97,8 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
                 }
             },
             chart: {
-                animation: false
+                animation: false,
+                height: 300
             },
             credits: {
                 enabled: false

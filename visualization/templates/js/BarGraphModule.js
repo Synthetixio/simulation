@@ -24,7 +24,8 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
 	        text: title
         },
         chart: {
-			animation: false
+			animation: false,
+            height: 250
 		},
         credits: {
 			enabled: false
@@ -112,7 +113,8 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
 
         options.chart = {
             type: 'column',
-            animation: false
+            animation: false,
+            height: 300
         };
 
         options.tooltip = {

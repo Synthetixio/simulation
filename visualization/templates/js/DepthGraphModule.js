@@ -21,8 +21,9 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
     var chart = Highcharts.chart(graph_id, {
         chart: {
 			animation: false,
+            height: 250,
             type: 'area'
-        },
+		},
         title: {
             text: 'Market depth'
         },
