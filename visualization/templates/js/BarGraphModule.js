@@ -124,7 +124,9 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
                 function () {
                     let result = '<b>' + chart.options.xAxis.categories[this.x] + '</b><br/>';
                     for (let i in chart.series) {
-                        result += chart.series[i].name + ': ' + chart.series[i].data[this.x].y + '<br/>';
+                        // could add some variable for using absolute values in the constructor, but for now
+                        // all the graphs want to.
+                        result += chart.series[i].name + ': ' + Math.abs(chart.series[i].data[this.x].y) + '<br/>';
                     }
                     return result;
                 }

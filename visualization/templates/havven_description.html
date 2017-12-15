@@ -1,8 +1,9 @@
 <p>An agent-based model of the Havven stablecoin system. This class will provide the basic market functionality of Havven, an exchange, and a place for the market agents to live and interact.</p>
 <p>The aim is to stabilise the nomin price, but we would also like to measure other quantities including liquidity, volatility, wealth concentration, velocity of money and so on.</p>
 <h4>Analysis:</h4>
-<p>Currently the model’s only source of havvens being traded is from the Randomizers, and the Bankers are the only ones who want to purchase it (other than short term trades by arbitrageurs). As such, if there are too many Randomizers, without enough Bankers, the price of havvens will tank, taking the havven/nomin price with it.</p>
+<p>Currently the model’s only sources of havvens being traded are the Randomizers and MarketMakers, and the Bankers are the only ones who want to purchase it (other than short term trades by arbitrageurs). As such, if there are too many Randomizers, without enough Bankers, the price of havvens will tank, taking the havven/nomin price with it.</p>
 <p>If the bankers have more backing than the randomizers, the price will shoot up, until the randomizers run out of havvens, or the bankers run out of fiat, which then causes the price to dip as the supply of havvens dries up. At which point the only reason the price goes up is due to arbitrage opportunities arising from the nomin price dipping below the nomin buy threshold, or above the nomin sell threshold; for the nomin shorters.</p>
 <p>After this the only real action happening is with the Merchant/buyers, who trade solely in fiat/nomins. Who after a significant while, break the wall created by the nomin shorters, causing the nomin price to tank. The only reason they build enough bank to break the wall is due to the buyers being the only actors in the whole system who have an accumulating wealth.</p>
 <p>All market behaviours are accelerated/slowed by increasing/decreasing the number of actors.</p>
-<h5>The model is still in the development stage.</h5>
+<hr/>
+<h5>The model is still in the development stage. The source will be released at a future date, for full customisation options.</h5>

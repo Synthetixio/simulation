@@ -376,16 +376,13 @@ ws.onmessage = function(message) {
                     control.data[control.dataset].push(dataset);
                 }
             }
-
-            tickControl[0].innerHTML = "Tick: " + control.data[control.dataset].length + "/" + control.dataset_max_steps;
-
             break;
 
         case "end":
             // We have reached the end of the model
             control.done = true;
             console.log("Done!");
-            $(playPauseButton.children()[0]).text("Done");
+            $(playPauseButton.children()[0]).html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-stop\"></span>");
             break;
         case "dataset_info":
             control.dataset_info = msg["data"];
@@ -429,15 +426,18 @@ var reset = function($e) {
     control.tick = 0;
     control.last_sent = control.data[control.dataset].length - 1;
     control.done = false;
+    if (control.running) {
+        run();
+    }
     // Reset all the visualizations
     clear_graphs();
     parseDatasetInfo(control.dataset);
     initGUI();
 
     if (!control.running) {
-        $(playPauseButton.children()[0]).text("Start");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-play"></span>');
     } else {
-        $(playPauseButton.children()[0]).text("Stop");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-pause"></span>');
     }
     single_step();
     update_graphs(true);
@@ -499,17 +499,23 @@ var run = function($e) {
             clearInterval(player);
             player = null;
         }
-        anchor.text("Start");
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-play\"></span>");
     }
     else if (!control.done) {
+        if (control.data[control.dataset].length <= 1) {
+            show_group($(".list-group-item")[1]);
+        }
         control.running = true;
         player = setInterval(
             function() {
+                if (!control.running) {
+                    return;
+                }
                 single_step();
                 update_graphs(false);
             }, 1000/control.fps
         );
-        anchor.text("Stop");
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-pause\"></span>");
     }
     return false;
 };
@@ -526,13 +532,19 @@ $("#dataset_selector").on('change', function() {
     control.ready = true;
     reset();
     $("#DatasetDescription")[0].innerHTML =
-        "<h4>Description for: "+control.dataset_name+"</h4><p>" +
+        "<h4>"+control.dataset_name+":</h4><p>" +
         control.description + '</p>';
     show_group($("#sidebar-hideall")[0]);
 });
 
 
 function update_graphs(force_draw) {
+    if (control.tick === 0) {
+        tickControl[0].innerHTML = "Tick: " + (control.tick) + "/" + control.dataset_max_steps;
+    } else {
+        tickControl[0].innerHTML = "Tick: " + (control.tick-1) + "/" + control.dataset_max_steps;
+    }
+
     if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];

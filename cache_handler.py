@@ -110,6 +110,9 @@ run_settings = [
         "settings": {
             "Model": {
                 'num_agents': 0,
+            },
+            "Agents": {
+                'agent_minimum': 1
             }
         }
     },

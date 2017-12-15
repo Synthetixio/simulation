@@ -106,7 +106,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
 
             dataGrouping: {
                 dateTimeLabelFormats: {
-                    millisecond: ['%L', '%L', '-%L'],
+                    millisecond: ['%S%L', '%S%L', '-%S%L'],
                     second: ['%S%L', '%S%L', '-%S%L'],
                     minute: ['%M%S%L', '%M%S%L', '-%M%S%L'],
                     hour: ['%M%S%L', '%M%S%L', '-%M%S%L'],
@@ -125,7 +125,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
                 color: '#F00',
                 dataGrouping: {
                     dateTimeLabelFormats: {
-                        millisecond: ['%L', '%L', '-%L'],
+                        millisecond: ['%S%L', '%S%L', '-%S%L'],
                         second: ['%S%L', '%S%L', '-%S%L'],
                         minute: ['%M%S%L', '%M%S%L', '-%M%S%L'],
                         hour: ['%M%S%L', '%M%S%L', '-%M%S%L'],
@@ -196,7 +196,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
 
 	this.reset = function() {
 		for (let i=0; i<chart.series; i++) {
-			chart.series[i].data = [];
+			chart.series[i].setData([]);
 		}
 		chart.redraw()
 	};
