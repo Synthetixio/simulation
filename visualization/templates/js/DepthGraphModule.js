@@ -25,7 +25,7 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
             type: 'area'
 		},
         title: {
-            text: 'Market depth'
+            text: title
         },
         subtitle: {
             text: ''
