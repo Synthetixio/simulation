@@ -22,7 +22,7 @@ run_settings = [
     # settings: change the defaults set in settings.ini, per run
     #   - any settings that are not in settings.ini are ignored
     {
-        "name": "Balanced",
+        "name": "Default",
         "description": """<p>This dataset runs the simulation with the default model settings,
         viewable in <i>settings</i>.</p><p>The agent fractions have been selected to be a good balance of what
         could be expected in a real system. For more information about what the actors represent, read the
