@@ -35,8 +35,8 @@ There are three major components to this simulation:
     - [x] havven bankers
     - [x] central bankers
     - [x] merchants / consumers
-    - [ ] market makers
-    - [ ] day-trading speculators
+    - [x] market makers
+    - [x] day-trading speculators
     - [ ] buy-and-hold speculators
     - [ ] cryptocurrency refugees
     - [ ] attackers

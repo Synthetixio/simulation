@@ -26,8 +26,8 @@ def get_vis_elements() -> List[VisualizationElement]:
                     "AvgColor": "rgba(0,191,255,0.6)", "VolumeColor": "rgba(0,191,255,0.3)",  # deepskyblue
                 }
             ],
-            desc="Candlesticks, rolling price average and volume for the Nomin/Fiat market",
-            title="Nomin/Fiat Market Price data",
+            desc="Candlesticks, rolling price average and volume for the nomin/fiat market.",
+            title="Nomin/Fiat Market Price Data",
             group="Market Prices"
         ),
 
@@ -38,8 +38,8 @@ def get_vis_elements() -> List[VisualizationElement]:
                     "AvgColor": "rgba(255,0,0,0.6)", "VolumeColor": "rgba(255,0,0,0.3)",  # red
                 }
             ],
-            desc="Candlesticks, rolling price average and volume for the Havven/Fiat market",
-            title="Havven/Fiat Market Price data",
+            desc="Candlesticks, rolling price average and volume for the havven/fiat market.",
+            title="Havven/Fiat Market Price Data",
             group="Market Prices"
         ),
 
@@ -50,8 +50,8 @@ def get_vis_elements() -> List[VisualizationElement]:
                     "AvgColor": "rgba(153,50,204,0.6)", "VolumeColor": "rgba(153,50,204,0.3)",  # darkorchid
                 }
             ],
-            desc="Candlesticks, rolling price average and volume for the Nomin / Fiat market",
-            title="Havven/Nomin Market Price data",
+            desc="Candlesticks, rolling price average and volume for the nomin/fiat market.",
+            title="Havven/Nomin Market Price Data",
             group="Market Prices"
         ),
         #
@@ -63,15 +63,15 @@ def get_vis_elements() -> List[VisualizationElement]:
         PortfolioModule(
             [{"Label": "WealthBreakdown"}],
             fiat_values=False,
-            desc="Individual market player's holdings",
+            desc="Player Portfolios",
             title="Wealth Breakdown",
             group="Player Wealth",
         ),
 
         WealthModule(
             [{"Label": "Wealth"}],
-            desc="Individual market player's holdings in terms of Fiat",
-            title="Total wealth in FIAT",
+            desc="Individual market player's holdings in terms of fiat.",
+            title="Player Net Worth",
             group="Player Wealth"
         ),
 
@@ -88,23 +88,23 @@ def get_vis_elements() -> List[VisualizationElement]:
                 {"Label": "MarketMaker Profit %", "Color": "teal"},
                 {"Label": "0", "Color": ref_colour}
             ],
-            desc="Each market player group's profit in a percentage compared to initial wealth",
-            title="Player's profit %",
+            desc="Each market player group's profit as a percentage of initial wealth.",
+            title="Profitability per Strategy",
             group="Player Type Aggregates"
         ),
 
         CurrentOrderModule(
             [{"Label": "PlayerBidAskVolume"}],
-            desc="Each market player's Bids and asks, for each market",
-            title="Player's Current Bid Ask Volume",
-            group="Player Market Usage"
+            desc="Each market player's bids and asks, for each market.",
+            title="Outstanding Player Orders",
+            group="Player Orders"
         ),
 
         PastOrdersModule(
             [{"Label": "TotalMarketVolume"}],
-            desc="Each market player's Bids and asks that were filled, for each market",
-            title="Player's Total Bid Ask Volume",
-            group="Player Market Usage"
+            desc="Each market player's bids and asks that were filled, for each market.",
+            title="Total Player Order Volume",
+            group="Player Orders"
         ),
 
         ChartModule(
@@ -112,43 +112,43 @@ def get_vis_elements() -> List[VisualizationElement]:
                 {"Label": "Havven Demand", "Color": "red"},
                 {"Label": "Havven Supply", "Color": "orange"},
             ],
-            desc="The total demand and supply of Havvens on the markets",
-            title="Havven Usage",
-            group="Total Currency Demand"
+            desc="The aggregate demand and supply of havvens in the markets.",
+            title="Havven Order Volume",
+            group="Supply and Demand"
         ),
 
         ChartModule([
-            {"Label": "Nomin Demand", "Color": "deepskyblue"},
-            {"Label": "Nomin Supply", "Color": "purple"},
+            {"Label": "Nomin Demand", "Color": "purple"},
+            {"Label": "Nomin Supply", "Color": "deepskyblue"},
         ],
-            desc="The total demand and supply of Nomins on the markets",
-            title="Nomin Usage",
-            group="Total Currency Demand"
+            desc="The aggregate demand and supply of nomins in the markets.",
+            title="Nomin Order Volume",
+            group="Supply and Demand"
         ),
 
         ChartModule([
             {"Label": "Fiat Demand", "Color": "darkgreen"},
             {"Label": "Fiat Supply", "Color": "lightgreen"},
         ],
-            desc="The total demand and supply of Fiat on the markets",
-            title="Fiat Usage",
-            group="Total Currency Demand"
+            desc="The aggregate demand and supply of fiat in the markets.",
+            title="Fiat Order Volume",
+            group="Supply and Demand"
         ),
 
         ChartModule([
             {"Label": "Nomins", "Color": "deepskyblue"},
             {"Label": "Escrowed Havvens", "Color": "darkred"},
         ],
-            desc="The total number of nomins and Escrowed Havvens for all market players",
+            desc="The total number of nomins and escrowed havvens for all market players.",
             title="Nomins to Escrowed Havvens",
-            group="Issuance Statistics"
+            group="Issuance"
         ),
 
         ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
             {"Label": "0", "Color": ref_colour}
         ],
-            desc="The amount of fees collected by the system, that haven't been distributed",
+            desc="The amount of fees collected by the system, that haven't yet been distributed.",
             title="Collected Fees",
             group="Fees"
         ),
@@ -157,7 +157,7 @@ def get_vis_elements() -> List[VisualizationElement]:
             {"Label": "Fees Distributed", "Color": "blue"},
             {"Label": "0", "Color": ref_colour}
         ],
-            desc="Total amount of fees that have been distributed by the system",
+            desc="Total amount of fees that have been distributed by the system.",
             title="Distributed Fees",
             group="Fees"
         ),
@@ -175,23 +175,23 @@ def get_vis_elements() -> List[VisualizationElement]:
 
         OrderBookModule(
             [{"Label": "NominFiatOrderBook"}],
-            desc="The Nomin/Fiat market orderbook (tallied bid/ask volume by price)",
-            title="Nomin/Fiat Orderbook",
-            group="Orderbooks"
+            desc="The nomin/fiat market order book (tallied bid/ask volume by price).",
+            title="Nomin/Fiat Order Book",
+            group="Order Books"
         ),
 
         OrderBookModule(
             [{"Label": "HavvenFiatOrderBook"}],
-            desc="The Havven/Fiat market orderbook (tallied bid/ask volume by price)",
-            title="Havven/Fiat Orderbook",
-            group="Orderbooks"
+            desc="The havven/fiat market order book (tallied bid/ask volume by price).",
+            title="Havven/Fiat Order Book",
+            group="Order Books"
         ),
 
         OrderBookModule(
             [{"Label": "HavvenNominOrderBook"}],
-            desc="The Havven/Nomin market orderbook (tallied bid/ask volume by price)",
-            title="Havven/Nomin Orderbook",
-            group="Orderbooks"
+            desc="The Havven/Nomin market order book (tallied bid/ask volume by price).",
+            title="Havven/Nomin Order Book",
+            group="Order Books"
         )
     ]
 
