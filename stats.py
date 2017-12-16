@@ -1,7 +1,6 @@
 """stats.py: Functions for extracting aggregate information from the Havven model."""
 
 from statistics import mean, stdev
-from itertools import combinations
 
 from mesa.datacollection import DataCollector
 
@@ -77,10 +76,8 @@ def gini(havven_model: "model.HavvenModel") -> float:
     n = len(havven_model.schedule.agents)
     s_wealth = sorted([float(a.wealth()) for a in havven_model.schedule.agents])
     total_wealth = sum(s_wealth)
-
     if total_wealth == 0 or n == 0:
         return 0
-    
     scaled_wealth = sum([(i+1)*w for i,w in enumerate(s_wealth)])
     return (2.0*scaled_wealth)/(n*total_wealth) - (n+1.0)/n
 
