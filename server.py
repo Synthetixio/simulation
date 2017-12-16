@@ -27,7 +27,7 @@ def get_vis_elements() -> List[VisualizationElement]:
                 }
             ],
             desc="Candlesticks, rolling price average and volume for the nomin/fiat market.",
-            title="Nomin/Fiat Market Price Data",
+            title="Nomin/Fiat Market Price",
             group="Market Prices"
         ),
 
@@ -39,7 +39,7 @@ def get_vis_elements() -> List[VisualizationElement]:
                 }
             ],
             desc="Candlesticks, rolling price average and volume for the havven/fiat market.",
-            title="Havven/Fiat Market Price Data",
+            title="Havven/Fiat Market Price",
             group="Market Prices"
         ),
 
@@ -51,7 +51,7 @@ def get_vis_elements() -> List[VisualizationElement]:
                 }
             ],
             desc="Candlesticks, rolling price average and volume for the nomin/fiat market.",
-            title="Havven/Nomin Market Price Data",
+            title="Havven/Nomin Market Price",
             group="Market Prices"
         ),
         #
@@ -72,6 +72,13 @@ def get_vis_elements() -> List[VisualizationElement]:
             [{"Label": "Wealth"}],
             desc="Individual market player's holdings in terms of fiat.",
             title="Player Net Worth",
+            group="Player Wealth"
+        ),
+        
+        ChartModule(
+            [{"Label": "Gini", "Color": "navy"}], # {"Label": "0", "Color": ref_colour}
+            desc="Income inequality metric: increases from 0 to 1 as inequality does.",
+            title="Gini Coefficient",
             group="Player Wealth"
         ),
 
@@ -168,10 +175,6 @@ def get_vis_elements() -> List[VisualizationElement]:
         #     {"Label": "Havven Fiat", "Color": "darkgreen"},
         # ]),
         #
-        # ChartModule([
-        #     {"Label": "Gini", "Color": "navy"},
-        #     {"Label": "0", "Color": ref_colour}
-        # ]),
 
         OrderBookModule(
             [{"Label": "NominFiatOrderBook"}],
@@ -209,7 +212,7 @@ def make_server() -> "tornado.web.Application":
     charts: List[VisualizationElement] = get_vis_elements()
 
     if settings["Server"]["cached"]:
-        print("Running Cached data server...")
+        print("Running cached data server...")
 
         server = CachedModularServer(settings, charts, "Havven Model (Alpha)")
 
