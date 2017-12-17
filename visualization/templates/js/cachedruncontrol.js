@@ -56,10 +56,8 @@ ws.onopen = function() {
     send({"type": "get_datasets"}); // Request model parameters when websocket is ready
     control.ready = false;
     return;
-    // reset();
-    // single_step();
-    // control.tick -= 1; // leave tick at -1 for now
 };
+
 
 // Add model parameters that can be edited prior to a model run
 var initGUI = function() {
@@ -396,8 +394,8 @@ ws.onmessage = function(message) {
                 }));
             }
 
-            control.dataset = "Default";
-            selector.val('Default').trigger('change');
+            control.dataset = "Balanced";
+            selector.val(control.dataset).trigger('change');
             break;
         default:
             // There shouldn't be any other message
@@ -405,11 +403,13 @@ ws.onmessage = function(message) {
     }
 };
 
+
 /**	 Turn an object into a string to send to the server, and send it. v*/
 var send = function(message) {
     msg = JSON.stringify(message);
     ws.send(msg);
 };
+
 
 /** Reset the model, and rest the appropriate local variables. */
 var reset = function($e) {
@@ -443,6 +443,7 @@ var reset = function($e) {
     update_graphs(true);
     return false;
 };
+
 
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
@@ -520,11 +521,13 @@ var run = function($e) {
     return false;
 };
 
+
 // Initilaize buttons on top bar
 playPauseButton.on('click', run);
 backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
+
 
 $("#dataset_selector").on('change', function() {
     parseDatasetInfo(control.dataset);
@@ -560,6 +563,7 @@ function update_graphs(force_draw) {
     }
 }
 
+
 function clear_graphs() {
     // Reset all the visualizations
     for (var i in elements) {
@@ -581,7 +585,8 @@ function show_group(group) {
     update_graphs(true);
     window.dispatchEvent(new Event('resize'));
 }
-//
+
+
 if(window.chrome){
     // apply niceScroll only if chrome to avoid freezes from scroll events.
     $(function() {
@@ -589,9 +594,3 @@ if(window.chrome){
     });
 }
 
-//
-// $(document).ready(function() {
-//   $('[data-toggle=offcanvas]').click(function() {
-//     $('.row-offcanvas').toggleClass('active');
-//   });
-// });

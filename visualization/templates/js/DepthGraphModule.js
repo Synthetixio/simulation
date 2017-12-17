@@ -112,24 +112,18 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
             if (price < avg_price * (1 - price_range)) break;
             added_bid = true;
             cumulative_quant += bids[i][1];
-            // meta is the "label" that shows up on the tooltip
-            // for some reason the x axis is the default value, so show the quant
             _bid_data.unshift(
                 [this.round(price), this.round(cumulative_quant)]
             );
-            // _ask_data.unshift(undefined);
-            // chart.data.labels.unshift(bids[i][0])
         }
         if (added_bid) {
             _bid_data.unshift(
                 [this.round(curr_price * (1 - price_range)), _bid_data[0][1]]
             );
-            // _ask_data.unshift(undefined);
         } else {
             _bid_data.unshift(
                 [this.round(curr_price * (1 - price_range)), 0]
             );
-            // _ask_data.unshift(undefined);
         }
 
         cumulative_quant = 0;
@@ -141,13 +135,9 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
             if (price > avg_price * (1 + price_range)) break;
             added_ask = true;
             cumulative_quant += asks[i][1];
-            // _bid_data.push(undefined);
-            // meta is the "label" that shows up on the tooltip
-            // for some reason the x axis is the default value, so show the quant
             _ask_data.push(
                 [this.round(price), this.round(cumulative_quant)]
             );
-            // chart.data.labels.push(price)
         }
 
         if (added_ask) {
@@ -155,12 +145,10 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
                 [this.round(curr_price * (1 + price_range)),
                     _ask_data[_ask_data.length-1][1]]
             );
-            // _bid_data.push(undefined);
         } else {
             _ask_data.push(
                 [this.round(curr_price * (1 + price_range)), 0]
             );
-            // _bid_data.push(undefined);
         }
 
         chart.series[0].setData(_ask_data);
