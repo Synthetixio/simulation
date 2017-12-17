@@ -288,6 +288,7 @@ var initGUI = function() {
 /** Parse and handle an incoming message on the WebSocket connection. */
 ws.onmessage = function(message) {
     var msg = JSON.parse(message.data);
+    console.log(msg);
     switch (msg["type"]) {
         case "viz_state":
             // ignore any old data
@@ -310,7 +311,7 @@ ws.onmessage = function(message) {
             // We have reached the end of the model
             control.done = true;
             console.log("Done!");
-            $(playPauseButton.children()[0]).text("Done");
+            $(playPauseButton.children()[0]).html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-stop\"></span>");
             break;
         case "model_params":
             model_params = msg["params"];
@@ -342,9 +343,9 @@ var reset = function($e) {
     // Reset all the visualizations
     clear_graphs();
     if (!control.running) {
-        $(playPauseButton.children()[0]).text("Start");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-play"></span>');
     } else {
-        $(playPauseButton.children()[0]).text("Stop");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-pause"></span>');
     }
     send({"type": "get_steps", "step": control.data.length, "fps": 10, "run_num": control.run_number});
 
@@ -389,12 +390,15 @@ var run = function($e) {
             clearInterval(player);
             player = null;
         }
-        anchor.text("Start");
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-play\"></span>");
     }
     else if (!control.done) {
+        if (control.data.length <= 1) {
+            show_group($(".list-group-item")[1]);
+        }
         control.running = true;
         player = setInterval(single_step, 1000/control.fps);
-        anchor.text("Stop");
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-pause\"></span>");
     }
     return false;
 };
@@ -426,7 +430,7 @@ function update_graphs() {
             }
             // send all data up to current tick to be rendered
             // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(step + 1, to_render);
+            elements[i].render(true, to_render);
         }
     } else {
         control.tick -= 1;
@@ -440,37 +444,18 @@ function clear_graphs() {
     }
 }
 
-// function to hide graph divs
-// don't bother stopping the data coming in, as the graph should always have
-//   the data ready to show...
-function toggle_graph(div) {
-    let doc = document.documentElement;
-    let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
-
-    $(div).toggleClass("hidden");
-
-    // scroll so page doesn't shift on toggle
-    $('html, body').animate({
-        scrollTop: top
-    }, 0);
-
-    return false;
-}
-
-function toggle_all(btn) {
-  // if someone manually hides all the graphs, it will still say hide all... oh well
-    if (btn.innerHTML === "Collapse all") {
-        $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");
-        });
-        btn.innerHTML = "Show all";
-    } else {
-        $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden");
-        });
-        btn.innerHTML = "Collapse all";
-    }
-
+function show_group(group) {
+    $(".list-group-item").removeClass("active");
+    $(group).addClass("active");
+    $(".graph_div").each(function() {
+        if (group === undefined || this.dataset.for !== group.id) {
+            $(this).removeClass("hidden").addClass("hidden");
+        } else {
+            $(this).removeClass("hidden");
+        }
+    });
+    update_graphs(true);
+    window.dispatchEvent(new Event('resize'));
 }
 
 

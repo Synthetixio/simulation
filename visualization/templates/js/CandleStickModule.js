@@ -189,6 +189,9 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
         if (data.length === 35 || chart.was_hidden) {
 		    chart.rangeSelector.clickButton(4);
 		    chart.rangeSelector.clickButton(0);
+        } else if (data.length < 35) {
+		    chart.rangeSelector.clickButton(0);
+		    chart.rangeSelector.clickButton(4);
         }
 
         chart.was_hidden = false;

@@ -27,7 +27,7 @@ run_settings = [
         viewable in <i>settings</i>.</p><p>The agent fractions have been selected to be a good balance of what
         could be expected in a real system. For more information about what the actors represent, read the
         <i>About</i> section.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 100
@@ -40,7 +40,7 @@ run_settings = [
         and the nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
         in relation to the havven price. This scenario requires the havven price to rise extremely quickly
         in order to allow for enough nomins to be created, if nomin demand is to be met and the price kept at 1.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -58,7 +58,7 @@ run_settings = [
         constraint in the supply of nomins. This situation requires the havven price to rise faster than
         the nomin demand to allow for enough nomins to be created to keep the price at 1, without
         flooding the nomin market.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -74,7 +74,7 @@ run_settings = [
         and nomin supply.</p><p>The high collateralisation ratio max (0.5)
         allows for the issuance of a large amount of nomins, which causes the intrinsic value of havvens to skyrocket
         as the value they can issue is so high. This creates massive oversupply of nomins, crashing the price.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -89,7 +89,7 @@ run_settings = [
         "name": "Many random actors",
         "description": """<p>This noisy dataset that examines how well the price stays at 1
         even with many actors behaving irrationally (or arationally).</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -103,7 +103,7 @@ run_settings = [
         "name": "Minimal",
         "description": """<p>This dataset contains a single member of each market player
         type that exists in the system. This highlights how they interact with each other.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 0,
@@ -118,7 +118,7 @@ run_settings = [
         "description": """<p>This dataset removes a lot of the price control the nomin shorters bring,
         to see how well the price stays at 1 without the user expectation that the price would be near 1.</p>
         <p>This will show whether controlling the supply is enough to keep the price stable.</p>""",
-        "max_steps": 1500,
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
