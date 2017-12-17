@@ -24,7 +24,7 @@ run_settings = [
     {
         "name": "Balanced",
         "description": """<p>This dataset runs the simulation with the default model settings,
-        viewable in <i>settings</i>.</p><p>The agent fractions selected feel like a good balance of what
+        viewable in <i>settings</i>.</p><p>The agent fractions have been selected to be a good balance of what
         could be expected in a real system. For more information about what the actors represent, read the
         <i>About</i> section.</p>""",
         "max_steps": 1500,
@@ -35,12 +35,11 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, low collateralisation ratio",
-        "description": """<p>This dataset, along with default collateralisation
-        and high collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
-        as controlling nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
-        in relation to the havven price. This forces the havven price to need rise much faster than the nomin
-        price, to allow for enough nomins to be created to keep the price at 1.</p>""",
+        "name": "Low collateralisation ratio, high issuance",
+        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
+        and the nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
+        in relation to the havven price. This scenario requires the havven price to rise extremely quickly
+        in order to allow for enough nomins to be created, if nomin demand is to be met and the price kept at 1.</p>""",
         "max_steps": 1500,
         "settings": {
             "Model": {
@@ -53,13 +52,12 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, default collateralisation ratio",
-        "description": """<p>This dataset, along with low collateralisation
-        and high collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
-        as controlling nomin supply.</p><p>The default collateralisation ratio max (0.25)
-        creates a nice balance of a supply of nomins quite harshly
-        in relation to the havven price. This forces the havven price to need rise faster than the nomin
-        demand, to allow for enough nomins to be created to keep the price at 1.</p>""",
+        "name": "Default collateralisation ratio, high issuance",
+        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
+        and the nomin supply.</p><p>The default collateralisation ratio max (0.25) creates a balanced
+        constraint in the supply of nomins. This situation requires the havven price to rise faster than
+        the nomin demand to allow for enough nomins to be created to keep the price at 1, without
+        flooding the nomin market.</p>""",
         "max_steps": 1500,
         "settings": {
             "Model": {
@@ -71,12 +69,11 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, high collateralisation ratio",
-        "description": """<p>This dataset, along with low collateralisation
-        and default collateralisation, highlight how the collateralisation ratio helps with price shocks, as well
-        as controlling nomin supply.</p><p>The high collateralisation ratio max (0.5)
-        allows for the issuance of a large amount of nomins, which causes the intrinsic value of havven's to skyrocket
-        as the value they can issue is so high. This creates massive oversupply of nomins, killing the price</p>""",
+        "name": "High collateralisation ratio, high issuance",
+        "description": """<p>This dataset, highlights how the collateralisation ratio affects volatility
+        and nomin supply.</p><p>The high collateralisation ratio max (0.5)
+        allows for the issuance of a large amount of nomins, which causes the intrinsic value of havvens to skyrocket
+        as the value they can issue is so high. This creates massive oversupply of nomins, crashing the price.</p>""",
         "max_steps": 1500,
         "settings": {
             "Model": {
@@ -89,9 +86,9 @@ run_settings = [
         }
     },
     {
-        "name": "High number of randomizers",
-        "description": """<p>This dataset has a lot of irrational behavior, to see how well the price stays at 1,
-        even with actors not caring about their actions.</p>""",
+        "name": "Many random actors",
+        "description": """<p>This noisy dataset that examines how well the price stays at 1
+        even with many actors behaving irrationally (or arationally).</p>""",
         "max_steps": 1500,
         "settings": {
             "Model": {
@@ -103,9 +100,9 @@ run_settings = [
         }
     },
     {
-        "name": "One of each market player",
-        "description": """<p>This dataset just shows off 1 of each market player type that exists in the system.
-        This highlights how they all interact with each other.</p>""",
+        "name": "Minimal",
+        "description": """<p>This dataset contains a single member of each market player
+        type that exists in the system. This highlights how they interact with each other.</p>""",
         "max_steps": 1500,
         "settings": {
             "Model": {

@@ -47,7 +47,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
             },
 
             title: {
-                text: 'Havven Fiat Market'
+                text: title
             },
 
             xAxis: {

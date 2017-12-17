@@ -39,8 +39,7 @@ class CachedSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         """
         When a new user connects to the server via websocket create a new model
-        i.e. same IP can have multiple models
-
+        i.e. the same IP can have multiple models.
         """
         if self.application.verbose:
             print("Socket connection opened")
