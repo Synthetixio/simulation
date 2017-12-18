@@ -18,6 +18,7 @@
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
+    this.draw_delay_period = 5;
     this.tick = 0; // Counts at which tick of the model we are.
     this.done = false;
     this.fps = fps_default; // Frames per second

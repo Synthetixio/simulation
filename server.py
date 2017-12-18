@@ -19,6 +19,24 @@ def get_vis_elements() -> List[VisualizationElement]:
     ref_colour = "lightgrey"
 
     return [
+        ChartModule(
+            [
+                {"Label": "Avg Profit %", "Color": "grey"},
+                {"Label": "Bank Profit %", "Color": "blue"},
+                {"Label": "Arb Profit %", "Color": "red"},
+                {"Label": "Rand Profit %", "Color": "green"},
+                {"Label": "NomShort Profit %", "Color": "orchid"},
+                {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
+                {"Label": "NaiveSpec Profit %", "Color": "fuchsia"},
+                {"Label": "HavvenSpec Profit %", "Color": "purple"},
+                {"Label": "MarketMaker Profit %", "Color": "teal"},
+                {"Label": "0", "Color": ref_colour}
+            ],
+            desc="Each market player group's profit as a percentage of initial wealth.",
+            title="Profitability per Strategy",
+            group="Player Type Aggregates"
+        ),
+
         CandleStickModule(
             [
                 {
@@ -80,24 +98,6 @@ def get_vis_elements() -> List[VisualizationElement]:
             desc="Income inequality metric: increases from 0 to 1 as inequality does.",
             title="Gini Coefficient",
             group="Player Wealth"
-        ),
-
-        ChartModule(
-            [
-                {"Label": "Avg Profit %", "Color": "grey"},
-                {"Label": "Bank Profit %", "Color": "blue"},
-                {"Label": "Arb Profit %", "Color": "red"},
-                {"Label": "Rand Profit %", "Color": "green"},
-                {"Label": "NomShort Profit %", "Color": "orchid"},
-                {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
-                {"Label": "NaiveSpec Profit %", "Color": "fuchsia"},
-                {"Label": "HavvenSpec Profit %", "Color": "purple"},
-                {"Label": "MarketMaker Profit %", "Color": "teal"},
-                {"Label": "0", "Color": ref_colour}
-            ],
-            desc="Each market player group's profit as a percentage of initial wealth.",
-            title="Profitability per Strategy",
-            group="Player Type Aggregates"
         ),
 
         CurrentOrderModule(

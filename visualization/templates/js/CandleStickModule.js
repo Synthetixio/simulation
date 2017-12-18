@@ -63,7 +63,8 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
                 {
                     title: {
                         text:"Candle Data"
-                    }
+                    },
+                    min : 0
                 },
                 {
                     title: {
@@ -120,6 +121,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
             series: [{
                 type: 'candlestick',
                 name: 'Havven Candle Data',
+                min : 0,
                 data: [],
                 upColor: '#0F0',
                 color: '#F00',

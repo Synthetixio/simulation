@@ -54,7 +54,8 @@ var ChartModule = function(group, title, desc, series, width, height) {
 		series: datasets,
 		chart: {
 			animation: false,
-            height: 250
+            height: 250,
+			min : 0
 		},
         credits: {
 			enabled: false

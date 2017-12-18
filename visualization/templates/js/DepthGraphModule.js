@@ -50,7 +50,8 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
                 formatter: function () {
                     return this.value;
                 }
-            }
+            },
+            min : 0
         },
         plotOptions: {
             area: {
