@@ -34,7 +34,7 @@ def get_vis_elements() -> List[VisualizationElement]:
             ],
             desc="Each market player group's profit as a percentage of initial wealth.",
             title="Profitability per Strategy",
-            group="Player Type Aggregates"
+            group="Player Aggregate Stats"
         ),
 
         CandleStickModule(
@@ -94,7 +94,7 @@ def get_vis_elements() -> List[VisualizationElement]:
         ),
         
         ChartModule(
-            [{"Label": "Gini", "Color": "navy"}], # {"Label": "0", "Color": ref_colour}
+            [{"Label": "Gini", "Color": "navy"}],  # {"Label": "0", "Color": ref_colour}
             desc="Income inequality metric: increases from 0 to 1 as inequality does.",
             title="Gini Coefficient",
             group="Player Wealth"

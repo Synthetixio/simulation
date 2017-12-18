@@ -343,6 +343,9 @@ var reset = function($e) {
     send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
+
+    show_group($(".list-group-item")[1]);
+
     if (!control.running) {
         $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-play"></span>');
     } else {
