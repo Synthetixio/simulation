@@ -1,98 +1,93 @@
-var ChartModule = function(desc, series, width, height) {
-	let graph_id = (series[0].Label).replace(/[^a-zA-Z]/g, "");
+var ChartModule = function(group, title, desc, series, width, height) {
+    let group_id = (group).replace(/[^a-zA-Z]/g, "");
+	let graph_id = (title).replace(/[^a-zA-Z]/g, "");
 	// Create the elements
-	var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')" data-toggle="tooltip" title="'+desc+'">'+graph_id+'</button>');
-    button.tooltip();
-    var div = $("<div id='"+graph_id+"' class=''></div>");
+	// var button = $('<button type="button" style="display:block" class="btn btn-sm btn-pad" onclick="toggle_graph('+graph_id+')" >'+title+'</button>');
+    // button.tooltip();
 
-	// Create the tag:
-	var canvas_tag = "<canvas width='" + width + "' height='" + height + "' ";
-	canvas_tag += "style='border:1px dotted'></canvas>";
-	// Append it to body:
-	var canvas = $(canvas_tag)[0];
-	div.append(canvas);
-	//$("body").append(canvas);
-	$("#elements").append(button);
+    var div = $("<div id='"+graph_id+"' data-for='"+group_id+"' class='graph_div hidden'></div>");
+
 	$("#elements").append(div);
 	// Create the context and the drawing controller:
-	var context = canvas.getContext("2d");
 
-	// Prep the chart properties and series:
+
+    if ($("#"+group_id)[0] === undefined) {
+        var group_link = $("<a href='#' onclick='show_group("+group_id+")' class=\"list-group-item\" id='"+group_id+"'>" + group + "</a>");
+        $("#sidebar-list").append(group_link);
+    }
+
 	var datasets = [];
 	for (var i in series) {
 		var s = series[i];
 		var new_series = {
-			label: s.Label,
-			backgroundColor: s.Color,
-			borderColor: s.Color,
+			name: s.Label,
+			color: s.Color,
 			fill: false,
-			pointRadius: 0,
-			data: []
 		};
 		datasets.push(new_series);
 	}
 
-	var data = {
-		labels: [],
-		datasets: datasets
-	};
-
-	var options = {
-		responsive: true,
-		maintainAspectRatio: false,
-
-		tooltips: {
-			enabled: false,
-			mode: 'index',
-			intersect: false,
-			position: "nearest"
+	// Create the context and the drawing controller:
+	var chart = Highcharts.chart(graph_id, {
+		plotOptions: {
+			line: {
+				marker: {
+					enabled: false
+				}
+			}
 		},
-		hover: {
-			mode: 'nearest',
-			intersect: true
-		},
-		scales: {
-			xAxes: [{
-				display: true,
-			}],
-			yAxes: [{
-				display: true
-			}]
-		},
-		elements: {
-            line: {
-                tension: 0, // disables bezier curves
-            }
-        },
-		animation: false
-	};
 
-	var chart = new Chart(context, {type: 'line', data: data, options: options});
+		title: {
+			text: title
+		},
 
-	this.render = function(step, data) {
-        chart.data.labels = [];
-		for (let i in chart.data.datasets) {
-            chart.data.datasets[i].data = []
+		legend: {
+			layout: 'vertical',
+			align: 'right',
+			verticalAlign: 'middle'
+		},
+
+		tooltip: {
+			shared: true
+		},
+
+		series: datasets,
+		chart: {
+			animation: false,
+            height: 250,
+			min : 0
+		},
+        credits: {
+			enabled: false
+		},
+
+	});
+
+	this.render = function(force_draw, data) {
+
+	    if (div.hasClass("hidden")) {
+	        chart.was_hidden = true;
+	        return false;
         }
 
-        for (let j in data) {
-			chart.data.labels.push(j);
+		if (data.length < 1) {
+			return false;
 		}
 
-        for (let i in chart.data.datasets) {
-			for (let j in data) {
-				chart.data.datasets[i].data.push(data[j][i])
-			}
-		}
+        if (force_draw || chart.was_hidden || data.length < 5) {
+			for (let j in data[0]) {
+				let _data = [];
+                for (let i = 0; i < data.length; i++) {
+                    _data.push([i, data[i][j]]);
+                }
+                chart.series[j].setData(_data)
+            }
 
-		chart.update();
+        }
+
+        chart.was_hidden = false;
 	};
 
 	this.reset = function() {
-		chart.data.labels = [];
-		for (let i in chart.data.datasets) {
-            chart.data.datasets[i].data = []
-        }
-        chart.update();
 	};
 };

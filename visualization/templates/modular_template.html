@@ -43,29 +43,45 @@
                 Settings
             </a></li>
         </ul>
-        <ul class="nav navbar-nav navbar-right" style="padding-right: 20px">
-            <li id="play-pause"><a href="#">Start</a></li>
-            <li id="step"><a href="#">Step</a></li>
-            <li id="reset"><a href="#">Reset</a></li>
+        <ul class="nav navbar-nav navbar-right navbar" style="padding-right: 20px;">
+            <li style="border-left: thin solid #444;" id="play-pause"><a href="#"><span class="glyphicon glyphicon-stop" style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);"></span></a></li>
+            <li style="border-left: thin solid #555;" id="back"><a href="#"><span class="glyphicon glyphicon-step-backward" style="font-size: 16.5px;text-shadow: 1px 1px 6px #4aF;"></span></a></li>
+            <li style="border-left: thin solid #666;" id="step"><a href="#"><span class="glyphicon glyphicon-step-forward" style="font-size: 16.5px;text-shadow: 1px 1px 6px #4aF;"></span></a></li>
+            <li style="border-left: thin solid #777;" id="reset"><a href="#"><span class="glyphicon glyphicon-repeat" style="font-size: 16.5px;text-shadow: 1px 1px 6px #4aF;"></span></a></li>
         </ul>
     </div>
 </nav>
 
-<div class="container" style="padding-top: 100px">
-    <!--<div class="col-lg-4 col-md-4 col-sm-4 col-xs-3" id="sidebar"></div>-->
+
+<div class="container-fluid">
+  <div class="row row-offcanvas row-offcanvas-right">
+    <div class="col-xs-12 col-sm-10 col-sm-push-2">
+      <button type="button" class="pull-left btn btn-default visible-xs" data-toggle="offcanvas" aria-expanded="false" aria-controls="navbar">
+        <p class="fa fa-navicon">V</p>
+      </button>
+<!--<div class="col-lg-4 col-md-4 col-sm-4 col-xs-3" id="sidebar"></div>-->
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="elements">
-<!--        <p style="font-style: italic">Scrolling in some browsers (Chrome) causes lag. In those cases, use the page scrollbar.</p>-->
-        <div id="elements-topbar" class="container">
-            <div class="input-group input-group-lg">
-                <meta id="fps_max" content="{{ fps_max }}">
-                <meta id="fps_default" content="{{ fps_default }}">
-                <label class="label label-primary" for="fps" style="margin-right: 15px">Frames Per Second</label>
-                <input id="fps" data-slider-id='fps' type="text"/>
-            </div>
+    <div id="elements-topbar" class="container">
+        <div class="input-group input-group-lg">
+            <meta id="fps_max" content="{{ fps_max }}">
+            <meta id="fps_default" content="{{ fps_default }}">
+            <label class="label label-primary" for="fps" style="margin-right: 15px">Frames Per Second</label>
+            <input id="fps" data-slider-id='fps' type="text"/>
         </div>
-        <button style="padding-left: auto; padding-right: auto" class="btn-danger" onclick="toggle_all(this)">Collapse all</button>
     </div>
-</div>
+        <div id="DatasetDescription" data-for="sidebar-hideall" class='graph_div hidden'></div>
+    </div>
+    </div><!--/.col-xs-12.col-sm-9-->
+
+    <div class="col-xs-6 col-sm-2 col-sm-pull-10 sidebar-offcanvas" id="sidebar">
+      <div class="list-group" id="sidebar-list">
+        <a href="#" id="sidebar-hideall" onclick="show_group(this)" class="list-group-item active">Dataset Description</a>
+      </div>
+    </div><!--/.sidebar-offcanvas-->
+  </div><!--/row-->
+</div><!--/.container-->
+
+
 
 <!-- About modal -->
 <div id="about" class="modal fade" tabindex="-1" role="dialog">
@@ -100,7 +116,7 @@
                 <div class="row">
                 <div class="col-lg-8 col-md-8 col-sm-6">
                     <div id="settings_body"></div>
-                    <p>Reset the simulation after changing settings for them to take effect</p>
+                    <p><strong>Reset the simulation after changing settings for them to take effect.</strong></p>
                     <div>&nbsp;</div>
                     <div style="clear: both;"></div>
                 </div>
@@ -121,9 +137,7 @@
 <script src="/static/js/static/bootstrap.min.js"></script>
 <script src="/static/js/static/bootstrap-switch.min.js"></script>
 <script src="/static/js/static/bootstrap-slider.min.js"></script>
-<script src="/static/js/static/moment.min.js"></script>
-<script src="/static/js/static/Chart.min.js"></script>
-<script src="/static/js/ChartTooltip.js"></script>
+<script src="/static/js/static/highstock.js"></script>
 
 <!-- Script includes go here -->
 {% for file_name in package_includes %}

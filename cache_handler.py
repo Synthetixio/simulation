@@ -22,8 +22,12 @@ run_settings = [
     # settings: change the defaults set in settings.ini, per run
     #   - any settings that are not in settings.ini are ignored
     {
-        "name": "Default",
-        "max_steps": 1500,
+        "name": "Balanced",
+        "description": """<p>This dataset runs the simulation with the default model settings,
+        viewable in <i>settings</i>.</p><p>The agent fractions have been selected to be a good balance of what
+        could be expected in a real system. For more information about what the actors represent, read the
+        <i>About</i> section.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 100
@@ -31,8 +35,12 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, low utilisation ratio",
-        "max_steps": 1500,
+        "name": "Low collateralisation ratio, high issuance",
+        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
+        and the nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
+        in relation to the havven price. This scenario requires the havven price to rise extremely quickly
+        in order to allow for enough nomins to be created, if nomin demand is to be met and the price kept at 1.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -44,8 +52,13 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, default utilisation ratio",
-        "max_steps": 1500,
+        "name": "Default collateralisation ratio, high issuance",
+        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
+        and the nomin supply.</p><p>The default collateralisation ratio max (0.25) creates a balanced
+        constraint in the supply of nomins. This situation requires the havven price to rise faster than
+        the nomin demand to allow for enough nomins to be created to keep the price at 1, without
+        flooding the nomin market.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -56,8 +69,12 @@ run_settings = [
         }
     },
     {
-        "name": "High number of bankers, high utilisation ratio",
-        "max_steps": 1500,
+        "name": "High collateralisation ratio, high issuance",
+        "description": """<p>This dataset, highlights how the collateralisation ratio affects volatility
+        and nomin supply.</p><p>The high collateralisation ratio max (0.5)
+        allows for the issuance of a large amount of nomins, which causes the intrinsic value of havvens to skyrocket
+        as the value they can issue is so high. This creates massive oversupply of nomins, crashing the price.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
@@ -69,12 +86,13 @@ run_settings = [
         }
     },
     {
-        "name": "High number of randomizers",
-        "max_steps": 1500,
+        "name": "Many random actors",
+        "description": """<p>This noisy dataset that examines how well the price stays at 1
+        even with many actors behaving irrationally (or arationally).</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
-                "utilisation_ratio_max": 0.5
             },
             "AgentFractions": {
                 "Randomizer": 100
@@ -82,22 +100,28 @@ run_settings = [
         }
     },
     {
-        "name": "One of each market player",
-        "max_steps": 1500,
+        "name": "Minimal",
+        "description": """<p>This dataset contains a single member of each market player
+        type that exists in the system. This highlights how they interact with each other.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 0,
-                "utilisation_ratio_max": 0.5
+            },
+            "Agents": {
+                'agent_minimum': 1
             }
         }
     },
     {
         "name": "Low number of Nomin Shorters",
-        "max_steps": 1500,
+        "description": """<p>This dataset removes a lot of the price control the nomin shorters bring,
+        to see how well the price stays at 1 without the user expectation that the price would be near 1.</p>
+        <p>This will show whether controlling the supply is enough to keep the price stable.</p>""",
+        "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
-                "utilisation_ratio_max": 0.5
             },
             "AgentFractions": {
                 "NominShorter": 0,
@@ -164,7 +188,12 @@ def generate_new_caches(data):
                 step_data.append(element_data)
 
             result.append(step_data)
-        data[item["name"]] = {"data": result, "settings": settings, "max_steps": item["max_steps"]}
+        data[item["name"]] = {
+            "data": result,
+            "settings": settings,
+            "max_steps": item["max_steps"],
+            "description": item["description"]
+        }
     return data
 
 
@@ -197,5 +226,5 @@ if __name__ == "__main__":
         all_cached = True
 
     if not all_cached:
-        _data = generate_new_caches(_data)
+        _data = generate_new_caches({})
         save_data(_data)

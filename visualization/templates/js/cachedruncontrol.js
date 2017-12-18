@@ -15,15 +15,18 @@
  * fps: Current frames per second.
  */
 
-var fps_max = $('#fps_max')[0].content;
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
+    this.draw_delay_period = 5;
     this.tick = 0; // Counts at which tick of the model we are.
     this.done = false;
     this.fps = fps_default; // Frames per second
     this.dataset_info = {};
     this.data = {};
+    this.description = "";
+    this.dataset_name = "";
+    this.dataset_max_steps = 1;
 };
 
 var player; // Variable to store the continuous player
@@ -37,23 +40,8 @@ var backButton = $('#back');
 var stepButton = $('#step');
 var resetButton = $('#reset');
 
-var fpsControl = $('#fps').slider({
-    max: fps_max,
-    min: 1,
-    value: fps_default,
-    ticks: [1, fps_max],
-    ticks_labels: [1, fps_max],
-    ticks_position: [0, 100]
-});
 
-var tickControl = $('#tick').slider({
-    max: 0,
-    min: 0,
-    ticks: [0, 0],
-    ticks_labels: [0, 0],
-    ticks_position: [0, 100],
-    width: '100%'
-});
+var tickControl = $('#tick');
 
 // Sidebar dom access
 var sidebar = $("#settings_body");
@@ -69,10 +57,8 @@ ws.onopen = function() {
     send({"type": "get_datasets"}); // Request model parameters when websocket is ready
     control.ready = false;
     return;
-    // reset();
-    // single_step();
-    // control.tick -= 1; // leave tick at -1 for now
 };
+
 
 // Add model parameters that can be edited prior to a model run
 var initGUI = function() {
@@ -290,8 +276,6 @@ var initGUI = function() {
     $("#settings_body")[0].innerHTML = '';
     $("#agent_settings")[0].innerHTML = '';
 
-        console.log(model_params);
-
     for (var option in model_params) {
         var type = typeof(model_params[option]);
         var param_str = String(option);
@@ -318,11 +302,14 @@ var parseDatasetInfo = function(dataset) {
             data = control.dataset_info[i];
         }
     }
-    console.log(data);
     if (data === undefined) {
         console.warn("Error: dataset doesn't exist");
         return;
     }
+
+    control.description = data['description'];
+    control.dataset_name = data['name'];
+    control.dataset_max_steps = data['max_steps'];
 
     let agent_fractions = data["settings"]["AgentFractions"];
 
@@ -352,7 +339,7 @@ var parseDatasetInfo = function(dataset) {
     };
 
     let ur_param = {
-        name: "Utilisation ratio max",
+        name: "Collateralisation ratio max",
         param_type: 'slider',
         value: data["settings"]["Model"]['utilisation_ratio_max'],
         min_value: 0,
@@ -388,25 +375,13 @@ ws.onmessage = function(message) {
                     control.data[control.dataset].push(dataset);
                 }
             }
-
-            let max = control.data[control.dataset].length - 1;
-            tickControl.slider(
-                'setAttribute', 'max', max
-            ).slider(
-                'setAttribute', 'ticks', [0, max]
-            ).slider(
-                'setAttribute', 'ticks_labels', [0, max]
-            );
-
-            $("#tick")[0].children[4].children[1].innerHTML = max;
-
             break;
 
         case "end":
             // We have reached the end of the model
             control.done = true;
             console.log("Done!");
-            $(playPauseButton.children()[0]).text("Done");
+            $(playPauseButton.children()[0]).html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-stop\"></span>");
             break;
         case "dataset_info":
             control.dataset_info = msg["data"];
@@ -420,13 +395,8 @@ ws.onmessage = function(message) {
                 }));
             }
 
-            control.dataset = "Default";
-            selector.val('Default').trigger('change');
-
-            parseDatasetInfo(control.dataset);
-            initGUI();
-            control.ready = true;
-            reset();
+            control.dataset = "Balanced";
+            selector.val(control.dataset).trigger('change');
             break;
         default:
             // There shouldn't be any other message
@@ -434,11 +404,13 @@ ws.onmessage = function(message) {
     }
 };
 
+
 /**	 Turn an object into a string to send to the server, and send it. v*/
 var send = function(message) {
     msg = JSON.stringify(message);
     ws.send(msg);
 };
+
 
 /** Reset the model, and rest the appropriate local variables. */
 var reset = function($e) {
@@ -452,23 +424,27 @@ var reset = function($e) {
     if (!(control.dataset in control.data)) {
         control.data[control.dataset] = []
     }
-    tickControl.slider('setValue', control.tick);
     control.tick = 0;
     control.last_sent = control.data[control.dataset].length - 1;
     control.done = false;
+    if (control.running) {
+        run();
+    }
     // Reset all the visualizations
     clear_graphs();
     parseDatasetInfo(control.dataset);
     initGUI();
 
     if (!control.running) {
-        $(playPauseButton.children()[0]).text("Start");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-play"></span>');
     } else {
-        $(playPauseButton.children()[0]).text("Stop");
+        $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-pause"></span>');
     }
     single_step();
+    update_graphs(true);
     return false;
 };
+
 
 /** Send a message to the server get the next visualization state. */
 var single_step = function() {
@@ -476,13 +452,12 @@ var single_step = function() {
         control.tick = 0;
     }
     control.tick += 1;
-    tickControl.slider('setValue', control.tick);
-    let fps = parseInt(fpsControl[0].value);
+    let fps = parseInt(control.fps);
     if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
         control.last_sent = control.data[control.dataset].length;
         if (!control.done) send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": fps, "dataset": control.dataset});
     }
-    update_graphs();
+
 };
 
 
@@ -492,7 +467,8 @@ var back = function($e) {
 
     if (!control.running) {
         control.tick -= 2;
-        single_step()
+        single_step();
+        update_graphs(true);
     }
 
     return false;
@@ -505,26 +481,9 @@ var step = function($e) {
 
     if (!control.running && !control.done) {
         single_step();
+        update_graphs(true);
     }
     else if (!control.done) {
-        run();
-    }
-    return false;
-};
-
-
-var changeTick = function($e) {
-    if ($e !== undefined) $e.preventDefault();
-    control.tick = Number(tickControl.val());
-
-    if (control.tick <= 0) {
-        control.tick = 1;
-    }
-
-    if (!control.running || !control.done) {
-        update_graphs();
-    }
-    else if (control.done) {
         run();
     }
     return false;
@@ -542,51 +501,73 @@ var run = function($e) {
             clearInterval(player);
             player = null;
         }
-        anchor.text("Start");
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-play\"></span>");
     }
     else if (!control.done) {
+        if (control.data[control.dataset].length <= 1) {
+            show_group($(".list-group-item")[1]);
+        }
         control.running = true;
-        player = setInterval(single_step, 1000/control.fps);
-        anchor.text("Stop");
+        player = setInterval(
+            function() {
+                if (!control.running) {
+                    return;
+                }
+                single_step();
+                update_graphs(false);
+            }, 1000/control.fps
+        );
+        anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-pause\"></span>");
     }
     return false;
 };
 
-var updateFPS = function($e) {
-    if ($e !== undefined) $e.preventDefault();
-
-    control.fps = Number(fpsControl.val());
-    if (control.running) {
-        // run twice to set interval, and clear it
-        run();
-        run();
-    }
-    return false;
-};
 
 // Initilaize buttons on top bar
 playPauseButton.on('click', run);
 backButton.on('click', back);
 stepButton.on('click', step);
 resetButton.on('click', reset);
-fpsControl.on('change', updateFPS);
-tickControl.on('change', changeTick);
 
-function update_graphs() {
+
+$("#dataset_selector").on('change', function() {
+    parseDatasetInfo(control.dataset);
+    initGUI();
+    control.ready = true;
+    reset();
+    $("#DatasetDescription")[0].innerHTML =
+        "<h4>"+control.dataset_name+":</h4><p>" +
+        control.description + '</p>';
+    show_group($("#sidebar-hideall")[0]);
+});
+
+
+function update_graphs(force_draw) {
+    if (control.tick === 0) {
+        tickControl[0].innerHTML = "Tick: " + (control.tick) + "/" + control.dataset_max_steps;
+    } else {
+        tickControl[0].innerHTML = "Tick: " + (control.tick-1) + "/" + control.dataset_max_steps;
+    }
+
     if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j = 0; j < control.tick; j++) {
+            for (let j = 0; j < control.tick;  j++) {
                 to_render.push(control.data[control.dataset][j][i])
             }
-            // send all data up to current tick to be rendered
-            // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(undefined, to_render);
+
+            // send all data up to current tick to be rendered, force draw when specified/every draw_delay_period
+            if (to_render.length % control.draw_delay_period === 0 || force_draw === true) {
+                elements[i].render(true, to_render);
+            } else {
+                elements[i].render(false, to_render);
+            }
         }
     } else {
         control.tick -= 1;
     }
 }
+
 
 function clear_graphs() {
     // Reset all the visualizations
@@ -595,45 +576,26 @@ function clear_graphs() {
     }
 }
 
-// function to hide graph divs
-// don't bother stopping the data coming in, as the graph should always have
-//   the data ready to show...
-function toggle_graph(div) {
-    let doc = document.documentElement;
-    let top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
 
-    $(div).toggleClass("hidden");
-
-    // scroll so page doesn't shift on toggle
-    $('html, body').animate({
-        scrollTop: top
-    }, 0);
-
-    return false;
-}
-
-function toggle_all(btn) {
-  // if someone manually hides all the graphs, it will still say hide all... oh well
-    if (btn.innerHTML === "Collapse all") {
-        $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden").addClass("hidden");
-        });
-        btn.innerHTML = "Show all";
-    } else {
-        $(".btn-pad").each(function() {
-            $('#'+(this.innerHTML)).removeClass("hidden");
-        });
-        btn.innerHTML = "Collapse all";
-    }
-
+function show_group(group) {
+    $(".list-group-item").removeClass("active");
+    $(group).addClass("active");
+    $(".graph_div").each(function() {
+        if (group === undefined || this.dataset.for !== group.id) {
+            $(this).removeClass("hidden").addClass("hidden");
+        } else {
+            $(this).removeClass("hidden");
+        }
+    });
+    update_graphs(true);
+    window.dispatchEvent(new Event('resize'));
 }
 
 
 if(window.chrome){
     // apply niceScroll only if chrome to avoid freezes from scroll events.
     $(function() {
-        $("body").niceScroll();
+        $("html").niceScroll();
     });
 }
-
 

@@ -262,7 +262,7 @@ class OrderBook:
     @property
     def price(self) -> Dec:
         """
-        Return the rolling average of the price, only calculate it once per tick
+        Return the rolling average of the price, only calculate it once per tick.
         """
         if self.model_manager.time <= self._last_cached_price_time:
             return self._cached_price
@@ -321,7 +321,7 @@ class OrderBook:
         self.time += 1
 
     def step_history(self) -> None:
-        """Add new data points to update"""
+        """Add new data points to update."""
 
         # use old close price as new data for next tick, as all the other values are updated when needed
         self.candle_data.append([self.candle_data[-1][1]] * 4)
@@ -865,7 +865,7 @@ class OrderBook:
             spread = self.spread()
 
     def do_single_match(self) -> TradeRecord:
-        """Match the top bid with the lowest ask for testing step by step"""
+        """Match the top bid with the lowest ask for testing step by step."""
         if len(self.bids) and len(self.asks):
             prev_bid, prev_ask = self.bids[0], self.asks[0]
             trade = self.matcher(prev_bid, prev_ask)

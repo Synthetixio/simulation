@@ -13,12 +13,13 @@ class CandleStickModule(VisualizationElement):
     Display a depth graph for order books to show the quantity
       of buy/sell orders for the given market
     """
-    package_includes: List[str] = ["Chart.Financial.js", "CandleStickModule.js"]
+    package_includes: List[str] = ["CandleStickModule.js"]
     local_includes: List[str] = []
 
     def __init__(
             self, series: List[Dict[str, str]], height: int = 150,
-            width: int = 500, data_collector_name: str = "datacollector", desc: str = "") -> None:
+            width: int = 500, data_collector_name: str = "datacollector",
+            desc: str = "", title: str = "", group: str = "") -> None:
 
         self.series = series
         self.height = height
@@ -27,7 +28,7 @@ class CandleStickModule(VisualizationElement):
         self.data_collector_name = data_collector_name
 
         self.js_code = f"""elements.push(
-            new CandleStickModule("{desc}",
+            new CandleStickModule("{group}", "{title}", "{desc}",
                 "{series[0]['Label']}",{width},{height},
                 "{series[0]['AvgColor']}","{series[0]['VolumeColor']}"
             )

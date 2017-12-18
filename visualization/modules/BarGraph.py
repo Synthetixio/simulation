@@ -16,7 +16,8 @@ class BarGraphModule(VisualizationElement):
     local_includes: List[str] = []
 
     def __init__(self, series: List[Dict[str, str]], height: int = 150,
-                 width: int = 500, data_collector_name: str = "datacollector", desc: str = "") -> None:
+                 width: int = 500, data_collector_name: str = "datacollector",
+                 title: str = "", desc: str = "", group: str = "") -> None:
         self.series = series
         self.height = height
         # currently width does nothing, as it stretches the whole page
@@ -26,7 +27,7 @@ class BarGraphModule(VisualizationElement):
         self.sent_data = False
 
         # the code to be rendered on the page, last bool is whether it will be a stack graph
-        self.js_code: str = f"""elements.push(new BarGraphModule("{desc}",
+        self.js_code: str = f"""elements.push(new BarGraphModule("{group}", "{title}", "{desc}",
             "{series[0]['Label']}",{width},{height}));"""
 
     def render(self, model: HavvenModel) -> List[Tuple[str, float]]:

@@ -1,3 +1,9 @@
+"""
+settingsloader.py
+
+Loads settings from the settings file if it exists, otherwise generates a new
+one with certain defaults.
+"""
 import configparser
 import os.path
 import copy
@@ -13,8 +19,8 @@ def get_defaults():
             # it runs worse with threading, so better to just leave it as false...
             'threaded': False,
             'port': 3000,
-            'fps_max': 6,  # max fps for the model to run at
-            'fps_default': 3,
+            'fps_max': 15,  # max fps for the model to run at
+            'fps_default': 15,
             'max_steps': 1500  # max number of steps to generate up to
         },
         'Model': {
@@ -24,7 +30,7 @@ def get_defaults():
 
             # ignore Agent Fractions, and choose random figures
             'random_agents': False,
-            'utilisation_ratio_max': '0.2',
+            'utilisation_ratio_max': '0.25',
             'continuous_order_matching': True
         },
         'Fees': {
