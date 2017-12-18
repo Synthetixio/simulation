@@ -64,7 +64,6 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
                     title: {
                         text:"Candle Data"
                     },
-                    min : 0
                 },
                 {
                     title: {
