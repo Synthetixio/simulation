@@ -73,7 +73,7 @@ var ChartModule = function(group, title, desc, series, width, height) {
 			return false;
 		}
 
-        if (force_draw || data.length %5 === 0 || chart.was_hidden || data.length < 5) {
+        if (force_draw || chart.was_hidden || data.length < 5) {
 			for (let j in data[0]) {
 				let _data = [];
                 for (let i = 0; i < data.length; i++) {

@@ -52,7 +52,7 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
             chart_setup = true;
         }
 
-        if (chart.was_hidden || force_draw || data.length % 5 === 0) {
+        if (chart.was_hidden || force_draw) {
             if (data.length > 1) {
                 new_data = data[data.length - 1];
             } else {

@@ -19,6 +19,7 @@ var fps_max = $('#fps_max')[0].content;
 var fps_default = $('#fps_default')[0].content;
 
 var MesaVisualizationControl = function() {
+    this.draw_delay_period = 5;
     this.tick = -1; // Counts at which tick of the model we are.
     this.last_sent = -1;
     this.run_number = 0;
@@ -421,16 +422,20 @@ stepButton.on('click', step);
 resetButton.on('click', reset);
 fpsControl.on('change', updateFPS);
 var last_length = -1;
-function update_graphs() {
+function update_graphs(force_draw) {
     if (control.tick < control.data.length) {
         for (var i in elements) {
             let to_render = [];
             for (let j = 0; j < control.tick; j++) {
                 to_render.push(control.data[j][i])
             }
-            // send all data up to current tick to be rendered
-            // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(true, to_render);
+
+            // send all data up to current tick to be rendered, force draw when specified/every draw_delay_period
+            if (to_render.length % control.draw_delay_period === 0 || force_draw === true) {
+                elements[i].render(true, to_render);
+            } else {
+                elements[i].render(false, to_render);
+            }
         }
     } else {
         control.tick -= 1;

@@ -165,7 +165,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
 			return false;
 		}
 
-        if (force_draw || data.length %5 === 0 || chart.was_hidden) {
+        if (force_draw || chart.was_hidden) {
 
             let candle_data = [];
             let line_data = [];

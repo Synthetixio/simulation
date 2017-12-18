@@ -12,7 +12,11 @@ To run the simulation, invoke:
 
 ```python3 run.py```
 
-Or, to open the experiments notebook:
+If it is your first time running the simulation, a settings.ini file will be generated, that will give you control over how the simulation will run.
+The first settings `cached = True` determines whether the data will be pre-generated before spawning a server, or whether the data will be generated in real time.
+More info about the settings and caching can be found in the relevant sections.
+
+To open the experiments notebook:
 
 ```jupyter notebook experiments.ipynb```
 
@@ -22,6 +26,8 @@ To run the tests:
 
 Note: Running pytest through python3 is more consistent (global pytest install, other python versions).
 The -v flag is for verbose, to list every individual test passing.
+
+##
 
 ## Overview
 
@@ -36,8 +42,8 @@ There are three major components to this simulation:
     - [x] central bankers
     - [x] merchants / consumers
     - [x] market makers
-    - [x] day-trading speculators
-    - [ ] buy-and-hold speculators
+    - [x] buy-and-hold speculators
+    - [ ] day-trading speculators
     - [ ] cryptocurrency refugees
     - [ ] attackers
 

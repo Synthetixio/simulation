@@ -554,9 +554,13 @@ function update_graphs(force_draw) {
             for (let j = 0; j < control.tick;  j++) {
                 to_render.push(control.data[control.dataset][j][i])
             }
-            // send all data up to current tick to be rendered
-            // its all local with mutable arrays, so its not that inefficient
-            elements[i].render(force_draw, to_render);
+
+            // send all data up to current tick to be rendered, force draw when specified/every draw_delay_period
+            if (to_render.length % control.draw_delay_period === 0 || force_draw === true) {
+                elements[i].render(true, to_render);
+            } else {
+                elements[i].render(false, to_render);
+            }
         }
     } else {
         control.tick -= 1;
