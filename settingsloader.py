@@ -1,3 +1,9 @@
+"""
+settingsloader.py
+
+Loads settings from the settings file if it exists, otherwise generates a new
+one with certain defaults.
+"""
 import configparser
 import os.path
 import copy
