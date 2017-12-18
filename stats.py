@@ -5,13 +5,27 @@ from statistics import mean, stdev
 from mesa.datacollection import DataCollector
 
 import model
+import agents
+
+
+def _profit_excluded(agent: "agents.MarketPlayer") -> bool:
+    """
+    True iff the agent's profit should be is excluded
+    from the average profit computation.
+    """
+    return isinstance(agent, agents.Merchant) or \
+           isinstance(agent, agents.Buyer)
 
 
 def mean_profit_fraction(havven_model: "model.HavvenModel") -> float:
-    """Return the average fraction of profit being made by market participants."""
+    """
+    Return the average fraction of profit being made by market participants,
+    excluding Merchants and Buyers.
+    """
     if len(havven_model.schedule.agents) == 0:
         return 0
-    return mean(float(a.profit_fraction()) for a in havven_model.schedule.agents)
+    return mean(float(a.profit_fraction()) for a in havven_model.schedule.agents \
+                if not _profit_excluded(a))
 
 
 def mean_banker_profit_fraction(havven_model: "model.HavvenModel") -> float:
