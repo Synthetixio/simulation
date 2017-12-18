@@ -30,7 +30,6 @@ def get_vis_elements() -> List[VisualizationElement]:
                 {"Label": "NaiveSpec Profit %", "Color": "fuchsia"},
                 {"Label": "HavvenSpec Profit %", "Color": "purple"},
                 {"Label": "MarketMaker Profit %", "Color": "teal"},
-                {"Label": "0", "Color": ref_colour}
             ],
             desc="Each market player group's profit as a percentage of initial wealth.",
             title="Profitability per Strategy",
@@ -153,7 +152,6 @@ def get_vis_elements() -> List[VisualizationElement]:
 
         ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
-            {"Label": "0", "Color": ref_colour}
         ],
             desc="The amount of fees collected by the system, that haven't yet been distributed.",
             title="Collected Fees",
@@ -162,7 +160,6 @@ def get_vis_elements() -> List[VisualizationElement]:
 
         ChartModule([
             {"Label": "Fees Distributed", "Color": "blue"},
-            {"Label": "0", "Color": ref_colour}
         ],
             desc="Total amount of fees that have been distributed by the system.",
             title="Distributed Fees",
