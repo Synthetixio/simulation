@@ -181,7 +181,7 @@ def generate_new_caches(data):
             havven_model.step()
             step_data = []
             for element in vis_elements:
-                if i == 0:
+                if _ == 0:
                     if hasattr(element, "sent_data"):
                         element.sent_data = False
                         element_data = element.render(havven_model)
@@ -203,7 +203,7 @@ def generate_new_caches(data):
 
 def load_saved():
     try:
-        with open("cache_data.txt", 'rb') as f:
+        with open("./util/cache_data.txt", 'rb') as f:
             print("Loading from cache_data.txt...")
             data = pickle.load(f)
     except IOError:
@@ -215,7 +215,7 @@ def load_saved():
 
 def save_data(data):
     """overwrite existing cache file with the presented data"""
-    with open("cache_data.txt", "wb") as f:
+    with open("./util/cache_data.txt", "wb") as f:
         pickle.dump(data, f)
     print("Caches saved to cache_data.txt")
 
