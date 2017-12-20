@@ -10,7 +10,7 @@ import agents as ag
 from managers import (HavvenManager, MarketManager,
                       FeeManager, Mint,
                       AgentManager)
-from util import stats
+from core import stats
 
 
 class HavvenModel(Model):

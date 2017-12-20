@@ -14,7 +14,7 @@ import pickle
 import tqdm
 
 import model
-from util import settingsloader
+from core import settingsloader
 
 run_settings = [
     # settings for each individual run to create a cache for.
@@ -145,7 +145,7 @@ def generate_new_caches(data):
     store the result in the format:
       data["name"] = {"data": result, "settings": settings, "max_steps": max_steps}
     """
-    from util.server import get_vis_elements
+    from core.server import get_vis_elements
 
     for n, item in enumerate(run_settings):
         if item["name"] in data and len(data[item['name']]['data']) == item['max_steps']:

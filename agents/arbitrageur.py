@@ -2,7 +2,7 @@ from decimal import Decimal as Dec
 from typing import Dict
 
 from managers import HavvenManager as hm
-from util.orderbook import OrderBook
+from core.orderbook import OrderBook
 from .marketplayer import MarketPlayer
 
 

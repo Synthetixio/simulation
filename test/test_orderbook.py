@@ -5,7 +5,7 @@ import pytest
 import agents as ag
 import model
 from managers.havvenmanager import HavvenManager as hm
-from util import settingsloader
+from core import settingsloader
 
 UID = 0
 """UID is a global id for all agents being added in the tests"""

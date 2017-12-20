@@ -2,7 +2,7 @@ from decimal import Decimal as Dec
 from typing import Optional, Callable
 
 import agents as ag
-from util import orderbook as ob
+from core import orderbook as ob
 from .feemanager import FeeManager
 from .havvenmanager import HavvenManager
 
