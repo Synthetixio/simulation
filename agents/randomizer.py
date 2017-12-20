@@ -4,8 +4,8 @@ from decimal import Decimal as Dec
 
 import model
 from managers import HavvenManager as hm
+from util import orderbook as ob
 from .marketplayer import MarketPlayer
-import orderbook as ob
 
 
 class Randomizer(MarketPlayer):

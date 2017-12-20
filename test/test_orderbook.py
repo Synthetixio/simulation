@@ -1,10 +1,11 @@
-import pytest
-import model
-import orderbook
 from decimal import Decimal as Dec
+
+import pytest
+
 import agents as ag
+import model
 from managers.havvenmanager import HavvenManager as hm
-import settingsloader
+from util import settingsloader
 
 UID = 0
 """UID is a global id for all agents being added in the tests"""

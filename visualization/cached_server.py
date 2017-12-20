@@ -1,15 +1,16 @@
+import copy
 import os
+import threading
+import time
+
 import tornado.autoreload
+import tornado.escape
+import tornado.gen
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-import tornado.escape
-import tornado.gen
-import threading
-import time
-import copy
 
-import cache_handler
+from util import cache_handler
 
 
 class CachedPageHandler(tornado.web.RequestHandler):

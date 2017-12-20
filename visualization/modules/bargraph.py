@@ -3,7 +3,7 @@
 from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
-from visualization.VisualizationElement import VisualizationElement
+from visualization.visualization_element import VisualizationElement
 
 from model import HavvenModel
 

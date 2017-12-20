@@ -3,11 +3,12 @@ http://www.eecs.harvard.edu/cs286r/courses/fall12/papers/OPRS10.pdf
 http://www.cs.cmu.edu/~aothman/
 """
 
-from agents import MarketPlayer
+import random
 from decimal import Decimal as Dec
 from typing import Dict, Any, Optional
-import orderbook as ob
-import random
+
+from agents import MarketPlayer
+from util import orderbook as ob
 
 
 class MarketMaker(MarketPlayer):

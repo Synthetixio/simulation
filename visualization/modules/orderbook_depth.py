@@ -1,11 +1,11 @@
-from typing import List, Tuple, Dict
 from decimal import Decimal as Dec
+from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
-from visualization.VisualizationElement import VisualizationElement
 
 from model import HavvenModel
-import orderbook as ob
+from util import orderbook as ob
+from visualization.visualization_element import VisualizationElement
 
 
 class OrderBookModule(VisualizationElement):

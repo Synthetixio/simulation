@@ -1,19 +1,18 @@
 """server.py: Functions for setting up the simulation/visualisation server."""
 
 from typing import List
+
 import tornado.web
 
+import agents
+import model
+from util import settingsloader
+from visualization.cached_server import CachedModularServer
 from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule, \
     CurrentOrderModule, CandleStickModule, PastOrdersModule
-
-from visualization.UserParam import UserSettableParameter
-from visualization.ModularVisualization import ModularServer
-from visualization.VisualizationElement import VisualizationElement
-from visualization.CachedServer import CachedModularServer
-
-import settingsloader
-import model
-import agents
+from visualization.realtime_server import ModularServer
+from visualization.userparam import UserSettableParameter
+from visualization.visualization_element import VisualizationElement
 
 
 def get_vis_elements() -> List[VisualizationElement]:

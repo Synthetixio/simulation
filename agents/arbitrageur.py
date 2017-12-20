@@ -1,10 +1,10 @@
-from typing import Dict
 from decimal import Decimal as Dec
-
-from .marketplayer import MarketPlayer
+from typing import Dict
 
 from managers import HavvenManager as hm
-from orderbook import OrderBook
+from util.orderbook import OrderBook
+from .marketplayer import MarketPlayer
+
 
 # TODO: consider if arbitrageurs should balance out their currency fractions periodically.
 

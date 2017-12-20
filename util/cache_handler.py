@@ -9,10 +9,12 @@ these cached runs, without using large amounts of server resources by
 generating new data per user.
 """
 
-import settingsloader
-import model
 import pickle
+
 import tqdm
+
+import model
+from util import settingsloader
 
 run_settings = [
     # settings for each individual run to create a cache for.
@@ -143,7 +145,7 @@ def generate_new_caches(data):
     store the result in the format:
       data["name"] = {"data": result, "settings": settings, "max_steps": max_steps}
     """
-    from server import get_vis_elements
+    from util.server import get_vis_elements
 
     for n, item in enumerate(run_settings):
         if item["name"] in data and len(data[item['name']]['data']) == item['max_steps']:

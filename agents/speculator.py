@@ -1,10 +1,9 @@
 import random
-
-from typing import Tuple, Optional, Callable
 from decimal import Decimal as Dec
+from typing import Tuple, Optional, Callable
 
 from agents import MarketPlayer
-import orderbook as ob
+from util import orderbook as ob
 
 
 class Speculator(MarketPlayer):

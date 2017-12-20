@@ -7,7 +7,7 @@ Module for drawing live-updating line charts using Charts.js
 
 """
 import json
-from visualization.VisualizationElement import VisualizationElement
+from visualization.visualization_element import VisualizationElement
 
 
 class ChartModule(VisualizationElement):

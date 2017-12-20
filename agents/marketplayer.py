@@ -1,12 +1,12 @@
-from typing import List, Tuple, Optional
 from collections import namedtuple
 from decimal import Decimal as Dec
+from typing import List, Tuple, Optional
 
 from mesa import Agent
 
 import model
-import orderbook as ob
 from managers import HavvenManager as hm
+from util import orderbook as ob
 
 Portfolio = namedtuple(
     "Portfolio", ["fiat", "escrowed_havvens", "havvens", "nomins", "issued_nomins"])
