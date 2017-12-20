@@ -154,8 +154,8 @@ def generate_new_caches(data):
         settings = settingsloader.get_defaults()
 
         for section in item["settings"]:
-            for i in item['settings'][section]:
-                settings[section][i] = item["settings"][section][i]
+            for setting in item['settings'][section]:
+                settings[section][setting] = item["settings"][section][setting]
 
         model_settings = settings['Model']
         model_settings['agent_fractions'] = settings['AgentFractions']
@@ -168,12 +168,14 @@ def generate_new_caches(data):
         )
         vis_elements = get_vis_elements()
 
-        for i in tqdm.tqdm(range(item["max_steps"])):
-            # # The following is for running the loop without tqdm
-            # # as when profiling the model tqdm shows up as ~17% runtime
-            # if not i % 100:
-            #     print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +
-            #           f"] {i}/{item['max_steps']}")
+        # # The following is for running the loop without tqdm
+        # # as when profiling the model tqdm shows up as ~17% runtime
+        # for i in range(item["max_steps"]):
+        #     if not i % 100:
+        #         print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +
+        #               f"] {i}/{item['max_steps']}")
+
+        for _ in tqdm.tqdm(range(item["max_steps"])):
             havven_model.step()
             step_data = []
             for element in vis_elements:
@@ -218,6 +220,7 @@ def save_data(data):
 
 if __name__ == "__main__":
     _data = load_saved()
+    _data = {}
     all_cached = False
     for i in run_settings:
         if i['name'] not in _data:

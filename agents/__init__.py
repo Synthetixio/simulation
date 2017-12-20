@@ -22,3 +22,6 @@ player_names = {
     'Buyer': Buyer,
     'MarketMaker': MarketMaker
 }
+
+# exclude players when showing profit %
+players_to_exclude = ["Merchant", "Buyer"]

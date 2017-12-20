@@ -13,24 +13,25 @@ from visualization.CachedServer import CachedModularServer
 
 import settingsloader
 import model
+import agents
 
 
 def get_vis_elements() -> List[VisualizationElement]:
     ref_colour = "lightgrey"
 
+    profit_colors = ["blue", "red", "green", "orchid", "darkorchid", "fuchsia", "purple",
+              "teal", "darkorange", "darkkaki", "darkgoldenrod", "slategrey", "seagreen"]
+
+    profit_percentage_lines = [
+        {"Label": "Avg Profit %", "Color": "grey"},
+    ]
+
+    for n, name in enumerate([i for i in agents.player_names if i not in agents.players_to_exclude]):
+        profit_percentage_lines.append({"Label": name, "Color": profit_colors[n]})
+
     return [
         ChartModule(
-            [
-                {"Label": "Avg Profit %", "Color": "grey"},
-                {"Label": "Bank Profit %", "Color": "blue"},
-                {"Label": "Arb Profit %", "Color": "red"},
-                {"Label": "Rand Profit %", "Color": "green"},
-                {"Label": "NomShort Profit %", "Color": "orchid"},
-                {"Label": "EscrowNomShort Profit %", "Color": "darkorchid"},
-                {"Label": "NaiveSpec Profit %", "Color": "fuchsia"},
-                {"Label": "HavvenSpec Profit %", "Color": "purple"},
-                {"Label": "MarketMaker Profit %", "Color": "teal"},
-            ],
+            profit_percentage_lines,
             desc="Each market player group's profit as a percentage of initial wealth.",
             title="Profitability per Strategy",
             group="Player Aggregate Stats"
