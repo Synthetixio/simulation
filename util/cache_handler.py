@@ -177,11 +177,11 @@ def generate_new_caches(data):
         #         print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +
         #               f"] {i}/{item['max_steps']}")
 
-        for _ in tqdm.tqdm(range(item["max_steps"])):
+        for i in tqdm.tqdm(range(item["max_steps"])):
             havven_model.step()
             step_data = []
             for element in vis_elements:
-                if _ == 0:
+                if i == 0:
                     if hasattr(element, "sent_data"):
                         element.sent_data = False
                         element_data = element.render(havven_model)
@@ -203,8 +203,8 @@ def generate_new_caches(data):
 
 def load_saved():
     try:
-        with open("./util/cache_data.txt", 'rb') as f:
-            print("Loading from cache_data.txt...")
+        with open("./cache_data.pkl", 'rb') as f:
+            print("Loading from cache_data.pkl...")
             data = pickle.load(f)
     except IOError:
         data = {}
@@ -215,9 +215,9 @@ def load_saved():
 
 def save_data(data):
     """overwrite existing cache file with the presented data"""
-    with open("./util/cache_data.txt", "wb") as f:
+    with open("./cache_data.pkl", "wb") as f:
         pickle.dump(data, f)
-    print("Caches saved to cache_data.txt")
+    print("Caches saved to cache_data.pkl")
 
 
 if __name__ == "__main__":
