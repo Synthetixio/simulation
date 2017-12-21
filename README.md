@@ -60,6 +60,7 @@ There are three major components to this simulation:
 It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the following files and folders:
 
 * `run.py` - the main entry point for the program
+* `reset.py` - script to clear and reset settings to default, and regenerate cache
 * `server.py` - the simulation and visualisation server are instantiated here
 * `model.py` - the actual ABM of Havven itself
 * `core/orderbook.py` - an order book class for constructing markets between the three main currencies
