@@ -1,12 +1,11 @@
 """stats.py: Functions for extracting aggregate information from the Havven model."""
 
 from statistics import stdev
+from typing import List, Any
 
 from mesa.datacollection import DataCollector
 
-import model
 import agents
-from typing import List, Any
 
 
 def mean(values: List[Any]):

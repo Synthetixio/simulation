@@ -1,7 +1,6 @@
-import pytest
 from decimal import Decimal as Dec
 
-import model
+from core import model
 
 
 def test_fiat_value():

@@ -3,9 +3,9 @@
 from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
-from visualization.visualization_element import VisualizationElement
 
-from model import HavvenModel
+from core.model import HavvenModel
+from visualization.visualization_element import VisualizationElement
 
 
 class BarGraphModule(VisualizationElement):

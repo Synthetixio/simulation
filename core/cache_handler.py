@@ -13,8 +13,9 @@ import pickle
 
 import tqdm
 
-import model
+from core import model
 from core import settingsloader
+
 
 run_settings = [
     # settings for each individual run to create a cache for.
@@ -218,18 +219,3 @@ def save_data(data):
     with open("./cache_data.pkl", "wb") as f:
         pickle.dump(data, f)
     print("Caches saved to cache_data.pkl")
-
-
-if __name__ == "__main__":
-    _data = load_saved()
-    _data = {}
-    all_cached = False
-    for i in run_settings:
-        if i['name'] not in _data:
-            break
-    else:
-        all_cached = True
-
-    if not all_cached:
-        _data = generate_new_caches({})
-        save_data(_data)

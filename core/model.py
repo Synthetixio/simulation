@@ -8,8 +8,8 @@ from mesa.time import RandomActivation
 
 import agents as ag
 from managers import (HavvenManager, MarketManager,
-                      FeeManager, Mint,
-                      AgentManager)
+                  FeeManager, Mint,
+                  AgentManager)
 from core import stats
 
 

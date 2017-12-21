@@ -2,9 +2,8 @@
 import random
 from decimal import Decimal as Dec
 
-import model
-from managers import HavvenManager as hm
 from core import orderbook as ob
+from managers import HavvenManager as hm
 from .marketplayer import MarketPlayer
 
 

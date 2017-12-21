@@ -4,9 +4,8 @@ from typing import List, Tuple, Optional
 
 from mesa import Agent
 
-import model
-from managers import HavvenManager as hm
 from core import orderbook as ob
+from managers import HavvenManager as hm
 
 Portfolio = namedtuple(
     "Portfolio", ["fiat", "escrowed_havvens", "havvens", "nomins", "issued_nomins"])
