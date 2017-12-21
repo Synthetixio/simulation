@@ -3,8 +3,8 @@ from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
 
-from model import HavvenModel
-from util import orderbook as ob
+from core import orderbook as ob
+from core.model import HavvenModel
 from visualization.visualization_element import VisualizationElement
 
 

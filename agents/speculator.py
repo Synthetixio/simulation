@@ -3,7 +3,7 @@ from decimal import Decimal as Dec
 from typing import Tuple, Optional, Callable
 
 from agents import MarketPlayer
-from util import orderbook as ob
+from core import orderbook as ob
 
 
 class Speculator(MarketPlayer):

@@ -61,11 +61,11 @@ It runs on [Mesa](https://github.com/projectmesa/mesa), and includes the followi
 
 * `run.py` - the main entry point for the program
 * `server.py` - the simulation and visualisation server are instantiated here
-* `orderbook.py` - an order book class for constructing markets between the three main currencies
 * `model.py` - the actual ABM of Havven itself
-* `stats.py` - statistical functions for examining interesting economic properties of the Havven model
-* `settingsloader.py` - loads and generates settings files
-* `cache_handler.py` - cached datasets are generated and loaded by this module
+* `core/orderbook.py` - an order book class for constructing markets between the three main currencies
+* `core/stats.py` - statistical functions for examining interesting economic properties of the Havven model
+* `core/settingsloader.py` - loads and generates settings files
+* `core/cache_handler.py` - cached datasets are generated and loaded by this module
 * `managers/` - helper classes for managing the Havven model's various parts
 * `agents/` - economic actors who will interact with the model and the order book
 * `test/` - the test suite

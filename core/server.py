@@ -5,8 +5,7 @@ from typing import List
 import tornado.web
 
 import agents
-import model
-from util import settingsloader
+from core import settingsloader, model
 from visualization.cached_server import CachedModularServer
 from visualization.modules import ChartModule, OrderBookModule, WealthModule, PortfolioModule, \
     CurrentOrderModule, CandleStickModule, PastOrdersModule

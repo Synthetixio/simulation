@@ -31,7 +31,7 @@ def get_defaults():
             # ignore Agent Fractions, and choose random figures
             'random_agents': False,
             'utilisation_ratio_max': '0.25',
-            'continuous_order_matching': True
+            'continuous_order_matching': True,
         },
         'Fees': {
             'fee_period': 50,
@@ -135,7 +135,3 @@ Using default value of: {settings[section][item]}
         settings['AgentFractions'][i] = settings['AgentFractions'][i]/total
 
     return settings
-
-
-if __name__ == "__main__":
-    load_settings()

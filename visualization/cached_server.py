@@ -10,7 +10,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 
-from util import cache_handler
+from core import cache_handler
 
 
 class CachedPageHandler(tornado.web.RequestHandler):
