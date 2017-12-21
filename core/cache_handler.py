@@ -9,10 +9,13 @@ these cached runs, without using large amounts of server resources by
 generating new data per user.
 """
 
-import settingsloader
-import model
 import pickle
+
 import tqdm
+
+from core import model
+from core import settingsloader
+
 
 run_settings = [
     # settings for each individual run to create a cache for.
@@ -143,7 +146,7 @@ def generate_new_caches(data):
     store the result in the format:
       data["name"] = {"data": result, "settings": settings, "max_steps": max_steps}
     """
-    from server import get_vis_elements
+    from core.server import get_vis_elements
 
     for n, item in enumerate(run_settings):
         if item["name"] in data and len(data[item['name']]['data']) == item['max_steps']:
@@ -175,7 +178,7 @@ def generate_new_caches(data):
         #         print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +
         #               f"] {i}/{item['max_steps']}")
 
-        for _ in tqdm.tqdm(range(item["max_steps"])):
+        for i in tqdm.tqdm(range(item["max_steps"])):
             havven_model.step()
             step_data = []
             for element in vis_elements:
@@ -201,8 +204,8 @@ def generate_new_caches(data):
 
 def load_saved():
     try:
-        with open("cache_data.txt", 'rb') as f:
-            print("Loading from cache_data.txt...")
+        with open("./cache_data.pkl", 'rb') as f:
+            print("Loading from cache_data.pkl...")
             data = pickle.load(f)
     except IOError:
         data = {}
@@ -213,21 +216,6 @@ def load_saved():
 
 def save_data(data):
     """overwrite existing cache file with the presented data"""
-    with open("cache_data.txt", "wb") as f:
+    with open("./cache_data.pkl", "wb") as f:
         pickle.dump(data, f)
-    print("Caches saved to cache_data.txt")
-
-
-if __name__ == "__main__":
-    _data = load_saved()
-    _data = {}
-    all_cached = False
-    for i in run_settings:
-        if i['name'] not in _data:
-            break
-    else:
-        all_cached = True
-
-    if not all_cached:
-        _data = generate_new_caches({})
-        save_data(_data)
+    print("Caches saved to cache_data.pkl")

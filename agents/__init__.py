@@ -4,9 +4,9 @@ from .banker import Banker
 from .randomizer import Randomizer
 from .centralbank import CentralBank
 from .speculator import HavvenSpeculator, NaiveSpeculator
-from .nomin_shorter import NominShorter, HavvenEscrowNominShorter
+from .nominshorter import NominShorter, HavvenEscrowNominShorter
 from .merchant import Merchant, Buyer
-from .market_maker import MarketMaker
+from .marketmaker import MarketMaker
 
 # player names for the UI sliders
 player_names = {

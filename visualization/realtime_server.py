@@ -97,19 +97,19 @@ Client -> Server:
     }
 
 """
+import copy
 import os
+import threading
+import time
+
 import tornado.autoreload
+import tornado.escape
+import tornado.gen
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-import tornado.escape
-import tornado.gen
-import threading
-import time
-import copy
 
-from visualization.UserParam import UserSettableParameter
-import cache_handler
+from visualization.userparam import UserSettableParameter
 
 
 class PageHandler(tornado.web.RequestHandler):

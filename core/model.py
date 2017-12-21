@@ -1,16 +1,16 @@
 """model.py: The Havven model itself lives here."""
 
-from typing import Dict, Any
 from decimal import Decimal as Dec
+from typing import Dict, Any
 
 from mesa import Model
 from mesa.time import RandomActivation
 
-import stats
 import agents as ag
 from managers import (HavvenManager, MarketManager,
-                      FeeManager, Mint,
-                      AgentManager)
+                  FeeManager, Mint,
+                  AgentManager)
+from core import stats
 
 
 class HavvenModel(Model):
@@ -79,7 +79,7 @@ class HavvenModel(Model):
         return self.market_manager.havvens_to_fiat(havvens) + \
             self.market_manager.nomins_to_fiat(nomins) + fiat
 
-    def endow_havvens(self, agent: ag.MarketPlayer, havvens: Dec) -> None:
+    def endow_havvens(self, agent: "ag.MarketPlayer", havvens: Dec) -> None:
         """Grant an agent an endowment of havvens."""
         if havvens > 0:
             value = min(self.manager.havvens, havvens)

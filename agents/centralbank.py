@@ -1,10 +1,8 @@
-from typing import Optional
 from decimal import Decimal as Dec
+from typing import Optional
 
-from .marketplayer import MarketPlayer
-
-import model
 from managers import HavvenManager as hm
+from .marketplayer import MarketPlayer
 
 
 class CentralBank(MarketPlayer):

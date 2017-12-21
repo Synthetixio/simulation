@@ -1,10 +1,7 @@
-from typing import Dict, List
 from decimal import Decimal as Dec
+from typing import Dict, List
 
 import agents as ag
-
-from .havvenmanager import HavvenManager
-import model
 
 
 class AgentManager:

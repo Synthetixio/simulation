@@ -4,11 +4,10 @@ from typing import List, Tuple, Dict
 
 from mesa.datacollection import DataCollector
 
-from model import HavvenModel
+from core.model import HavvenModel
+from core.orderbook import Bid, Ask
+from .bargraph import BarGraphModule
 
-from .BarGraph import BarGraphModule
-
-from orderbook import Bid, Ask
 
 # TODO: make leaving out the last guy optional.
 

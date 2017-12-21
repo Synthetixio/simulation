@@ -2,10 +2,9 @@
 import random
 from decimal import Decimal as Dec
 
-import model
+from core import orderbook as ob
 from managers import HavvenManager as hm
 from .marketplayer import MarketPlayer
-import orderbook as ob
 
 
 class Randomizer(MarketPlayer):

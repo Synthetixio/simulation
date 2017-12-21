@@ -6,7 +6,7 @@ Text Module
 Module for drawing live-updating text.
 
 """
-from visualization.VisualizationElement import VisualizationElement
+from visualization.visualization_element import VisualizationElement
 
 
 class TextElement(VisualizationElement):

@@ -1,11 +1,10 @@
-from typing import List, Tuple, Optional
 from collections import namedtuple
 from decimal import Decimal as Dec
+from typing import List, Tuple, Optional
 
 from mesa import Agent
 
-import model
-import orderbook as ob
+from core import orderbook as ob
 from managers import HavvenManager as hm
 
 Portfolio = namedtuple(
