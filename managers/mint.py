@@ -1,4 +1,5 @@
 from decimal import Decimal as Dec
+from typing import Dict, Any
 
 import agents
 
@@ -12,9 +13,14 @@ class Mint:
     """
 
     def __init__(self, havven_manager: HavvenManager,
-                 market_manager: MarketManager) -> None:
+                 market_manager: MarketManager, mint_settings: Dict[str, Any]) -> None:
         self.havven_manager = havven_manager
         self.market_manager = market_manager
+        self.copt_sensitivity_parameter: Dec = mint_settings['copt_sensitivity_parameter']
+        self.copt_flattening_parameter: int = mint_settings['copt_flattening_parameter']
+        if self.copt_flattening_parameter < 1 or self.copt_flattening_parameter % 2 == 0:
+            raise Exception("Invalid flattening parameter, must be an odd number >= 1.")
+        self.copt_buffer_parameter: Dec = mint_settings['copt_buffer_parameter']
 
     def escrow_havvens(self, agent: "agents.MarketPlayer",
                       value: Dec) -> bool:

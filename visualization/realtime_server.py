@@ -304,7 +304,8 @@ class ModelHandler:
         self.model = self.model_cls(model_params,
                                     self.model_settings['Fees'],
                                     self.model_settings['Agents'],
-                                    self.model_settings['Havven']
+                                    self.model_settings['Havven'],
+                                    self.model_settings['Mint']
                                     )
         # clear the data queue
         with self.data_lock:

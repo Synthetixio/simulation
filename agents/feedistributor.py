@@ -35,7 +35,6 @@ class HavvenNominDumper(marketplayer):
             if item.trade is None:
                 pass
 
-
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
         """
         Notify this agent that its order was cancelled.

@@ -14,10 +14,8 @@ class HavvenManager:
     The decimal context precision should be significantly higher than this.
     """
 
-    def __init__(self, utilisation_ratio_max: Dec,
-                 continuous_order_matching: bool, havven_settings: Dict[str, Any]) -> None:
+    def __init__(self, continuous_order_matching: bool, havven_settings: Dict[str, Any]) -> None:
         """
-        :param utilisation_ratio_max:
         :param continuous_order_matching:
         :param havven_settings:
          - havven_supply: the total amount of havvens in the system
@@ -33,7 +31,7 @@ class HavvenManager:
         self.time: int = 0
 
         # Utilisation Ratio maximum (between 0 and 1)
-        self.utilisation_ratio_max: Dec = utilisation_ratio_max
+        self.utilisation_ratio_max: Dec = Dec(0.2)  # TODO: remove this
 
         # If true, match orders whenever an order is posted,
         #   otherwise do so at the end of each period

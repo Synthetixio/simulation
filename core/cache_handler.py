@@ -167,7 +167,8 @@ def generate_new_caches(data):
             model_settings,
             settings['Fees'],
             settings['Agents'],
-            settings['Havven']
+            settings['Havven'],
+            settings['Mint']
         )
         vis_elements = get_vis_elements()
 

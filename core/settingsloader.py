@@ -11,8 +11,9 @@ import copy
 
 def get_defaults():
     settings = {
+        # settings for the server/client side
         'Server': {
-            # TODO: whether to used cached results or not
+            # Whether to used cached results or not
             'cached': True,
 
             # whether to run the model in a separate thread for each socket connection
@@ -23,6 +24,7 @@ def get_defaults():
             'fps_default': 15,
             'max_steps': 1500  # max number of steps to generate up to
         },
+        # settings concerning the model setup
         'Model': {
             'num_agents_max': 175,
             'num_agents_min': 20,
@@ -30,23 +32,33 @@ def get_defaults():
 
             # ignore Agent Fractions, and choose random figures
             'random_agents': False,
-            'utilisation_ratio_max': '0.25',
             'continuous_order_matching': True,
         },
+        # settings for everything fee related
         'Fees': {
             'fee_period': 50,
-            'stable_nomin_fee_level': '0.005',
-            'stable_havven_fee_level': '0.005',
-            'stable_fiat_fee_level': '0.005',
-            'stable_nomin_issuance_fee': '0',
-            'stable_nomin_redemption_fee': '0'
+            'stable_nomin_fee_level': '0.005',  # 0 <= percentage < 1
+            'stable_havven_fee_level': '0.005',  # 0 <= percentage < 1
+            'stable_fiat_fee_level': '0.005',  # 0 <= percentage < 1
+            'stable_nomin_issuance_fee': '0',  # 0 <= percentage < 1
+            'stable_nomin_redemption_fee': '0'  # 0 <= percentage < 1
+        },
+        # settings for escrow, issuance, destruction, freeing of havvens/nomins
+        'Mint': {
+            # optimal collateralization parameters
+            'copt_sensitivity_parameter': 1.0,  # strictly > 0
+            'copt_flattening_parameter': 1,  # integer >= 1; i%2 == 1
+            # cmax = copt * buffer_parameter
+            'copt_buffer_parameter': 1.1  # strictly > 1
         },
         'Agents': {
-            'agent_minimum': 1,
+            'agent_minimum': 1,  # >= 0
+            # multiplier for all agents to work with bigger numbers, rather than fractions
             'wealth_parameter': 1000
         },
+        # settings for the breakdown of how many of each agent exists in the model
         'AgentFractions': {
-            # these are normalised to total 1 later
+            # these are normalised to a total of 1 later
             'Arbitrageur': 3,
             'Banker': 25,
             'Randomizer': 15,
@@ -59,22 +71,32 @@ def get_defaults():
             'MarketMaker': 20
         },
         'Havven': {
-            'havven_supply': '1000000000',
+            'havven_supply': '1000000000',  # static supply of havvens throughout the system
             'nomin_supply': '0',
             'rolling_avg_time_window': 7,
-            'use_volume_weighted_avg': True
+            'use_volume_weighted_avg': True,
         },
         'AgentDescriptions': {
             "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
-            "Banker": "The banker acquires as many Havvens as they can and issues nomins to buy more",
-            "Randomizer": "The randomizer places random bids and asks on all markets close to the market price",
-            "NominShorter": "The nomin shorter sells nomins when the price is high and buys when they are low",
-            "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave the same as the nomin shorters, but aquire nomins through escrowing havvens",
-            "HavvenSpeculator": "The havven speculator buys havvens hoping the price will appreciate after some period.",
-            "NaiveSpeculator": "The naive speculator behaves similarly to the havven speculators, but does so on all the markets",
-            "Merchant": "The merchant provides goods for Buyers, selling them for nomins. They sell the nomins back into fiat",
-            "Buyer": "The buyers bring fiat into the system systematically, trading it for nomins, to buy goods from the merchant",
-            "MarketMaker": "The market maker creates liquidity on some market in what they hope to be a profitable manner"
+            "Banker": "The banker acquires as many Havvens as they can and issues nomins" +
+                      " to buy more",
+            "Randomizer": "The randomizer places random bids and asks on all markets" +
+                          " close to the market price",
+            "NominShorter": "The nomin shorter sells nomins when the price is high" +
+                            " and buys when they are low",
+            "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave" +
+                                        " the same as the nomin shorters, but aquire" +
+                                        " nomins through escrowing havvens",
+            "HavvenSpeculator": "The havven speculator buys havvens hoping the price" +
+                                " will appreciate after some period.",
+            "NaiveSpeculator": "The naive speculator behaves similarly to the havven" +
+                               " speculators, but does so on all the markets",
+            "Merchant": "The merchant provides goods for Buyers, selling them for " +
+                        "nomins. They sell the nomins back into fiat",
+            "Buyer": "The buyers bring fiat into the system systematically, trading" +
+                     " it for nomins, to buy goods from the merchant",
+            "MarketMaker": "The market maker creates liquidity on some market in what" +
+                           " they hope to be a profitable manner"
         }
 
     }

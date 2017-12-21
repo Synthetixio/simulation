@@ -26,7 +26,8 @@ class HavvenModel(Model):
                  model_settings: Dict[str, Any],
                  fee_settings: Dict[str, Any],
                  agent_settings: Dict[str, Any],
-                 havven_settings: Dict[str, Any]) -> None:
+                 havven_settings: Dict[str, Any],
+                 mint_settings: Dict[str, Any]) -> None:
         """
 
         :param model_settings: Setting that are modifiable on the frontend
@@ -41,7 +42,6 @@ class HavvenModel(Model):
         """
         agent_fractions = model_settings['agent_fractions']
         num_agents = model_settings['num_agents']
-        utilisation_ratio_max = model_settings['utilisation_ratio_max']
         continuous_order_matching = model_settings['continuous_order_matching']
 
         # Mesa setup.
@@ -55,7 +55,6 @@ class HavvenModel(Model):
 
         # Initialise simulation managers.
         self.manager = HavvenManager(
-            Dec(utilisation_ratio_max),
             continuous_order_matching,
             havven_settings
         )
@@ -64,7 +63,7 @@ class HavvenModel(Model):
             fee_settings
         )
         self.market_manager = MarketManager(self.manager, self.fee_manager)
-        self.mint = Mint(self.manager, self.market_manager)
+        self.mint = Mint(self.manager, self.market_manager, mint_settings)
 
         self.agent_manager = AgentManager(
             self,
