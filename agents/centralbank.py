@@ -35,6 +35,14 @@ class CentralBank(MarketPlayer):
         self.tolerance = tolerance
         """The bank will try to correct the price if it strays out of this range."""
 
+    def setup(self, init_value: Dec):
+        self.model.endow_havvens(
+            self, Dec(self.unique_id * init_value)
+        )
+        endowment = hm.round_decimal(init_value * Dec(4))
+        self.fiat = init_value
+        self.model.endow_havvens(self, endowment)
+
     def step(self) -> None:
 
         self.cancel_orders()

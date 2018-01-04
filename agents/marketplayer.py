@@ -4,8 +4,9 @@ from typing import List, Tuple, Optional
 
 from mesa import Agent
 
-from core import orderbook as ob
+from core import orderbook as ob, model
 from managers import HavvenManager as hm
+
 
 Portfolio = namedtuple(
     "Portfolio", ["fiat", "escrowed_havvens", "havvens", "nomins", "issued_nomins"])
@@ -27,7 +28,6 @@ class MarketPlayer(Agent):
         self.fiat: Dec = Dec(fiat)
         self.havvens: Dec = Dec(havvens)
         self.nomins: Dec = Dec(nomins)
-        self.escrowed_havvens: Dec = Dec(0)
         self.issued_nomins: Dec = Dec(0)
 
         # values that are currently used in orders
@@ -51,6 +51,33 @@ class MarketPlayer(Agent):
         pass
 
     @property
+    def available_fiat(self) -> Dec:
+        """
+        This agent's quantity of fiat not tied up in orders.
+        """
+        return self.model.manager.round_decimal(self.fiat - self.unavailable_fiat)
+
+    @property
+    def available_havvens(self) -> Dec:
+        """
+        This agent's quantity of havvens not tied up in orders. (can be negative)
+        """
+        return self.model.manager.round_decimal(
+            self.havvens - self.unavailable_havvens - self.escrowed_havvens
+        )
+
+    @property
+    def available_nomins(self) -> Dec:
+        """
+        This agent's quantity of nomins not tied up in orders.
+        """
+        return self.model.manager.round_decimal(self.nomins - self.unavailable_nomins)
+
+    @property
+    def escrowed_havvens(self) -> Dec:
+        return self.model.mint.escrowed_havvens(self)
+
+    @property
     def havven_fiat_market(self) -> "ob.OrderBook":
         """The havven-fiat market this player trades on."""
         return self.model.market_manager.havven_fiat_market
@@ -72,8 +99,7 @@ class MarketPlayer(Agent):
         """
         return f"{self.__class__.__name__} {self.unique_id}"
 
-    def _fraction(self, qty: Dec, divisor: Dec = Dec(3),
-                  minimum: Dec = Dec(1)) -> Dec:
+    def _fraction(self, qty: Dec, divisor: Dec = Dec(3), minimum: Dec = Dec(1)) -> Dec:
         """
         Return a fraction of the given quantity, with a minimum.
         Used for depleting reserves gradually.
@@ -95,8 +121,7 @@ class MarketPlayer(Agent):
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=self.fiat)
 
-    def portfolio(self, fiat_values: bool = False
-                  ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
+    def portfolio(self, fiat_values: bool = False ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.
@@ -143,24 +168,21 @@ class MarketPlayer(Agent):
         else:
             return Dec('0')
 
-    def transfer_fiat_to(self, recipient: "MarketPlayer",
-                         value: Dec) -> bool:
+    def transfer_fiat_to(self, recipient: "MarketPlayer", value: Dec) -> bool:
         """
         Transfer a positive value of fiat to the recipient,
         if balance is sufficient. Return True on success.
         """
         return self.model.market_manager.transfer_fiat(self, recipient, value)
 
-    def transfer_havvens_to(self, recipient: "MarketPlayer",
-                            value: Dec) -> bool:
+    def transfer_havvens_to(self, recipient: "MarketPlayer", value: Dec) -> bool:
         """
         Transfer a positive value of havvens to the recipient,
         if balance is sufficient. Return True on success.
         """
         return self.model.market_manager.transfer_havvens(self, recipient, value)
 
-    def transfer_nomins_to(self, recipient: "MarketPlayer",
-                           value: Dec) -> bool:
+    def transfer_nomins_to(self, recipient: "MarketPlayer", value: Dec) -> bool:
         """
         Transfer a positive value of nomins to the recipient,
         if balance is sufficient. Return True on success.
@@ -169,17 +191,10 @@ class MarketPlayer(Agent):
 
     def escrow_havvens(self, value: Dec) -> bool:
         """
-        Escrow a positive value of havvens in order to be able to issue
-        nomins against them.
+        Escrow a positive value of havvens to add nomins to the system,
+        and receive fiat
         """
         return self.model.mint.escrow_havvens(self, value)
-
-    def unescrow_havvens(self, value: Dec) -> bool:
-        """
-        Unescrow a quantity of havvens, if there are not too many
-        issued nomins locking it.
-        """
-        return self.model.mint.unescrow_havvens(self, value)
 
     def available_escrowed_havvens(self) -> Dec:
         """
@@ -205,22 +220,15 @@ class MarketPlayer(Agent):
     def remaining_issuance_rights(self) -> Dec:
         """
         Return the remaining quantity of tokens this agent can issued on the back of their
-        escrowed havvens. May be negative.
+        havvens. May be negative.
         """
         return self.model.mint.remaining_issuance_rights(self)
 
-    def issue_nomins(self, value: Dec) -> bool:
+    def free_havvens(self, value: Dec) -> bool:
         """
-        Issue a positive value of nomins against currently escrowed havvens,
-        up to the utilisation ratio maximum.
+        Burn a positive value of fiat, which frees up havvens.
         """
-        return self.model.mint.issue_nomins(self, value)
-
-    def burn_nomins(self, value: Dec) -> bool:
-        """
-        Burn a positive value of issued nomins, which frees up havvens.
-        """
-        return self.model.mint.burn_nomins(self, value)
+        return self.model.mint.free_havvens(self, value)
 
     def _sell_quoted(self, book: "ob.OrderBook", quantity: Dec) -> Optional["ob.Bid"]:
         """
@@ -431,27 +439,6 @@ class MarketPlayer(Agent):
         Place an ask for nomins with a quantity of havvens, including the fee, at a price in nomins.
         """
         return self.place_ask_with_fee(self.havven_nomin_market, quantity, price)
-
-    @property
-    def available_fiat(self) -> Dec:
-        """
-        This agent's quantity of fiat not tied up in orders.
-        """
-        return self.model.manager.round_decimal(self.fiat - self.unavailable_fiat)
-
-    @property
-    def available_havvens(self) -> Dec:
-        """
-        This agent's quantity of havvens not being tied up in orders.
-        """
-        return self.model.manager.round_decimal(self.havvens - self.unavailable_havvens)
-
-    @property
-    def available_nomins(self) -> Dec:
-        """
-        This agent's quantity of nomins not being tied up in orders.
-        """
-        return self.model.manager.round_decimal(self.nomins - self.unavailable_nomins)
 
     def round_values(self) -> None:
         """

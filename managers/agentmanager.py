@@ -2,6 +2,7 @@ from decimal import Decimal as Dec
 from typing import Dict, List
 
 import agents as ag
+from core import model
 
 
 class AgentManager:
@@ -43,7 +44,7 @@ class AgentManager:
         agent_fractions = normalised_fractions
 
         # Create the agents themselves.
-        running_player_total = 0
+        self.running_player_total = 0
         for agent_type in agent_fractions:
             total = max(
                 self.agent_minimum,
@@ -51,14 +52,14 @@ class AgentManager:
             )
 
             for i in range(total):
-                agent = ag.player_names[agent_type](running_player_total, self.havven_model)
+                agent = ag.player_names[agent_type](self.running_player_total, self.havven_model)
                 agent.setup(self.wealth_parameter)
                 self.havven_model.schedule.add(agent)
                 self.agents[agent_type].append(agent)
-                running_player_total += 1
+                self.running_player_total += 1
 
         # Add a central stabilisation bank
-        # self._add_central_bank(running_player_total, self.num_agents, self.wealth_parameter)
+        # self._add_central_bank(self.running_player_total, self.num_agents, self.wealth_parameter)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven_model.schedule.agents:
@@ -73,12 +74,15 @@ class AgentManager:
         else:
             self.agents['others'].append(agent)
 
-    def _add_central_bank(self, unique_id, num_agents, init_value):
+    def _add_central_bank(self) -> 'ag.CentralBank':
         central_bank = ag.CentralBank(
-            unique_id, self.havven_model, fiat=Dec(num_agents * init_value),
+            self.running_player_total, self.havven_model,
             nomin_target=Dec('1.0')
         )
-        self.havven_model.endow_havvens(central_bank,
-                                 Dec(num_agents * init_value))
         self.havven_model.schedule.add(central_bank)
         self.agents["others"].append(central_bank)
+        return central_bank
+
+    def _add_issuance_controller(self) -> 'ag.IssuanceController':
+        issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
+

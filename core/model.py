@@ -58,12 +58,8 @@ class HavvenModel(Model):
             continuous_order_matching,
             havven_settings
         )
-        self.fee_manager = FeeManager(
-            self.manager,
-            fee_settings
-        )
-        self.market_manager = MarketManager(self.manager, self.fee_manager)
-        self.mint = Mint(self.manager, self.market_manager, mint_settings)
+
+        issuance_controller = ag.IssuanceController(0, self)
 
         self.agent_manager = AgentManager(
             self,
@@ -71,6 +67,14 @@ class HavvenModel(Model):
             agent_fractions,
             agent_settings
         )
+
+        self.fee_manager = FeeManager(
+            self.manager,
+            fee_settings
+        )
+        self.market_manager = MarketManager(self.manager, self.fee_manager)
+        self.mint = Mint(self.manager, self.market_manager, mint_settings)
+
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:

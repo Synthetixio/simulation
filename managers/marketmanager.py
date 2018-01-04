@@ -98,10 +98,11 @@ class MarketManager:
         bid.update_quantity(bid.quantity - quantity, bid.fee - bid_fee)
         ask.update_quantity(ask.quantity - quantity, ask.fee - ask_fee)
         return ob.TradeRecord(bid.issuer, ask.issuer, ask.book,
-                              price, quantity, bid_fee, ask_fee, self.model_manager.time)
+                              price, quantity, bid_fee, ask_fee, self.model_manager.time,
+                              bid, ask)
 
     def havven_nomin_match(self, bid: "ob.Bid",
-                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
+                           ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
         Buyer offers nomins in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -113,7 +114,7 @@ class MarketManager:
                                     self.transfer_havvens)
 
     def havven_fiat_match(self, bid: "ob.Bid",
-                         ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
+                          ask: "ob.Ask") -> Optional["ob.TradeRecord"]:
         """
         Buyer offers fiat in exchange for havvens from the seller.
         Return a TradeRecord object if the match succeeded, otherwise None.
@@ -142,7 +143,7 @@ class MarketManager:
         return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.fiat)
 
     def transfer_havvens_success(self, sender: "ag.MarketPlayer",
-                                quantity: Dec, fee: Dec) -> bool:
+                                 quantity: Dec, fee: Dec) -> bool:
         """True iff the sender could successfully send a quantity of havvens."""
         return 0 <= quantity + fee <= HavvenManager.round_decimal(sender.havvens)
 

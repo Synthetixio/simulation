@@ -32,7 +32,7 @@ def get_defaults():
 
             # ignore Agent Fractions, and choose random figures
             'random_agents': False,
-            'continuous_order_matching': True,
+            'continuous_order_matching': True
         },
         # settings for everything fee related
         'Fees': {
@@ -49,7 +49,14 @@ def get_defaults():
             'copt_sensitivity_parameter': 1.0,  # strictly > 0
             'copt_flattening_parameter': 1,  # integer >= 1; i%2 == 1
             # cmax = copt * buffer_parameter
-            'copt_buffer_parameter': 1.1  # strictly > 1
+            'copt_buffer_parameter': 1.1,  # >= 1
+
+            # True: nomins sold automatically/auctioned on the market when issued
+            # False: nomins are given to players who issue (not implemeted)
+            'non_discretionary_issuance': True,
+            # if non discretionary, how off 1 is havven willing to go
+            # i.e. sell nomins for 1-buffer, buy for 1+buffer
+            'non_discretionary_cap_buffer': 0  # 0 <= buffer
         },
         'Agents': {
             'agent_minimum': 1,  # >= 0

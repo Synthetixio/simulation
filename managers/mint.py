@@ -11,68 +11,89 @@ class Mint:
     """
     Handles issuance and burning of nomins.
     """
-
     def __init__(self, havven_manager: HavvenManager,
                  market_manager: MarketManager, mint_settings: Dict[str, Any]) -> None:
         self.havven_manager = havven_manager
         self.market_manager = market_manager
         self.copt_sensitivity_parameter: Dec = mint_settings['copt_sensitivity_parameter']
+        """How sensitive is copt/cmax to the price of nomins"""
         self.copt_flattening_parameter: int = mint_settings['copt_flattening_parameter']
+        """How much buffer room is given to people close to copt"""
         if self.copt_flattening_parameter < 1 or self.copt_flattening_parameter % 2 == 0:
-            raise Exception("Invalid flattening parameter, must be an odd number >= 1.")
+            raise Exception("Invalid flattening parameter, must be an odd number >= 1")
         self.copt_buffer_parameter: Dec = mint_settings['copt_buffer_parameter']
+        """cmax = buffer_parameter * copt"""
+        if self.copt_buffer_parameter < 1:
+            raise Exception("Invalid buffer parameter, must be >= 1")
 
-    def escrow_havvens(self, agent: "agents.MarketPlayer",
-                      value: Dec) -> bool:
-        """
-        Escrow a positive value of havvens in order to be able to issue
-        nomins against them.
-        """
-        if agent.available_havvens >= value >= 0:
-            agent.havvens -= value
-            agent.escrowed_havvens += value
-            self.havven_manager.escrowed_havvens += value
-            return True
+        self.non_discretionary_issuance: bool = mint_settings['non_discretionary_issuance']
+        """Do nomins get sold by the system, giving players fiat"""
+        if not self.non_discretionary_issuance:
+            raise Exception("""Discretionary issuance has been removed for the time being
+            This option exists for the time being if the logic will be reimplemented.
+            Older versions of the model (PR #107 and back) are all discretionary""")
+
+        self.non_discretionary_cap_buffer: Dec = mint_settings['non_discretionary_cap_buffer']
+
+        self.copt: Dec = Dec(-1)
+        """Optimal collateralisation ratio"""
+        self.cmax: Dec = Dec(-1)
+        """Maximal collateralisation value"""
+
+    def escrow_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
+        """Escrow a number of havvens for the given agent, creating a sell order
+        for the created nomins"""
+        if 0 <= value <= agent.available_havvens:
+            nom_received = self.issued_nomins_received(value)
+            agent.issued_nomins += nom_received
+            # TODO: sell nomins
         return False
 
-    def unescrow_havvens(self, agent: "agents.MarketPlayer",
-                        value: Dec) -> bool:
-        """
-        Unescrow a quantity of havvens, if there are not too many
-        issued nomins locking it.
-        """
-        if 0 <= value <= self.available_escrowed_havvens(agent):
-            agent.havvens += value
-            agent.escrowed_havvens -= value
-            self.havven_manager.escrowed_havvens -= value
-            return True
-        return False
+    def issued_nomins_received(self, havvens: Dec) -> Dec:
+        """The number of nomins created by escrowing a number of havvens"""
+        n_i = (
+            havvens *
+            self.cmax *
+            self.market_manager.havven_nomin_market.price
+        )
+        return n_i
 
-    ### FIXME TODO ###
-    ### THIS LOGIC IS BROKEN. UTILISATION RATIO NOT TAKEN INTO ACCOUNT AT EVERY LOCATION ###
-    ### ALSO NEED TO ENSURE THAT NOMINS ARE ACTUALLY PROPERLY-ISSUABLE ###
-
-    def available_escrowed_havvens(self, agent: "agents.MarketPlayer") -> Dec:
+    def escrowed_havvens(self, agent: "agents.MarketPlayer") -> Dec:
         """
-        Return the quantity of escrowed havvens which is not
-        locked by issued nomins. May be negative.
+        The current number of escrowed havvens that the agent has
+        Can be greater then their number of available havvens
         """
-        return agent.escrowed_havvens - self.unavailable_escrowed_havvens(agent)
-
-    def unavailable_escrowed_havvens(self, agent: "agents.MarketPlayer") -> Dec:
-        """
-        Return the quantity of locked escrowed havvens,
-          having had nomins issued against it.
-        May be greater than total escrowed havvens.
-        """
-        return self.market_manager.nomins_to_havvens(agent.issued_nomins)
+        return HavvenManager.round_decimal(
+            (
+                agent.issued_nomins /
+                self.market_manager.havven_nomin_market.price /
+                self.cmax
+            )
+        )
 
     def max_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
         """
         The total quantity of nomins this agent has a right to issue.
         """
-        return HavvenManager.round_decimal(self.market_manager.havvens_to_nomins(agent.escrowed_havvens) * \
-            self.havven_manager.utilisation_ratio_max)
+        return HavvenManager.round_decimal(
+            (
+                agent.available_havvens *
+                self.cmax *
+                self.market_manager.havven_nomin_market.price
+            )
+        )
+
+    def optimal_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
+        """
+        The total quantity of nomins this agent should issue to get to Copt.
+        """
+        return HavvenManager.round_decimal(
+            (
+                agent.available_havvens *
+                self.copt *
+                self.market_manager.havven_nomin_market.price
+            )
+        )
 
     def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
         """
@@ -81,26 +102,24 @@ class Mint:
         """
         return self.max_issuance_rights(agent) - agent.issued_nomins
 
-    def issue_nomins(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
+    def free_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """
-        Issue a positive value of nomins against currently escrowed havvens,
-          up to the utilisation ratio maximum.
+        Buy a positive value of nomins (using fiat) to burn, which frees up havvens.
         """
-        remaining = self.remaining_issuance_rights(agent)
-        if 0 <= value <= remaining:
-            agent.issued_nomins += value
-            agent.nomins += value
-            self.havven_manager.nomin_supply += value
-            return True
-        return False
-
-    def burn_nomins(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
-        """
-        Burn a positive value of issued nomins, which frees up havvens.
-        """
-        if 0 <= value <= agent.available_nomins and value <= agent.issued_nomins:
+        if 0 <= value <= agent.available_fiat and value <= agent.issued_nomins:
             agent.nomins -= value
             agent.issued_nomins -= value
             self.havven_manager.nomin_supply -= value
             return True
         return False
+
+    def calculate_copt_cmax(self):
+        self.copt = (self.copt_sensitivity_parameter * (
+            (self.market_manager.nomin_fiat_market.price - 1)**self.copt_flattening_parameter
+            ) + 1) * self.global_collateralisation
+        self.cmax = self.copt*self.copt_buffer_parameter
+
+    @property
+    def global_collateralisation(self) -> Dec:
+        return (self.market_manager.nomin_fiat_market.price * self.havven_manager.nomin_supply) / \
+               (self.market_manager.havven_fiat_market.price * self.havven_manager.havven_supply)

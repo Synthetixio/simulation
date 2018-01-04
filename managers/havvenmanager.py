@@ -30,9 +30,6 @@ class HavvenManager:
         # Initiate Time
         self.time: int = 0
 
-        # Utilisation Ratio maximum (between 0 and 1)
-        self.utilisation_ratio_max: Dec = Dec(0.2)  # TODO: remove this
-
         # If true, match orders whenever an order is posted,
         #   otherwise do so at the end of each period
         self.continuous_order_matching: bool = continuous_order_matching

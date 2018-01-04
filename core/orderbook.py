@@ -143,7 +143,8 @@ class Ask(LimitOrder):
 class TradeRecord:
     """A record of a single trade."""
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer", book: "OrderBook",
-                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int) -> None:
+                 price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int,
+                 bid: 'Bid', ask: 'Ask') -> None:
         self.buyer = buyer
         self.seller = seller
         self.book = book
@@ -152,6 +153,8 @@ class TradeRecord:
         self.bid_fee = bid_fee
         self.ask_fee = ask_fee
         self.completion_time = time
+        self.bid = bid
+        self.ask = ask
 
     def __str__(self) -> str:
         return f"{self.buyer} -> {self.seller} : {self.quantity}@{self.price}" \

@@ -7,6 +7,7 @@ from .speculator import HavvenSpeculator, NaiveSpeculator
 from .nominshorter import NominShorter, HavvenEscrowNominShorter
 from .merchant import Merchant, Buyer
 from .marketmaker import MarketMaker
+from .issuancecontroller import IssuanceController
 
 # player names for the UI sliders
 player_names = {
@@ -24,4 +25,4 @@ player_names = {
 }
 
 # exclude players when showing profit %
-players_to_exclude = ["Merchant", "Buyer"]
+players_to_exclude = ["Merchant", "Buyer", "IssuanceController"]

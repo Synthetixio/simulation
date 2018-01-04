@@ -10,7 +10,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 
-from core import cache_handler
+from core import cachehandler
 
 
 class CachedPageHandler(tornado.web.RequestHandler):
@@ -86,17 +86,17 @@ class CachedSocketHandler(tornado.websocket.WebSocketHandler):
 class CachedDataHandler:
     def __init__(self, default_settings):
         self.default_settings = default_settings
-        data = cache_handler.load_saved()
+        data = cachehandler.load_saved()
         all_cached = False
-        for i in cache_handler.run_settings:
+        for i in cachehandler.run_settings:
             if i['name'] not in data:
                 break
         else:
             all_cached = True
 
         if not all_cached:
-            data = cache_handler.generate_new_caches(data)
-            cache_handler.save_data(data)
+            data = cachehandler.generate_new_caches(data)
+            cachehandler.save_data(data)
 
         self.data = data
 
