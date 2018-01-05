@@ -301,12 +301,13 @@ class ModelHandler:
                 model_params[key] = val.value
             else:
                 model_params[key] = val
-        self.model = self.model_cls(model_params,
-                                    self.model_settings['Fees'],
-                                    self.model_settings['Agents'],
-                                    self.model_settings['Havven'],
-                                    self.model_settings['Mint']
-                                    )
+        self.model = self.model_cls(
+            model_params,
+            self.model_settings['Fees'],
+            self.model_settings['Agents'],
+            self.model_settings['Havven'],
+            self.model_settings['Mint']
+        )
         # clear the data queue
         with self.data_lock:
             self.data = []

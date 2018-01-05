@@ -7,9 +7,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 
 import agents as ag
-from managers import (HavvenManager, MarketManager,
-                  FeeManager, Mint,
-                  AgentManager)
+from managers import HavvenManager, AgentManager, FeeManager, MarketManager, Mint
 from core import stats
 
 
@@ -29,7 +27,6 @@ class HavvenModel(Model):
                  havven_settings: Dict[str, Any],
                  mint_settings: Dict[str, Any]) -> None:
         """
-
         :param model_settings: Setting that are modifiable on the frontend
          - agent_fraction: what percentage of each agent to use
          - num_agents: the total number of agents to use
@@ -59,7 +56,14 @@ class HavvenModel(Model):
             havven_settings
         )
 
-        issuance_controller = ag.IssuanceController(0, self)
+        self.fee_manager = FeeManager(
+            self.manager,
+            fee_settings
+        )
+        self.market_manager = MarketManager(self.manager, self.fee_manager)
+
+        self.mint = Mint(self.manager, self.market_manager, self.fee_manager,
+                         mint_settings)
 
         self.agent_manager = AgentManager(
             self,
@@ -68,13 +72,9 @@ class HavvenModel(Model):
             agent_settings
         )
 
-        self.fee_manager = FeeManager(
-            self.manager,
-            fee_settings
-        )
-        self.market_manager = MarketManager(self.manager, self.fee_manager)
-        self.mint = Mint(self.manager, self.market_manager, mint_settings)
+        issuance_controller = self.agent_manager.add_issuance_controller()
 
+        self.mint.add_issuance_controller(issuance_controller)
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:

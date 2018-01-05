@@ -5,16 +5,21 @@ import agents
 
 from .havvenmanager import HavvenManager
 from .marketmanager import MarketManager
+from .feemanager import FeeManager
 
 
 class Mint:
     """
     Handles issuance and burning of nomins.
     """
+    issuance_controller = None
+
     def __init__(self, havven_manager: HavvenManager,
-                 market_manager: MarketManager, mint_settings: Dict[str, Any]) -> None:
+                 market_manager: MarketManager, fee_manager: FeeManager,
+                 mint_settings: Dict[str, Any]) -> None:
         self.havven_manager = havven_manager
         self.market_manager = market_manager
+        self.fee_manager = fee_manager
         self.copt_sensitivity_parameter: Dec = mint_settings['copt_sensitivity_parameter']
         """How sensitive is copt/cmax to the price of nomins"""
         self.copt_flattening_parameter: int = mint_settings['copt_flattening_parameter']
@@ -40,13 +45,18 @@ class Mint:
         self.cmax: Dec = Dec(-1)
         """Maximal collateralisation value"""
 
+    def add_issuance_controller(self, issuance_controller: 'agents.IssuanceController'):
+        self.issuance_controller = issuance_controller
+
     def escrow_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """Escrow a number of havvens for the given agent, creating a sell order
         for the created nomins"""
         if 0 <= value <= agent.available_havvens:
             nom_received = self.issued_nomins_received(value)
-            agent.issued_nomins += nom_received
-            # TODO: sell nomins
+            fee = self.market_manager.nomin_fiat_market.seller_fee(Dec(1), value)
+            agent.issued_nomins += (nom_received - fee)
+            self.issuance_controller.nomins += nom_received
+            self.issuance_controller.place_issuance_order(nom_received, agent)
         return False
 
     def issued_nomins_received(self, havvens: Dec) -> Dec:
@@ -105,11 +115,16 @@ class Mint:
     def free_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """
         Buy a positive value of nomins (using fiat) to burn, which frees up havvens.
+        Don't transfer, to avoid transfer fee (only charge the market fee)
+        :param agent: the agent burning nomins
+        :param value: the amount of fiat to buy nomins with
         """
         if 0 <= value <= agent.available_fiat and value <= agent.issued_nomins:
-            agent.nomins -= value
-            agent.issued_nomins -= value
-            self.havven_manager.nomin_supply -= value
+            agent.fiat -= value
+            self.issuance_controller.fiat += value
+            fee = self.market_manager.nomin_fiat_market.buyer_fee(Dec(1), value)
+            agent.issued_nomins -= (value - fee)
+            self.issuance_controller.place_burn_order(value, agent)
             return True
         return False
 

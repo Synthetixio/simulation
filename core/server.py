@@ -220,10 +220,10 @@ def make_server() -> "tornado.web.Application":
             settings["Model"]["num_agents"], settings["Model"]["num_agents_min"],
             settings["Model"]["num_agents_max"], 1
         )
-
-        ur_slider = UserSettableParameter(
-            'slider', "Utilisation Ratio", settings["Model"]["utilisation_ratio_max"], 0.0, 1.0, 0.01
-        )
+        #
+        # ur_slider = UserSettableParameter(
+        #     'slider', "Utilisation Ratio", settings["Model"]["collateralisation_ratio_max"], 0.0, 1.0, 0.01
+        # )
 
         match_checkbox = UserSettableParameter(
             'checkbox', "Continuous order matching", settings["Model"]["continuous_order_matching"]
@@ -245,7 +245,7 @@ def make_server() -> "tornado.web.Application":
             charts,
             "Havven Model (Alpha)",
             {
-                "num_agents": n_slider, "utilisation_ratio_max": ur_slider,
+                "num_agents": n_slider,  # "utilisation_ratio_max": ur_slider,
                 "continuous_order_matching": match_checkbox,
                 'agent_fractions': agent_fraction_selector
             }

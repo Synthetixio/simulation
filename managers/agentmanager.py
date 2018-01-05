@@ -2,14 +2,13 @@ from decimal import Decimal as Dec
 from typing import Dict, List
 
 import agents as ag
-from core import model
 
 
 class AgentManager:
     """Manages agent populations."""
 
     def __init__(self,
-                 havven_model: "model.HavvenModel",
+                 havven_model,
                  num_agents: int,
                  agent_fractions: Dict[str, float],
                  agent_settings: Dict[str, any]) -> None:
@@ -59,7 +58,7 @@ class AgentManager:
                 self.running_player_total += 1
 
         # Add a central stabilisation bank
-        # self._add_central_bank(self.running_player_total, self.num_agents, self.wealth_parameter)
+        # self.add_central_bank(self.running_player_total, self.num_agents, self.wealth_parameter)
 
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven_model.schedule.agents:
@@ -74,7 +73,7 @@ class AgentManager:
         else:
             self.agents['others'].append(agent)
 
-    def _add_central_bank(self) -> 'ag.CentralBank':
+    def add_central_bank(self) -> 'ag.CentralBank':
         central_bank = ag.CentralBank(
             self.running_player_total, self.havven_model,
             nomin_target=Dec('1.0')
@@ -83,6 +82,9 @@ class AgentManager:
         self.agents["others"].append(central_bank)
         return central_bank
 
-    def _add_issuance_controller(self) -> 'ag.IssuanceController':
+    def add_issuance_controller(self) -> 'ag.IssuanceController':
         issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
+        self.havven_model.schedule.add(issuance_controller)
+        self.agents['others'].append(issuance_controller)
+        return issuance_controller
 

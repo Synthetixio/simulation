@@ -20,6 +20,9 @@ class IssuanceController(MarketPlayer):
     Nomins will be given to this player as soon as some player escrows some havvens,
       then this player will sell them, and send them back to the Havven system to transfer
       to the respective player
+
+    TODO: this currently works on the assumption the price target is 1, change it to use buffer
+      and variable price target
     """
 
     issuance_orders: List[Redemption] = []
@@ -37,38 +40,28 @@ class IssuanceController(MarketPlayer):
     total_redeemed: Dec = Dec()
 
     def step(self):
+        # create trades in the order they arrive
         for item in self.issuance_orders:
             if item.trade is None:
-                trade = self.place_nomin_fiat_ask_with_fee(
+                item.trade = self.place_nomin_fiat_ask_with_fee(
                     item.remaining, Dec(1-self.model.mint.non_discretionary_cap_buffer)
                 )
-                # if the trade was filled instantly, should be cleared in notify_trade logic
-                item.trade = trade
-            if item.trade.quantity + item.trade.fee < item.remaining:
-                to_transfer = item.remaining - item.trade.quantity
-                if self.available_fiat > to_transfer:
-                    self.fiat -= to_transfer
-                    item.player.fiat += to_transfer
-                    item.remaining -= (to_transfer + item.trade.fee)
+                # if the trade was filled instantly, should be dealt with in notify_trade logic
 
         for item in self.burn_orders:
             if item.trade is None:
-                trade = self.place_nomin_fiat_bid_with_fee(
+                item.trade = self.place_nomin_fiat_bid_with_fee(
                     item.remaining, Dec(1+self.model.mint.non_discretionary_cap_buffer)
                 )
-                # if the trade was filled instantly, should be cleared in notify_trade logic
-                item.trade = trade
-
-            if item.trade.quantity + item.trade.fee < item.remaining:
-                to_burn = item.remaining - item.trade.quantity
-                if self.available_nomins > to_burn:
-                    self.nomins -= to_burn
-                    item.player.issued_nomins -= to_burn
+                # if the trade was filled instantly, should be dealt with in notify_trade logic
 
         self.issuance_orders = [i for i in self.issuance_orders if i.remaining > 0]
         self.burn_orders = [i for i in self.burn_orders if i.remaining > 0]
 
     def place_issuance_order(self, value: Dec, player: 'MarketPlayer') -> None:
+        """
+        Place an order to sell issued nomins for fiat, and send the fiat to the player
+        """
         self.issuance_orders.append(Redemption(value, value, player, None))
 
     def place_burn_order(self, value: Dec, player: 'MarketPlayer'):
@@ -83,7 +76,67 @@ class IssuanceController(MarketPlayer):
         Notify this agent that its order was filled.
         """
         if record.seller == self:
-            pass
+            # selling nomins, so issuing them into the market
+            ask = record.ask
+            order = None
+            for order in self.issuance_orders:
+                if order.remaining > 0:
+                    break
+            if order is None:
+                raise Exception("No issue order with remaining > 0, even though ask trade got filled")
+            if order.remaining < record.quantity:
+                raise Exception("orders got filled in wrong order for some reason " +
+                                "(order.remaining > record.quantity)")
+
+            if ask.active:
+                # order partially filled
+                order.remaining -= record.quantity
+                if order.remaining <= 0:
+                    raise Exception("order remaining <= 0 when order partially filled")
+                order.player.fiat += record.price*record.quantity
+                self.fiat -= record.price*record.quantity
+                print(f"issue order partially filled, give player {record.price*record.quantity} fiat")
+
+            else:
+                # order was filled completely
+                order.player.fiat += record.price*order.remaining
+                self.fiat -= record.price*order.remaining
+                order.remaining = 0
+                print(f"issue order completely filled, give player {record.price*order.remaining} fiat")
+
         if record.buyer == self:
-            pass
+            # buying nomins, to burn them
+            bid = record.bid
+            order = None
+            for order in self.burn_orders:
+                if order.remaining > 0:
+                    break
+            if order is None:
+                raise Exception("No burn order with remaining > 0, even though bid trade got filled")
+            if order.remaining < record.quantity:
+                raise Exception("orders got filled in wrong order for some reason " +
+                                "(order.remaining > record.quantity)")
+            if bid.active:
+                # bid partially filled
+                order.remaining -= record.quantity
+                if order.remaining <= 0:
+                    raise Exception("order remaining <= 0 when order partially filled")
+                # refund excess fiat, if price was below 1 (should never be above)
+                order.player.fiat += record.quantity*(1-record.price)
+                self.fiat -= record.quantity*(1-record.price)
+                print(f"burn order partially filled at {record.price} for {record.quantity}," +
+                      f" refunded {record.quantity*(1-record.price)} fiat")
+            else:
+                # order filled completely
+                order.player.fiat += record.quantity*(1-record.price)
+                self.fiat -= record.quantity*(1-record.price)
+                order.remaining = 0
+                print(f"burn order completely filled at {record.price} for {record.quantity}," +
+                      f" refunded {record.quantity*(1-record.price)} fiat")
         self.trades.append(record)
+
+
+
+
+
+
