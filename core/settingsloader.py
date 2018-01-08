@@ -51,6 +51,11 @@ def get_defaults():
             # cmax = copt * buffer_parameter
             'copt_buffer_parameter': 1.1,  # >= 1
 
+            # cmax/copt for when simulation starts
+            'initial_cmax_copt': 0.05,  # > 0
+            # how long to use the initial cmax before copt/cmax become relevant
+            'forced_cmax_period': 5,  # integer >= 1
+
             # True: nomins sold automatically/auctioned on the market when issued
             # False: nomins are given to players who issue (not implemeted)
             'non_discretionary_issuance': True,

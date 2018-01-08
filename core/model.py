@@ -108,6 +108,9 @@ class HavvenModel(Model):
         if (self.manager.time % self.fee_manager.fee_period) == 0:
             self.fee_manager.distribute_fees(self.schedule.agents)
 
+        self.mint.calculate_copt_cmax()
+        print(f"copt: {self.mint.copt}, cmax: {self.mint.cmax}")
+
         # Collect data.
         self.datacollector.collect(self)
 

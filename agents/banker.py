@@ -84,8 +84,5 @@ class Banker(MarketPlayer):
             )
 
         if self.available_havvens > 0:
-            self.escrow_havvens(self.available_havvens)
-
-        issuable = self.max_issuance_rights() - self.issued_nomins
-        if hm.round_decimal(issuable) > 0:
-            self.issue_nomins(issuable)
+            # print("attempting to escrow havvens")
+            self.escrow_havvens(self._fraction(self.available_havvens, Dec(5)))

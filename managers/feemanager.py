@@ -100,6 +100,8 @@ class FeeManager:
 
         pre_nomins = self.model_manager.nomins
         supply = self.model_manager.nomin_supply
+        if supply <= 0:
+            return
         for agent in shuffled_agents:
             if self.model_manager.nomins <= 0:
                 break

@@ -37,7 +37,7 @@ class HavvenManager:
         # Money Supply
         self.havven_supply = Dec(havven_settings['havven_supply'])
         self.nomin_supply = Dec(havven_settings['nomin_supply'])
-        self.escrowed_havvens = Dec(0)
+        self.issued_nomins = Dec(0)
 
         # Havven's own capital supplies
         self.havvens: Dec = self.havven_supply

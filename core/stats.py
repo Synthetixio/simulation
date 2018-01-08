@@ -6,6 +6,7 @@ from typing import List, Any
 from mesa.datacollection import DataCollector
 
 import agents
+from core import model
 
 
 def mean(values: List[Any]):
@@ -113,10 +114,16 @@ def nomin_supply(havven_model: "model.HavvenModel") -> float:
     return havvens + fiat
 
 
+def escrowed_havvens(havven_model: "model.HavvenModel") -> float:
+    issued_nomins = havven_model.manager.issued_nomins
+    return float(
+        issued_nomins * havven_model.market_manager.nomin_fiat_market.price /
+        (havven_model.market_manager.havven_fiat_market.price * havven_model.mint.cmax)
+    )
+
+
 def create_datacollector() -> DataCollector:
     base_reporters = {
-        "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
-        "1": lambda x: 1,
         "Nomin Price": lambda h: float(h.market_manager.nomin_fiat_market.price),
         "Nomin Ask": lambda h: float(h.market_manager.nomin_fiat_market.lowest_ask_price()),
         "Nomin Bid": lambda h: float(h.market_manager.nomin_fiat_market.highest_bid_price()),
@@ -130,8 +137,8 @@ def create_datacollector() -> DataCollector:
         "Havven Havvens": lambda h: float(h.manager.havvens),
         "Havven Fiat": lambda h: float(h.manager.fiat),
         "Gini": gini,
-        "Nomins": lambda h: float(h.manager.nomin_supply),
-        "Escrowed Havvens": lambda h: float(h.manager.escrowed_havvens),
+        "Nomins": lambda h: float(h.manager.issued_nomins),
+        "Escrowed Havvens": escrowed_havvens,
         #"Wealth SD": stats.wealth_sd,
         "Max Wealth": max_wealth,
         "Min Wealth": min_wealth,
