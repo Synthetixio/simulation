@@ -32,7 +32,7 @@ def get_defaults():
 
             # ignore Agent Fractions, and choose random figures
             'random_agents': False,
-            'continuous_order_matching': True
+            'continuous_order_matching': True,
         },
         # settings for everything fee related
         'Fees': {
@@ -46,18 +46,16 @@ def get_defaults():
         # settings for escrow, issuance, destruction, freeing of havvens/nomins
         'Mint': {
             # optimal collateralization parameters
-            'copt_sensitivity_parameter': 1.0,  # strictly > 0
+            'copt_sensitivity_parameter': '1.0',  # strictly > 0
             'copt_flattening_parameter': 1,  # integer >= 1; i%2 == 1
             # cmax = copt * buffer_parameter
-            'copt_buffer_parameter': 1.1,  # >= 1
+            'copt_buffer_parameter': '1.1',  # >= 1
 
-            # cmax/copt for when simulation starts
-            'initial_cmax_copt': 0.05,  # > 0
-            # how long to use the initial cmax before copt/cmax become relevant
-            'forced_cmax_period': 5,  # integer >= 1
+            # minimal cmax value > 0 (model wont work with 0; should be a low value < 0.1)
+            'minimal_cmax': '0.01',
 
             # True: nomins sold automatically/auctioned on the market when issued
-            # False: nomins are given to players who issue (not implemeted)
+            # False: nomins are given to players who issue (TODO: not implemeted)
             'non_discretionary_issuance': True,
             # if non discretionary, how off 1 is havven willing to go
             # i.e. sell nomins for 1-buffer, buy for 1+buffer
@@ -66,7 +64,13 @@ def get_defaults():
         'Agents': {
             'agent_minimum': 1,  # >= 0
             # multiplier for all agents to work with bigger numbers, rather than fractions
-            'wealth_parameter': 1000
+            'wealth_parameter': 1000,
+
+            # Havven foundation for starting nomin issuance
+            'havven_foundation_enabled': True,
+            'havven_foundation_initial_c': '0.1',
+            # what percentage of havvens does the foundation hold
+            'havven_foundation_cut': '0.2',
         },
         # settings for the breakdown of how many of each agent exists in the model
         'AgentFractions': {

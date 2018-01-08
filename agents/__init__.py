@@ -8,6 +8,8 @@ from .nominshorter import NominShorter, HavvenEscrowNominShorter
 from .merchant import Merchant, Buyer
 from .marketmaker import MarketMaker
 from .issuancecontroller import IssuanceController
+from .havvenfoundation import HavvenFoundation
+from .feeoptimiser import FeeOptimiser
 
 # player names for the UI sliders
 player_names = {
@@ -21,8 +23,11 @@ player_names = {
     'NaiveSpeculator': NaiveSpeculator,
     'Merchant': Merchant,
     'Buyer': Buyer,
-    'MarketMaker': MarketMaker
+    'MarketMaker': MarketMaker,
+    'IssuanceController': IssuanceController,
+    # 'HavvenFoundation': HavvenFoundation,
+    'FeeOptimiser': FeeOptimiser,
 }
 
 # exclude players when showing profit %
-players_to_exclude = ["Merchant", "Buyer", "IssuanceController"]
+players_to_exclude = ["Merchant", "Buyer", "IssuanceController", "HavvenFoundation"]

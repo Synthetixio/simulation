@@ -2,7 +2,6 @@ from agents import MarketPlayer
 from decimal import Decimal as Dec
 from typing import List, Any, Dict
 from core import orderbook as ob
-from collections import namedtuple
 
 
 class IssuanceController(MarketPlayer):
@@ -43,17 +42,20 @@ class IssuanceController(MarketPlayer):
                 item['trade'] = self.place_nomin_fiat_ask_with_fee(
                     item['remaining'], Dec(1-self.model.mint.non_discretionary_cap_buffer)
                 )
-                # if the trade was filled instantly, should be dealt with in notify_trade logic
+                if item['trade'] is None:
+                    print(item)
+                    raise Exception("trade is None...")
 
         for item in self.burn_orders:
             if item['trade'] is None:
                 item['trade'] = self.place_nomin_fiat_bid_with_fee(
                     item['remaining'], Dec(1+self.model.mint.non_discretionary_cap_buffer)
                 )
-                # if the trade was filled instantly, should be dealt with in notify_trade logic
+                if item['trade'] is None:
+                    raise Exception("trade is None...")
 
-        self.issuance_orders = [i for i in self.issuance_orders if i['remaining'] > 0]
-        self.burn_orders = [i for i in self.burn_orders if i['remaining'] > 0]
+        self.issuance_orders = [i for i in self.issuance_orders if i['remaining'] > 0 or i['trade'] is None]
+        self.burn_orders = [i for i in self.burn_orders if i['remaining'] > 0 or i['trade'] is None]
 
     def place_issuance_order(self, value: Dec, player: 'MarketPlayer') -> None:
         """
@@ -91,7 +93,12 @@ class IssuanceController(MarketPlayer):
             if order is None:
                 raise Exception("No issue order with remaining > 0, even though ask trade got filled")
             if order['remaining'] < record.quantity:
-                raise Exception("issueance orders got filled in wrong order for some reason " +
+                print("\n".join([str(i['trade']) for i in self.issuance_orders]))
+                print(record)
+                print(order)
+                print(order['trade'])
+                print(ask)
+                raise Exception("issuance orders got filled in wrong order for some reason " +
                                 f"({order['remaining']} < {record.quantity})")
 
             if ask.active:

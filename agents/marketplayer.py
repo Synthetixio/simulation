@@ -9,7 +9,7 @@ from managers import HavvenManager as hm
 
 
 Portfolio = namedtuple(
-    "Portfolio", ["fiat", "escrowed_havvens", "havvens", "nomins", "issued_nomins"])
+    "Portfolio", ["fiat", "escrowed_havvens", "havvens", "havven_debt", "nomins", "issued_nomins"])
 
 
 class MarketPlayer(Agent):
@@ -78,6 +78,11 @@ class MarketPlayer(Agent):
         return self.model.mint.escrowed_havvens(self)
 
     @property
+    def collateralisation(self) -> Dec:
+        return (self.issued_nomins * self.nomin_fiat_market.price /
+                (self.havvens * self.havven_fiat_market.price))
+
+    @property
     def havven_fiat_market(self) -> "ob.OrderBook":
         """The havven-fiat market this player trades on."""
         return self.model.market_manager.havven_fiat_market
@@ -121,15 +126,20 @@ class MarketPlayer(Agent):
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=self.fiat)
 
-    def portfolio(self, fiat_values: bool = False ) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
+    def portfolio(self, fiat_values: bool = False) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.
         """
 
         fiat = self.fiat
-        havvens = self.havvens
         escrowed_havvens = self.escrowed_havvens
+        havvens = self.havvens - escrowed_havvens
+        havven_debt = 0
+        if havvens < 0:
+            havven_debt = havvens
+            escrowed_havvens = self.havvens
+            havvens = 0
         nomins = self.nomins
         issued_nomins = self.issued_nomins
 
@@ -140,8 +150,10 @@ class MarketPlayer(Agent):
             nomins = v_f(nomins=nomins)
             issued_nomins = v_f(nomins=issued_nomins)
 
-        return Portfolio(fiat=fiat, havvens=havvens, escrowed_havvens=escrowed_havvens,
-                         nomins=nomins, issued_nomins=issued_nomins)
+        return Portfolio(
+            fiat=fiat, havvens=havvens, escrowed_havvens=escrowed_havvens,
+            havven_debt=havven_debt, nomins=nomins, issued_nomins=issued_nomins
+        )
 
     def reset_initial_wealth(self) -> Dec:
         """

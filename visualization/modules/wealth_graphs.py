@@ -81,12 +81,12 @@ class PortfolioModule(BarGraphModule):
 
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:
-            vals: PortfolioTuple = (["Fiat", "Escrowed Havvens", "Havvens", "Nomins", "Issued Nomins"],
-                                    ["darkgreen", "darkred", "red", "deepskyblue", "blue"],
-                                    [1, 1, 1, 1, 1], [], [], [], [], [], [])
+            vals: PortfolioTuple = (["Fiat", "Escrowed Havvens", "Havvens", "Havven Debt", "Nomins", "Issued Nomins"],
+                                    ["darkgreen", "darkred", "red", "black", "deepskyblue", "blue"],
+                                    [1, 1, 1, 1, 1, 1], [], [], [], [], [], [], [])
             static_val_len = 4
         else:
-            vals = ([], [], [], [], [])
+            vals = ([], [], [], [], [], [])
             static_val_len = 0
 
         try:

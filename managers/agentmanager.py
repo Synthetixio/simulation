@@ -84,7 +84,26 @@ class AgentManager:
 
     def add_issuance_controller(self) -> 'ag.IssuanceController':
         issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
+        self.running_player_total += 1
         self.havven_model.schedule.add(issuance_controller)
         self.agents['others'].append(issuance_controller)
         return issuance_controller
 
+    def add_havven_foundation(self, initial_c: Dec, foundation_cut: Dec) -> 'ag.HavvenFoundation':
+        havven_foundation = ag.HavvenFoundation(self.running_player_total, self.havven_model)
+        self.running_player_total += 1
+
+        havven_foundation_initial_c = Dec(initial_c)
+        self.havven_model.endow_havvens(
+            havven_foundation,
+            Dec(foundation_cut) * self.havven_model.manager.havvens
+        )
+
+        havven_foundation.issued_nomins = havven_foundation.havvens * havven_foundation_initial_c
+        havven_foundation.nomins = havven_foundation.havvens * havven_foundation_initial_c
+
+        self.havven_model.manager.issued_nomins += havven_foundation.havvens * havven_foundation_initial_c
+        print(havven_foundation.havvens, havven_foundation.issued_nomins)
+
+        self.agents['others'].append(havven_foundation)
+        return havven_foundation

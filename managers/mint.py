@@ -31,12 +31,9 @@ class Mint:
         if self.copt_buffer_parameter < 1:
             raise Exception("Invalid buffer parameter, must be >= 1")
 
-        self.initial_cmax_copt: Dec = Dec(mint_settings['initial_cmax_copt'])
-        if self.initial_cmax_copt <= 0:
+        self.minimal_cmax: Dec = Dec(mint_settings['minimal_cmax'])
+        if self.minimal_cmax <= 0:
             raise Exception("Invalid initial_cmax_copt, must be strictly > 0")
-        self.forced_cmax_period: int = mint_settings['forced_cmax_period']
-        if self.forced_cmax_period < 1:
-            raise Exception("forced cmax period must be >= 1")
 
         self.non_discretionary_issuance: bool = mint_settings['non_discretionary_issuance']
         """Do nomins get sold by the system, giving players fiat"""
@@ -62,11 +59,10 @@ class Mint:
         for the created nomins"""
         if 0 <= value <= agent.available_havvens and self.cmax > 0:
             nom_received = self.issued_nomins_received(value)
-            fee = self.market_manager.nomin_fiat_market.seller_fee(Dec(1), value)
             agent.issued_nomins += nom_received
             # print(f"escrowing {value} havvens, issuing {nom_received}")
-            self.havven_manager.issued_nomins += (nom_received - fee)
-            self.issuance_controller.nomins += nom_received - fee
+            self.havven_manager.issued_nomins += nom_received
+            self.issuance_controller.nomins += nom_received
             self.issuance_controller.place_issuance_order(nom_received, agent)
         return False
 
@@ -141,23 +137,14 @@ class Mint:
         return False
 
     def calculate_copt_cmax(self):
-        if self.havven_manager.time < self.forced_cmax_period:
-            self.copt = self.initial_cmax_copt
-            self.cmax = self.initial_cmax_copt
-        else:
-            self.copt = (self.copt_sensitivity_parameter * (
-                (self.market_manager.nomin_fiat_market.price - 1)**self.copt_flattening_parameter
-                ) + 1) * self.global_collateralisation
-            self.cmax = self.copt*self.copt_buffer_parameter
+        self.copt = (self.copt_sensitivity_parameter * (
+            (self.market_manager.nomin_fiat_market.price - 1)**self.copt_flattening_parameter
+            ) + 1) * self.global_collateralisation
+        self.cmax = self.copt*self.copt_buffer_parameter
+        if self.cmax < self.minimal_cmax:
+            self.cmax = self.minimal_cmax
 
     @property
     def global_collateralisation(self) -> Dec:
         return (self.market_manager.nomin_fiat_market.price * self.havven_manager.issued_nomins) / \
-               (self.market_manager.havven_fiat_market.price * self.global_escrowed_havvens())
-
-    def global_escrowed_havvens(self):
-        return (
-            self.havven_manager.issued_nomins /
-            self.market_manager.havven_nomin_market.price /
-            self.cmax
-        )
+               (self.market_manager.havven_fiat_market.price * self.havven_manager.havven_supply)

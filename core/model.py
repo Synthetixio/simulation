@@ -41,6 +41,7 @@ class HavvenModel(Model):
         num_agents = model_settings['num_agents']
         continuous_order_matching = model_settings['continuous_order_matching']
 
+
         # Mesa setup.
         super().__init__()
 
@@ -72,9 +73,16 @@ class HavvenModel(Model):
             agent_settings
         )
 
-        issuance_controller = self.agent_manager.add_issuance_controller()
+        print(model_settings)
 
+        issuance_controller = self.agent_manager.add_issuance_controller()
         self.mint.add_issuance_controller(issuance_controller)
+
+        if agent_settings['havven_foundation_enabled']:
+            havven_foundation = self.agent_manager.add_havven_foundation(
+                agent_settings['havven_foundation_initial_c'],
+                agent_settings['havven_foundation_cut']
+            )
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
