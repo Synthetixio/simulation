@@ -51,6 +51,7 @@ class MarketMaker(MarketPlayer):
     - Predicted price movement
     the price difference is dependant on the gradient
     """
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.last_bet_end: int = random.randint(-20, 10)
@@ -97,13 +98,13 @@ class MarketMaker(MarketPlayer):
         if they trade in nomins, start with fiat instead, to purchase the nomins
         """
         if self.trade_market == self.havven_fiat_market:
-            self.fiat = init_value*Dec(3)
-            self.model.endow_havvens(self, init_value*Dec(3))
+            self.fiat = init_value * Dec(3)
+            self.model.endow_havvens(self, init_value * Dec(3))
         if self.trade_market == self.havven_nomin_market:
-            self.fiat = init_value*Dec(4)
-            self.model.endow_havvens(self, init_value*Dec(2))
+            self.fiat = init_value * Dec(4)
+            self.model.endow_havvens(self, init_value * Dec(2))
         if self.trade_market == self.nomin_fiat_market:
-            self.fiat = init_value*Dec(6)
+            self.fiat = init_value * Dec(6)
 
     def step(self) -> None:
         # don't do anything until only holding the correct two currencies
@@ -139,7 +140,7 @@ class MarketMaker(MarketPlayer):
             self.current_bet['bid'].cancel()
             self.current_bet['ask'].cancel()
             bid = self.place_bid_func(
-                self.last_bet_end-self.minimal_wait,
+                self.last_bet_end - self.minimal_wait,
                 self.current_bet['gradient'],
                 self.current_bet['initial_price']
             )
@@ -148,7 +149,7 @@ class MarketMaker(MarketPlayer):
                 self.last_bet_end = 0
                 return
             ask = self.place_ask_func(
-                self.last_bet_end-self.minimal_wait,
+                self.last_bet_end - self.minimal_wait,
                 self.current_bet['gradient'],
                 self.current_bet['initial_price']
             )
@@ -204,23 +205,23 @@ class MarketMaker(MarketPlayer):
         price = start_price + Dec(gradient * time_in_effect)
         multiplier = 1 - (
             (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
-             (self.initial_bet_margin-self.ending_bet_margin)
+             (self.initial_bet_margin - self.ending_bet_margin)
              ) + self.ending_bet_margin
         )
         if self.trade_market == self.nomin_fiat_market:
             return self.place_nomin_fiat_bid_with_fee(
-                self.available_fiat*self.bet_percentage/price,
-                price*multiplier
+                self.available_fiat * self.bet_percentage / price,
+                price * multiplier
             )
         elif self.trade_market == self.havven_fiat_market:
             return self.place_havven_fiat_bid_with_fee(
-                self.available_fiat*self.bet_percentage/price,
-                price*multiplier
+                self.available_fiat * self.bet_percentage / price,
+                price * multiplier
             )
         elif self.trade_market == self.havven_nomin_market:
             return self.place_havven_nomin_bid_with_fee(
-                self.available_havvens*self.bet_percentage/price,
-                price*multiplier
+                self.available_havvens * self.bet_percentage / price,
+                price * multiplier
             )
 
     def place_ask_func(self, time_in_effect: int, gradient: Dec, start_price: Dec) -> "ob.Ask":
@@ -231,18 +232,18 @@ class MarketMaker(MarketPlayer):
         The price chosen is the current predicted price (start + gradient * time_in_effect)
         multiplied by the current bet margin 1+(fraction of time remaining)*(max-min margin)+min_margin
         """
-        price = start_price + Dec(gradient*time_in_effect)
+        price = start_price + Dec(gradient * time_in_effect)
         multiplier = 1 + (
             (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
-             (self.initial_bet_margin-self.ending_bet_margin)
+             (self.initial_bet_margin - self.ending_bet_margin)
              ) + self.ending_bet_margin
         )
         if self.trade_market == self.nomin_fiat_market:
-            return self.place_nomin_fiat_ask_with_fee(self.available_nomins*self.bet_percentage, price*multiplier)
+            return self.place_nomin_fiat_ask_with_fee(self.available_nomins * self.bet_percentage, price * multiplier)
         elif self.trade_market == self.havven_fiat_market:
-            return self.place_havven_fiat_ask_with_fee(self.available_havvens*self.bet_percentage, price*multiplier)
+            return self.place_havven_fiat_ask_with_fee(self.available_havvens * self.bet_percentage, price * multiplier)
         elif self.trade_market == self.havven_nomin_market:
-            return self.place_havven_nomin_ask_with_fee(self.available_nomins*self.bet_percentage, price*multiplier)
+            return self.place_havven_nomin_ask_with_fee(self.available_nomins * self.bet_percentage, price * multiplier)
 
     def calculate_gradient(self, trade_market: 'ob.OrderBook') -> Optional[Dec]:
         """
@@ -250,4 +251,4 @@ class MarketMaker(MarketPlayer):
         """
         if len(trade_market.price_data) < 2:
             return None
-        return (trade_market.price_data[-1] - trade_market.price_data[-2])/2
+        return (trade_market.price_data[-1] - trade_market.price_data[-2]) / 2

@@ -18,7 +18,7 @@ def get_vis_elements() -> List[VisualizationElement]:
     ref_colour = "lightgrey"
 
     profit_colors = ["blue", "red", "green", "orchid", "darkorchid", "fuchsia", "purple",
-              "teal", "darkorange", "darkkaki", "darkgoldenrod", "slategrey", "seagreen"]
+                     "teal", "darkorange", "darkkaki", "darkgoldenrod", "slategrey", "seagreen"]
 
     profit_percentage_lines = [
         {"Label": "Avg Profit %", "Color": "grey"},
@@ -90,7 +90,7 @@ def get_vis_elements() -> List[VisualizationElement]:
             title="Player Net Worth",
             group="Player Wealth"
         ),
-        
+
         ChartModule(
             [{"Label": "Gini", "Color": "navy"}],  # {"Label": "0", "Color": ref_colour}
             desc="Income inequality metric: increases from 0 to 1 as inequality does.",

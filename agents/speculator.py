@@ -21,20 +21,20 @@ class Speculator(MarketPlayer):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.risk_factor = Dec(random.random()/5+0.05)    # (5-25)%
+        self.risk_factor = Dec(random.random() / 5 + 0.05)  # (5-25)%
         """How likely is the speculator going to place a trade if he
         doesn't have an active one"""
 
         self.hold_duration = Dec(random.randint(20, 30))
         """How long a speculator wants to hodl onto a trade"""
 
-        self.profit_goal = Dec(random.random()/10 + 0.01)  # (1-2)%
+        self.profit_goal = Dec(random.random() / 10 + 0.01)  # (1-2)%
         """How much a speculator wants to profit on any trade"""
 
-        self.loss_cutoff = Dec(random.random()/20 + 0.01)  # (1-1.5)%
+        self.loss_cutoff = Dec(random.random() / 20 + 0.01)  # (1-1.5)%
         """At what point does the speculator get rid of a trade"""
 
-        self.investment_fraction = Dec(random.random()/10 + 0.4)  # (40-50)%
+        self.investment_fraction = Dec(random.random() / 10 + 0.4)  # (40-50)%
         """How much wealth does the speculator throw into a trade"""
 
         self.primary_currency = random.choice(["havvens", "fiat", "nomins"])
@@ -140,12 +140,12 @@ class Speculator(MarketPlayer):
         if random.random() < self.risk_factor:
             if direction == "ask":
                 price = market.highest_bid_price()
-                bid = market.bid(price, self.avail_primary()*self.investment_fraction, self)
+                bid = market.bid(price, self.avail_primary() * self.investment_fraction, self)
                 if bid is None:
                     return None
                 bid.cancel()
                 if avail_curr_func() > Dec(0.005):
-                    price_goal = Dec(price*(1+self.profit_goal))
+                    price_goal = Dec(price * (1 + self.profit_goal))
                     new_ask = place_w_fee_function(avail_curr_func(), price_goal)
                     if new_ask is not None:
                         return (
@@ -157,12 +157,12 @@ class Speculator(MarketPlayer):
                         return None
             else:  # placing bid
                 price = market.lowest_ask_price()
-                ask = market.ask(price, self.avail_primary()*self.investment_fraction, self)
+                ask = market.ask(price, self.avail_primary() * self.investment_fraction, self)
                 if ask is None:
                     return None
                 ask.cancel()
                 if avail_curr_func() > Dec(0.005):
-                    price_goal = Dec(price*(1-self.profit_goal))
+                    price_goal = Dec(price * (1 - self.profit_goal))
                     new_bid = place_w_fee_function(avail_curr_func(), price_goal)
                     if new_bid is not None:
                         return (
@@ -187,6 +187,7 @@ class HavvenSpeculator(Speculator):
     If their primary currency is fiat or nomins, they will attempt to long havvens, hoping the price
     will rise.
     """
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -260,6 +261,7 @@ class NaiveSpeculator(Speculator):
     This speculator believes the nom/fiat market can plummet or go to the moon, i.e. it is like
       any other market to speculate on
     """
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

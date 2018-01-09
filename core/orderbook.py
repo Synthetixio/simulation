@@ -17,6 +17,7 @@ class LimitOrder:
     """
     A single limit order, including price, quantity, the issuer, and orderbook it belongs to.
     """
+
     def __init__(self, price: Dec, time: int, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         self.price = HavvenManager.round_decimal(price)
@@ -68,6 +69,7 @@ class LimitOrder:
 
 class Bid(LimitOrder):
     """A bid order. Instantiating one of these will automatically add it to its order book."""
+
     def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
@@ -105,6 +107,7 @@ class Bid(LimitOrder):
 
 class Ask(LimitOrder):
     """An ask order. Instantiating one of these will automatically add it to its order book."""
+
     def __init__(self, price: Dec, quantity: Dec, fee: Dec,
                  issuer: "ag.MarketPlayer", book: "OrderBook") -> None:
         super().__init__(price, book.time, quantity, fee, issuer, book)
@@ -142,6 +145,7 @@ class Ask(LimitOrder):
 
 class TradeRecord:
     """A record of a single trade."""
+
     def __init__(self, buyer: "ag.MarketPlayer", seller: "ag.MarketPlayer", book: "OrderBook",
                  price: Dec, quantity: Dec, bid_fee: Dec, ask_fee: Dec, time: int,
                  bid: 'Bid', ask: 'Ask') -> None:
@@ -418,7 +422,7 @@ class OrderBook:
 
         # Fail if the value of the order exceeds the agent's available supply.
         agent.round_values()
-        if agent.__getattribute__(f"available_{self.quoted}") < HavvenManager.round_decimal(price*quantity) + fee:
+        if agent.__getattribute__(f"available_{self.quoted}") < HavvenManager.round_decimal(price * quantity) + fee:
             return None
 
         bid = Bid(price, quantity, fee, agent, self)
@@ -664,8 +668,8 @@ class OrderBook:
         # Update the unavailable quantities for this bid,
         # deducting the old and crediting the new.
         bid.issuer.__dict__[f"unavailable_{self.quoted}"] += \
-            (HavvenManager.round_decimal(new_quantity*new_price) + new_fee) - \
-            (HavvenManager.round_decimal(bid.quantity*bid.price) + bid.fee)
+            (HavvenManager.round_decimal(new_quantity * new_price) + new_fee) - \
+            (HavvenManager.round_decimal(bid.quantity * bid.price) + bid.fee)
 
         if bid.price == new_price:
             # We may assume the current price is already recorded,

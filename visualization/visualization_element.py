@@ -1,4 +1,3 @@
-
 class VisualizationElement:
     """
     Defines an element of the visualization.

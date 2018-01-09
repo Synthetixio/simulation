@@ -139,9 +139,9 @@ class Mint:
 
     def calculate_copt_cmax(self):
         self.copt = (self.copt_sensitivity_parameter * (
-            (self.market_manager.nomin_fiat_market.price - 1)**self.copt_flattening_parameter
-            ) + 1) * self.global_collateralisation
-        self.cmax = self.copt*self.copt_buffer_parameter
+            (self.market_manager.nomin_fiat_market.price - 1) ** self.copt_flattening_parameter
+        ) + 1) * self.global_collateralisation
+        self.cmax = self.copt * self.copt_buffer_parameter
         if self.cmax < self.minimal_cmax:
             self.cmax = self.minimal_cmax
 

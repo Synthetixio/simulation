@@ -11,7 +11,7 @@ from core import model
 
 def mean(values: List[Any]):
     if len(values) > 0:
-        return sum(values)/len(values)
+        return sum(values) / len(values)
     return 0
 
 
@@ -31,7 +31,7 @@ def mean_profit_fraction(havven_model: "model.HavvenModel") -> float:
     if len(havven_model.schedule.agents) == 0:
         return 0
     return float(mean([a.profit_fraction() for a in havven_model.schedule.agents
-                 if not _profit_excluded(a)]))
+                       if not _profit_excluded(a)]))
 
 
 def mean_agent_profit_fraction(name: str, havven_model: "model.HavvenModel"):
@@ -52,8 +52,8 @@ def gini(havven_model: "model.HavvenModel") -> float:
     total_wealth = float(sum(s_wealth))
     if total_wealth == 0 or n == 0:
         return 0
-    scaled_wealth = float(sum([(i+1)*w for i, w in enumerate(s_wealth)]))
-    return (2.0*scaled_wealth)/(n*total_wealth) - (n+1.0)/n
+    scaled_wealth = float(sum([(i + 1) * w for i, w in enumerate(s_wealth)]))
+    return (2.0 * scaled_wealth) / (n * total_wealth) - (n + 1.0) / n
 
 
 def max_wealth(havven_model: "model.HavvenModel") -> float:
@@ -141,7 +141,7 @@ def create_datacollector() -> DataCollector:
         "Gini": gini,
         "Nomins": lambda h: float(h.manager.issued_nomins),
         "Escrowed Havvens": escrowed_havvens,
-        #"Wealth SD": stats.wealth_sd,
+        # "Wealth SD": stats.wealth_sd,
         "Max Wealth": max_wealth,
         "Min Wealth": min_wealth,
         "Avg Profit %": lambda h: round(100 * mean_profit_fraction(h), 3),
@@ -161,7 +161,7 @@ def create_datacollector() -> DataCollector:
     agent_reporters = {}
     for name in agents.player_names:
         if name not in agents.players_to_exclude:
-            agent_reporters[name] = lambda h, y=name: round(mean_agent_profit_fraction(y, h)*100, 3)
+            agent_reporters[name] = lambda h, y=name: round(mean_agent_profit_fraction(y, h) * 100, 3)
 
     base_reporters.update(agent_reporters)
 

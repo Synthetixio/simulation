@@ -170,6 +170,6 @@ Using default value of: {settings[section][item]}
     # make all the agent fractions floats based on max
     total = sum(settings['AgentFractions'][i] for i in settings['AgentFractions'])
     for i in settings['AgentFractions']:
-        settings['AgentFractions'][i] = settings['AgentFractions'][i]/total
+        settings['AgentFractions'][i] = settings['AgentFractions'][i] / total
 
     return settings

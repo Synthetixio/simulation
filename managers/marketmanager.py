@@ -71,8 +71,8 @@ class MarketManager:
         quantity = HavvenManager.round_decimal(min(ask.quantity, bid.quantity))
 
         # Only charge a fraction of the fee if an order was not entirely filled.
-        bid_fee = HavvenManager.round_decimal((quantity/bid.quantity) * bid.fee)
-        ask_fee = HavvenManager.round_decimal((quantity/ask.quantity) * ask.fee)
+        bid_fee = HavvenManager.round_decimal((quantity / bid.quantity) * bid.fee)
+        ask_fee = HavvenManager.round_decimal((quantity / ask.quantity) * ask.fee)
 
         # Compute the buy value. The sell value is just the quantity itself.
         buy_val = HavvenManager.round_decimal(quantity * price)
@@ -168,7 +168,7 @@ class MarketManager:
         return False
 
     def transfer_havvens(self, sender: 'ag.MarketPlayer',
-                        recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec] = None) -> bool:
+                         recipient: 'ag.MarketPlayer', quantity: Dec, fee: Optional[Dec] = None) -> bool:
         """
         Transfer a positive quantity of havvens from the sender to the recipient,
           if balance is sufficient. Return True on success.

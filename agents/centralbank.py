@@ -15,7 +15,6 @@ class CentralBank(MarketPlayer):
                  nomin_target: Optional[Dec] = None,
                  havven_nomin_target: Optional[Dec] = None,
                  tolerance: Dec = Dec('0.01')) -> None:
-
         super().__init__(unique_id, havven_model, fiat=fiat,
                          havvens=havvens, nomins=nomins)
 
@@ -44,7 +43,6 @@ class CentralBank(MarketPlayer):
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
-
         self.cancel_orders()
         # # TODO: fix logic
         #

@@ -101,7 +101,7 @@ class PortfolioModule(BarGraphModule):
                 breakdown = item[1].portfolio(self.fiat_values)
                 for i in range(len(breakdown)):
                     # assume that issued nomins are last
-                    if i+1 == len(breakdown):
+                    if i + 1 == len(breakdown):
                         vals[i + static_val_len].append(-float(breakdown[i]))
                     else:
                         vals[i + static_val_len].append(float(breakdown[i]))
@@ -134,8 +134,8 @@ class CurrentOrderModule(BarGraphModule):
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:
             vals: OrderbookValueTuple = (
-                ["NomFiatAsk",  "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
-                ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
+                ["NomFiatAsk", "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
+                ["deepskyblue", "#179473", "red", "#8C2E00", "purple", "#995266"],
                 [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
             )
             static_val_length = 4
@@ -210,8 +210,8 @@ class PastOrdersModule(BarGraphModule):
         # vals are [datasets],[colours],[bar #],[playername],[dataset 1],...[dataset n]
         if not self.sent_data:
             vals: OrderbookValueTuple = (
-                ["NomFiatAsk",  "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
-                ["deepskyblue", "#179473",    "red",        "#8C2E00",    "purple",    "#995266"],
+                ["NomFiatAsk", "NomFiatBid", "HavFiatAsk", "HavFiatBid", "HavNomAsk", "HavNomBid"],
+                ["deepskyblue", "#179473", "red", "#8C2E00", "purple", "#995266"],
                 [1, 1, 2, 2, 3, 3], [], [], [], [], [], [], []
             )
             static_val_length = 4

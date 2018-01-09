@@ -50,7 +50,7 @@ class UserSettableParameter:
     _ERROR_MESSAGE = "Missing or malformed inputs for '{}' Option '{}'"
 
     def __init__(
-        self, param_type=None, name='', value=None, min_value=None, max_value=None,
+            self, param_type=None, name='', value=None, min_value=None, max_value=None,
             step=1, choices=list(), description=None
     ):
         if param_type not in self.TYPES:

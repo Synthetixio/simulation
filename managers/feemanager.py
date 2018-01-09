@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from decimal import Decimal as Dec
 
-import agents 
+import agents
 from .havvenmanager import HavvenManager
 
 
@@ -107,7 +107,7 @@ class FeeManager:
         for agent in schedule_agents:
             ci = agent.collateralisation
             if ci <= copt:
-                fee_mult = ci/copt
+                fee_mult = ci / copt
             elif copt < ci <= cmax:
                 fee_mult = (cmax - ci) / (cmax - copt)
             else:
@@ -129,7 +129,7 @@ class FeeManager:
             else:
                 fee_mult = 0
 
-            qty = (agent.havvens * fee_mult / abase * pre_nomins)*Dec('0.99')
+            qty = (agent.havvens * fee_mult / abase * pre_nomins) * Dec('0.99')
 
             agent.nomins += qty
             self.model_manager.nomins -= qty

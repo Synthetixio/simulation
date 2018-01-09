@@ -109,6 +109,7 @@ class HavvenEscrowNominShorter(NominShorter):
     In the end this player should hold escrowed havvens and nomins left over that he
     can't burn
     """
+
     def setup(self, init_value: Dec):
         self.havvens = init_value * Dec(2)
         self.fiat = init_value
@@ -116,55 +117,55 @@ class HavvenEscrowNominShorter(NominShorter):
     def step(self) -> None:
         pass
         # # TODO: rewrite logic
-    #     # keep all havvens escrowed to make issuing nomins easier
-    #     if self.available_havvens > 0:
-    #         self.escrow_havvens(self.available_havvens)
-    #
-    #     nomins = self.available_nomins + self.remaining_issuance_rights()
-    #
-    #     if nomins > 0:
-    #         trade = self._find_best_nom_fiat_trade()
-    #         last_price = 0
-    #         while trade is not None and HavvenManager.round_decimal(nomins) > 0:
-    #             if last_price == trade[0]:
-    #                 break
-    #             last_price = trade[0]
-    #             self._issue_nomins_up_to(trade[1])
-    #             ask = self._make_nom_fiat_trade(trade)
-    #             trade = self._find_best_nom_fiat_trade()
-    #             nomins = self.available_nomins + self.remaining_issuance_rights()
-    #
-    #     if self.available_fiat > 0:
-    #         trade = self._find_best_fiat_nom_trade()
-    #         last_price = 0
-    #         while trade is not None and HavvenManager.round_decimal(self.available_fiat) > 0:
-    #             if last_price == trade[0]:
-    #                 break
-    #             last_price = trade[0]
-    #             bid = self._make_fiat_nom_trade(trade)
-    #             trade = self._find_best_fiat_nom_trade()
-    #
-    #     if self.issued_nomins:
-    #         if self.available_nomins < self.issued_nomins:
-    #             self.burn_nomins(self.available_nomins)
-    #         else:
-    #             self.burn_nomins(self.issued_nomins)
-    #
-    # def _issue_nomins_up_to(self, quantity: Dec) -> bool:
-    #     """
-    #     If quantity > currently issued nomins, including fees to trade, issue more nomins
-    #
-    #     If the player cant issue more nomins than the quantity,
-    #     """
-    #     fee = HavvenManager.round_decimal(self.model.fee_manager.transferred_nomins_fee(quantity))
-    #
-    #     # if there are enough nomins, return
-    #     if self.available_nomins > fee + quantity:
-    #         return True
-    #
-    #     nomins_needed = fee + quantity - self.available_nomins
-    #
-    #     if self.remaining_issuance_rights() > nomins_needed:
-    #         return self.issue_nomins(nomins_needed)
-    #     else:
-    #         return self.issue_nomins(self.remaining_issuance_rights())
+        #     # keep all havvens escrowed to make issuing nomins easier
+        #     if self.available_havvens > 0:
+        #         self.escrow_havvens(self.available_havvens)
+        #
+        #     nomins = self.available_nomins + self.remaining_issuance_rights()
+        #
+        #     if nomins > 0:
+        #         trade = self._find_best_nom_fiat_trade()
+        #         last_price = 0
+        #         while trade is not None and HavvenManager.round_decimal(nomins) > 0:
+        #             if last_price == trade[0]:
+        #                 break
+        #             last_price = trade[0]
+        #             self._issue_nomins_up_to(trade[1])
+        #             ask = self._make_nom_fiat_trade(trade)
+        #             trade = self._find_best_nom_fiat_trade()
+        #             nomins = self.available_nomins + self.remaining_issuance_rights()
+        #
+        #     if self.available_fiat > 0:
+        #         trade = self._find_best_fiat_nom_trade()
+        #         last_price = 0
+        #         while trade is not None and HavvenManager.round_decimal(self.available_fiat) > 0:
+        #             if last_price == trade[0]:
+        #                 break
+        #             last_price = trade[0]
+        #             bid = self._make_fiat_nom_trade(trade)
+        #             trade = self._find_best_fiat_nom_trade()
+        #
+        #     if self.issued_nomins:
+        #         if self.available_nomins < self.issued_nomins:
+        #             self.burn_nomins(self.available_nomins)
+        #         else:
+        #             self.burn_nomins(self.issued_nomins)
+        #
+        # def _issue_nomins_up_to(self, quantity: Dec) -> bool:
+        #     """
+        #     If quantity > currently issued nomins, including fees to trade, issue more nomins
+        #
+        #     If the player cant issue more nomins than the quantity,
+        #     """
+        #     fee = HavvenManager.round_decimal(self.model.fee_manager.transferred_nomins_fee(quantity))
+        #
+        #     # if there are enough nomins, return
+        #     if self.available_nomins > fee + quantity:
+        #         return True
+        #
+        #     nomins_needed = fee + quantity - self.available_nomins
+        #
+        #     if self.remaining_issuance_rights() > nomins_needed:
+        #         return self.issue_nomins(nomins_needed)
+        #     else:
+        #         return self.issue_nomins(self.remaining_issuance_rights())

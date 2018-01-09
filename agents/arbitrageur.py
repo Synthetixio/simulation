@@ -10,6 +10,7 @@ from .marketplayer import MarketPlayer
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
+
     def __init__(self, unique_id: int, havven: "model.HavvenModel",
                  fiat: Dec = Dec(0), havvens: Dec = Dec(0),
                  nomins: Dec = Dec(0),
@@ -54,9 +55,9 @@ class Arbitrageur(MarketPlayer):
         self.nomin_fiat_ask_qty = hm.round_decimal(self.nomin_fiat_market.lowest_ask_quantity()
                                                    * self.nomin_fiat_market.lowest_ask_price())
         self.havven_nomin_ask_qty = hm.round_decimal(self.havven_nomin_market.lowest_ask_quantity()
-                                                    * self.havven_nomin_market.lowest_ask_price())
+                                                     * self.havven_nomin_market.lowest_ask_price())
         self.havven_fiat_ask_qty = hm.round_decimal(self.havven_fiat_market.lowest_ask_quantity()
-                                                   * self.havven_fiat_market.lowest_ask_price())
+                                                    * self.havven_fiat_market.lowest_ask_price())
 
         wealth = self.wealth()
 

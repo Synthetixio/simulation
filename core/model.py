@@ -20,6 +20,7 @@ class HavvenModel(Model):
       other quantities including liquidity, volatility, wealth concentration,
       velocity of money and so on.
     """
+
     def __init__(self,
                  model_settings: Dict[str, Any],
                  fee_settings: Dict[str, Any],
@@ -40,7 +41,6 @@ class HavvenModel(Model):
         agent_fractions = model_settings['agent_fractions']
         num_agents = model_settings['num_agents']
         continuous_order_matching = model_settings['continuous_order_matching']
-
 
         # Mesa setup.
         super().__init__()
@@ -111,7 +111,7 @@ class HavvenModel(Model):
             self.market_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.
-        if ((self.manager.time+1) % self.fee_manager.fee_period) == 0:
+        if ((self.manager.time + 1) % self.fee_manager.fee_period) == 0:
             self.fee_manager.distribute_fees(self.schedule.agents, self.mint.copt, self.mint.cmax)
 
         # calculate copt and cmax after fees distributed to reward good players

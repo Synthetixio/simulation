@@ -114,6 +114,7 @@ from visualization.userparam import UserSettableParameter
 
 class PageHandler(tornado.web.RequestHandler):
     """ Handler for the HTML template which holds the visualization. """
+
     def get(self):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
@@ -130,6 +131,7 @@ class PageHandler(tornado.web.RequestHandler):
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
@@ -395,7 +397,7 @@ class ModularServer(tornado.web.Application):
         self.max_steps = settings['Server']['max_steps']
         self.calculation_buffer = 16
         self.fps_max = settings['Server']['fps_max']
-        self.min_step_time = 1/(self.fps_max + 5)  # give some extra buffer room, just in case
+        self.min_step_time = 1 / (self.fps_max + 5)  # give some extra buffer room, just in case
         self.fps_default = settings['Server']['fps_default']
 
         self.description = ""

@@ -39,7 +39,7 @@ class AgentManager:
         if total_value > 0:
             for name in ag.player_names:
                 if name in agent_fractions:
-                    normalised_fractions[name] = agent_fractions[name]/total_value
+                    normalised_fractions[name] = agent_fractions[name] / total_value
         agent_fractions = normalised_fractions
 
         # Create the agents themselves.
@@ -47,7 +47,7 @@ class AgentManager:
         for agent_type in agent_fractions:
             total = max(
                 self.agent_minimum,
-                int(num_agents*agent_fractions[agent_type])
+                int(num_agents * agent_fractions[agent_type])
             )
 
             for i in range(total):

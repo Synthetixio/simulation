@@ -16,7 +16,7 @@ class Banker(MarketPlayer):
         """The time the order was placed as well as the fiat/hvn order"""
         self.nomin_havven_order: Optional[Tuple[int, "ob.Bid"]] = None
         self.nomin_fiat_order: Optional[Tuple[int, "ob.Ask"]] = None
-        self.sell_rate: Dec = hm.round_decimal(Dec(random.random()/3 + 0.1))
+        self.sell_rate: Dec = hm.round_decimal(Dec(random.random() / 3 + 0.1))
         self.trade_premium: Dec = Dec('0.01')
         self.trade_duration: int = 10
         # step when initialised so nomins appear on the market.
@@ -49,8 +49,8 @@ class Banker(MarketPlayer):
                 # the market will probably have a better price...
                 if havven_supply > fiat_supply:
                     order = self.place_havven_nomin_bid_with_fee(
-                        self.available_nomins*self.sell_rate,
-                        self.havven_nomin_market.price * (Dec(1)-self.trade_premium)
+                        self.available_nomins * self.sell_rate,
+                        self.havven_nomin_market.price * (Dec(1) - self.trade_premium)
                     )
                     if order is None:
                         return
@@ -61,8 +61,8 @@ class Banker(MarketPlayer):
 
                 else:
                     order = self.place_nomin_fiat_ask_with_fee(
-                        self.available_nomins*self.sell_rate,
-                        self.nomin_fiat_market.price * (Dec(1)+self.trade_premium)
+                        self.available_nomins * self.sell_rate,
+                        self.nomin_fiat_market.price * (Dec(1) + self.trade_premium)
                     )
                     if order is None:
                         return
@@ -74,7 +74,7 @@ class Banker(MarketPlayer):
         if self.available_fiat > 0 and not self.fiat_havven_order:
             order = self.place_havven_fiat_bid_with_fee(
                 hm.round_decimal(self.available_fiat * self.sell_rate),
-                self.havven_fiat_market.price * (Dec(1)-self.trade_premium)
+                self.havven_fiat_market.price * (Dec(1) - self.trade_premium)
             )
             if order is None:
                 return

@@ -7,7 +7,6 @@ from mesa import Agent
 from core import orderbook as ob, model
 from managers import HavvenManager as hm
 
-
 Portfolio = namedtuple(
     "Portfolio", ["fiat", "escrowed_havvens", "havvens", "havven_debt", "nomins", "issued_nomins"])
 
@@ -256,7 +255,7 @@ class MarketPlayer(Agent):
         """
         remaining_quoted = self.__getattribute__(f"available_{book.quoted}")
         quantity = min(quantity, remaining_quoted)
-        if quantity < Dec('0.0005'): # TODO: remove workaround, and/or factor into epsilon variable
+        if quantity < Dec('0.0005'):  # TODO: remove workaround, and/or factor into epsilon variable
             return None
 
         next_qty = hm.round_decimal(min(quantity, book.lowest_ask_quantity()) / book.lowest_ask_price())
@@ -266,7 +265,8 @@ class MarketPlayer(Agent):
 
         # Keep on bidding until we either run out of reserves or sellers, or we've bought enough.
         while bid is not None and not bid.active and total_sold < quantity and len(book.asks) == 0:
-            next_qty = hm.round_decimal(min(quantity - total_sold, book.lowest_ask_quantity()) / book.lowest_ask_price())
+            next_qty = hm.round_decimal(
+                min(quantity - total_sold, book.lowest_ask_quantity()) / book.lowest_ask_price())
             pre_sold = self.__getattribute__(f"available_{book.quoted}")
             bid = book.buy(next_qty, self)
             total_sold += pre_sold - self.__getattribute__(f"available_{book.quoted}")

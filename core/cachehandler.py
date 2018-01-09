@@ -16,7 +16,6 @@ import tqdm
 from core import model
 from core import settingsloader
 
-
 run_settings = [
     # settings for each individual run to create a cache for.
     # name: having a "Default" run is required

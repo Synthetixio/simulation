@@ -44,7 +44,7 @@ class Merchant(MarketPlayer):
         # Set up this merchant's inventory of items, their stocks, and their prices.
         self.inventory: Dict[str, Dict[str, Dec]] = {
             # name: price(nomins), stock_price(fiat), current_stock, stock_goal
-            str(i): {'price': Dec(random.random() * 20)+1, 'stock_price': Dec(1),
+            str(i): {'price': Dec(random.random() * 20) + 1, 'stock_price': Dec(1),
                      'current_stock': Dec(100), 'stock_goal': Dec(100)}
             for i in range(1, random.randint(4, 6))
         }
@@ -75,14 +75,14 @@ class Merchant(MarketPlayer):
             for item in self.inventory:
                 info = self.inventory[item]
                 to_restock = info['stock_goal'] - info['current_stock']
-                cost = to_restock*info['stock_price']
+                cost = to_restock * info['stock_price']
                 if self.available_fiat > cost:
                     self.fiat -= cost
                     self.inventory[item]['current_stock'] += to_restock
                 # if out of money try again in 2 ticks.
                 else:
                     amount_possible = int(self.available_fiat / info['stock_price'])
-                    self.fiat -= info['stock_price']*amount_possible
+                    self.fiat -= info['stock_price'] * amount_possible
                     self.inventory[item]['current_stock'] += amount_possible
 
     def sell_stock(self, agent: 'Buyer', item: str, quantity: Dec) -> Dec:
@@ -90,10 +90,10 @@ class Merchant(MarketPlayer):
         Function to transfer stock to buyer, telling the buyer how much they
         need to transfer... We can trust the buyer will transfer.
         """
-        if agent.available_nomins > self.inventory[item]['price']*quantity and \
-                self.inventory[item]['current_stock'] > quantity:
+        if agent.available_nomins > self.inventory[item]['price'] * quantity and \
+                        self.inventory[item]['current_stock'] > quantity:
             self.inventory[item]['current_stock'] -= quantity
-            return self.inventory[item]['price']*quantity
+            return self.inventory[item]['price'] * quantity
         return Dec(0)
 
 
@@ -134,12 +134,12 @@ class Buyer(MarketPlayer):
                 self.order.cancel()
             # place a bid at max_nomin_price, as it would be dumb for anyone to pay more
             self.order = self.place_nomin_fiat_bid_with_fee(
-                self.available_fiat/self.max_nomin_price, self.max_nomin_price
+                self.available_fiat / self.max_nomin_price, self.max_nomin_price
             )
 
         # If feeling spendy, buy something.
         if random.random() < self.mpc:
-            to_buy = Dec(int(random.random()*5)+1)
+            to_buy = Dec(int(random.random() * 5) + 1)
             buying_from = random.choice(self.model.agent_manager.agents['Merchant'])
             buying = random.choice(list(buying_from.inventory.keys()))
             amount = buying_from.sell_stock(self, buying, Dec(to_buy))

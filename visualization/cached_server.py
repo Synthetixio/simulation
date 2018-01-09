@@ -15,6 +15,7 @@ from core import cachehandler
 
 class CachedPageHandler(tornado.web.RequestHandler):
     """ Handler for the HTML template which holds the visualization. """
+
     def get(self):
         elements = self.application.visualization_elements
         for i, element in enumerate(elements):
@@ -31,6 +32,7 @@ class CachedPageHandler(tornado.web.RequestHandler):
 
 class CachedSocketHandler(tornado.websocket.WebSocketHandler):
     """ Handler for websocket. """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resetlock = threading.Lock()
@@ -58,7 +60,7 @@ class CachedSocketHandler(tornado.websocket.WebSocketHandler):
             if cache_data is False:
                 message = {"type": "end"}
             else:
-                data = [(msg['step']+1, cache_data)]
+                data = [(msg['step'] + 1, cache_data)]
 
                 message = {
                     "type": "viz_state",
@@ -102,7 +104,7 @@ class CachedDataHandler:
 
     def get_steps(self, dataset, step_start, step_end):
         if dataset in self.data and \
-                0 <= step_start < step_end < len(self.data[dataset]):
+                                        0 <= step_start < step_end < len(self.data[dataset]):
             return self.data[dataset]['data'][step_start:step_end]
         return False
 

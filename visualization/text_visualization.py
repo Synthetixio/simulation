@@ -27,6 +27,8 @@ potentially render a cell based on several values (e.g. an Agent grid and a
 Patch value grid).
 
 """
+
+
 # Pylint instructions: allow single-character variable names.
 # pylint: disable=invalid-name
 
@@ -41,6 +43,7 @@ class TextVisualization:
                     in the order they are added.
 
     """
+
     def __init__(self, model):
         """ Create a new Text Visualization object. """
         self.model = model
@@ -78,6 +81,7 @@ class TextElement:
 
 class TextData(TextElement):
     """ Prints the value of one particular variable from the base model. """
+
     def __init__(self, model, var_name):
         """ Create a new data renderer. """
         self.model = model
