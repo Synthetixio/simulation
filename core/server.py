@@ -215,6 +215,7 @@ def make_server() -> "tornado.web.Application":
     else:
         print("Running model server...")
 
+        # TODO: add more controls for other options
         n_slider = UserSettableParameter(
             'slider', "Number of agents",
             settings["Model"]["num_agents"], settings["Model"]["num_agents_min"],
@@ -245,7 +246,7 @@ def make_server() -> "tornado.web.Application":
             charts,
             "Havven Model (Alpha)",
             {
-                "num_agents": n_slider,  # "utilisation_ratio_max": ur_slider,
+                "num_agents": n_slider,
                 "continuous_order_matching": match_checkbox,
                 'agent_fractions': agent_fraction_selector
             }

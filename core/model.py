@@ -111,9 +111,10 @@ class HavvenModel(Model):
             self.market_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.
-        if (self.manager.time % self.fee_manager.fee_period) == 0:
-            self.fee_manager.distribute_fees(self.schedule.agents)
+        if ((self.manager.time+1) % self.fee_manager.fee_period) == 0:
+            self.fee_manager.distribute_fees(self.schedule.agents, self.mint.copt, self.mint.cmax)
 
+        # calculate copt and cmax after fees distributed to reward good players
         self.mint.calculate_copt_cmax()
 
         # Collect data.

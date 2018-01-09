@@ -1,6 +1,5 @@
 from typing import List, Dict, Any
 from decimal import Decimal as Dec
-from random import shuffle
 
 import agents 
 from .havvenmanager import HavvenManager
@@ -11,7 +10,9 @@ class FeeManager:
     Handles fee calculation.
     """
 
-    def __init__(self, model_manager: HavvenManager, fee_settings: Dict[str, Any]) -> None:
+    def __init__(
+            self, model_manager: HavvenManager, fee_settings: Dict[str, Any]
+    ) -> None:
         """
         :param model_manager: a model_manager object
         :param fee_settings: The settings for fees:
@@ -83,7 +84,9 @@ class FeeManager:
         """
         return HavvenManager.round_decimal(quantity * self.nomin_fee_rate)
 
-    def distribute_fees(self, schedule_agents: List["agents.MarketPlayer"]) -> None:
+    def distribute_fees(
+            self, schedule_agents: List["agents.MarketPlayer"], copt: Dec, cmax: Dec
+    ) -> None:
         """
         Distribute currently held nomins to holders of havvens.
         """
@@ -93,17 +96,41 @@ class FeeManager:
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
-        # reward in random order in case there's
-        # some ordering bias I'm missing.
-        shuffled_agents = list(schedule_agents)
-        shuffle(shuffled_agents)
+        total_escrowed_havvens = sum(i.escrowed_havvens for i in schedule_agents)
 
         pre_nomins = self.model_manager.nomins
-        for agent in shuffled_agents:
-            if self.model_manager.nomins <= 0:
-                break
-            qty = min(HavvenManager.round_decimal(pre_nomins * agent.issued_nomins),
-                      self.model_manager.nomins)
+
+        # calculate alphabase
+
+        abase = 0
+
+        for agent in schedule_agents:
+            ci = agent.collateralisation
+            if ci <= copt:
+                fee_mult = ci/copt
+            elif copt < ci <= cmax:
+                fee_mult = (cmax - ci) / (cmax - copt)
+            else:
+                fee_mult = 0
+            abase += agent.havvens * fee_mult
+
+        if abase <= 0:
+            print("Skipping fee distribution, no ci is in the 0->cmax range")
+            return
+
+        for agent in schedule_agents:
+            if self.model_manager.nomins < 0:
+                raise Exception("Model manager has less than 0 nomins when distributing fees")
+            ci = agent.collateralisation
+            if ci <= copt:
+                fee_mult = ci / copt
+            elif copt < ci <= cmax:
+                fee_mult = (cmax - ci) / (cmax - copt)
+            else:
+                fee_mult = 0
+
+            qty = (agent.havvens * fee_mult / abase * pre_nomins)*Dec('0.99')
+
             agent.nomins += qty
             self.model_manager.nomins -= qty
             self.fees_distributed += qty

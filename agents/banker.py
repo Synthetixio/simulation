@@ -84,5 +84,4 @@ class Banker(MarketPlayer):
             )
 
         if self.available_havvens > 0:
-            # print("attempting to escrow havvens")
             self.escrow_havvens(self._fraction(self.available_havvens, Dec(5)))

@@ -79,7 +79,9 @@ class MarketPlayer(Agent):
 
     @property
     def collateralisation(self) -> Dec:
-        return (self.issued_nomins * self.nomin_fiat_market.price /
+        if self.havvens == 0 or self.issued_nomins == 0:
+            return Dec(0)
+        return ((self.issued_nomins * self.nomin_fiat_market.price) /
                 (self.havvens * self.havven_fiat_market.price))
 
     @property
@@ -122,7 +124,12 @@ class MarketPlayer(Agent):
         """
         Return the total wealth of this agent at current fiat prices.
         """
-        return self.model.fiat_value(havvens=(self.havvens + self.escrowed_havvens),
+        escrowed_havvens = self.escrowed_havvens
+        havvens = self.havvens - escrowed_havvens
+        if havvens < 0:  # ignore havven 'debt'
+            escrowed_havvens = self.havvens
+            havvens = 0
+        return self.model.fiat_value(havvens=(havvens + escrowed_havvens),
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=self.fiat)
 
@@ -149,6 +156,7 @@ class MarketPlayer(Agent):
             escrowed_havvens = v_f(havvens=escrowed_havvens)
             nomins = v_f(nomins=nomins)
             issued_nomins = v_f(nomins=issued_nomins)
+            havven_debt = 0
 
         return Portfolio(
             fiat=fiat, havvens=havvens, escrowed_havvens=escrowed_havvens,
