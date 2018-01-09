@@ -1,5 +1,6 @@
 from decimal import Decimal as Dec
 from typing import Dict
+from itertools import permutations
 
 from managers import HavvenManager as hm
 from core.orderbook import OrderBook
@@ -7,6 +8,15 @@ from .marketplayer import MarketPlayer
 
 
 # TODO: consider if arbitrageurs should balance out their currency fractions periodically.
+
+currencies = ['h', 'n', 'f']
+market_directions = {
+    # what to place to go from a->b
+    'h': {'n': 'ask', 'f': 'ask'},
+    'n': {'h': 'bid', 'f': 'ask'},
+    'f': {'n': 'bid', 'h': 'bid'}
+}
+
 
 class Arbitrageur(MarketPlayer):
     """Wants to find arbitrage cycles and exploit them to equalise prices."""
@@ -25,18 +35,14 @@ class Arbitrageur(MarketPlayer):
         this fraction.
         """
 
-        # Cached values of the amount available in arb cycles for performance
-        # and neatness.
-        self.havven_fiat_bid_qty = Dec(0)
-        self.havven_nomin_bid_qty = Dec(0)
-        self.nomin_fiat_bid_qty = Dec(0)
-        self.nomin_fiat_ask_qty = Dec(0)
-        self.havven_nomin_ask_qty = Dec(0)
-        self.havven_fiat_ask_qty = Dec(0)
+        self.nomins_to_purchase = Dec(0)
+        self.nomin_purchase_order = None
+        self.market_data = None
 
     def setup(self, init_value: Dec):
-        self.fiat = init_value
+        self.fiat = init_value*2
         self.model.endow_havvens(self, init_value)
+        self.nomins_to_purchase = init_value
 
     def step(self) -> None:
         """
@@ -49,46 +55,85 @@ class Arbitrageur(MarketPlayer):
         cycle is better than the profit threshold (including fees).
         """
 
-        self.havven_fiat_bid_qty = self.havven_fiat_market.highest_bid_quantity()
-        self.havven_nomin_bid_qty = self.havven_nomin_market.highest_bid_quantity()
-        self.nomin_fiat_bid_qty = self.nomin_fiat_market.highest_bid_quantity()
-        self.nomin_fiat_ask_qty = hm.round_decimal(self.nomin_fiat_market.lowest_ask_quantity()
-                                                   * self.nomin_fiat_market.lowest_ask_price())
-        self.havven_nomin_ask_qty = hm.round_decimal(self.havven_nomin_market.lowest_ask_quantity()
-                                                     * self.havven_nomin_market.lowest_ask_price())
-        self.havven_fiat_ask_qty = hm.round_decimal(self.havven_fiat_market.lowest_ask_quantity()
-                                                    * self.havven_fiat_market.lowest_ask_price())
+        if self.nomins_to_purchase > 0:
+            if self.nomin_purchase_order:
+                self.nomin_purchase_order.cancel()
+            self.nomin_purchase_order = self.sell_fiat_for_nomins_with_fee(self.nomins_to_purchase)
 
-        wealth = self.wealth()
+        self.market_data = {
+            # what to buy into to go a->b instantly
+            'h': {
+                'f': [self.havven_fiat_market.highest_bid_price(),
+                      self.havven_fiat_market.highest_bid_quantity(),
+                      self.havven_fiat_market],
+                'n': [self.havven_nomin_market.highest_bid_price(),
+                      self.havven_nomin_market.highest_bid_quantity(),
+                      self.havven_nomin_market]
+            },
+            'n': {
+                'h': [self.havven_nomin_market.lowest_ask_price(),
+                      self.havven_nomin_market.lowest_ask_quantity(),
+                      self.havven_nomin_market],
+                'f': [self.nomin_fiat_market.highest_bid_price(),
+                      self.nomin_fiat_market.highest_bid_quantity(),
+                      self.nomin_fiat_market]
+            },
+            'f': {
+                'h': [self.havven_fiat_market.lowest_ask_price(),
+                      self.havven_fiat_market.lowest_ask_quantity(),
+                      self.havven_fiat_market],
+                'n': [self.nomin_fiat_market.lowest_ask_price(),
+                      self.nomin_fiat_market.lowest_ask_quantity(),
+                      self.nomin_fiat_market]
+            }
+        }
 
-        # Consider the forward direction
-        cc_net_wealth = self.model.fiat_value(**self.forward_havven_cycle_balances()) - wealth
-        nn_net_wealth = self.model.fiat_value(**self.forward_nomin_cycle_balances()) - wealth
-        ff_net_wealth = self.model.fiat_value(**self.forward_fiat_cycle_balances()) - wealth
-        max_net_wealth = max(cc_net_wealth, nn_net_wealth, ff_net_wealth)
+        if self._forward_multiple() > 1 + self.profit_threshold:
+            for cycle in ['fnh', 'hfn', 'nhf']:
+                a = cycle[0]
+                b = cycle[1]
+                c = cycle[2]
+                vol_a, profit = self.calculate_volume_profit(a, b, c)
 
-        if max_net_wealth > self.profit_threshold:
-            if cc_net_wealth == max_net_wealth:
-                self.forward_havven_cycle_trade()
-            elif nn_net_wealth == max_net_wealth:
-                self.forward_nomin_cycle_trade()
-            else:
-                self.forward_fiat_cycle_trade()
-            return
+        if self._reverse_multiple() > 1 + self.profit_threshold:
+            for cycle in ['fhn', 'hnf', 'nfh']:
+                a = cycle[0]
+                b = cycle[1]
+                c = cycle[2]
+                vol_a, profit = self.calculate_volume_profit(a, b, c)
 
-        # Now the reverse direction
-        cc_net_wealth = self.model.fiat_value(**self.reverse_havven_cycle_balances()) - wealth
-        nn_net_wealth = self.model.fiat_value(**self.reverse_nomin_cycle_balances()) - wealth
-        ff_net_wealth = self.model.fiat_value(**self.reverse_fiat_cycle_balances()) - wealth
-        max_net_wealth = max(cc_net_wealth, nn_net_wealth, ff_net_wealth)
+        pass
 
-        if max_net_wealth > self.profit_threshold:
-            if cc_net_wealth == max_net_wealth:
-                self.reverse_havven_cycle_trade()
-            elif nn_net_wealth == max_net_wealth:
-                self.reverse_nomin_cycle_trade()
-            else:
-                self.reverse_fiat_cycle_trade()
+    def calculate_volume_profit(self, a, b, c):
+        """
+        Calculate the available volume and the profit the a>b>c>a cycle has
+        """
+        profit = 1
+
+        if a == 'h':
+            volume = self.available_havvens
+        elif a == 'n':
+            volume = self.available_nomins
+        else:
+            volume = self.available_fiat
+
+        if market_directions[a][b] == 'bid':
+            profit *= self.market_data[a][b][0]
+        else:
+            profit /= self.market_data[a][b][0]
+
+        if market_directions[b][c] == 'bid':
+            profit *= self.market_data[b][c][0]
+        else:
+            profit /= self.market_data[b][c][0]
+
+        if market_directions[c][a] == 'bid':
+            profit *= self.market_data[c][a][0]
+        else:
+            profit /= self.market_data[c][a][0]
+
+        if profit < 1:
+            return None, profit
 
     @staticmethod
     def _base_to_quoted_yield(market: OrderBook, base_capital: Dec) -> Dec:
@@ -376,8 +421,8 @@ class Arbitrageur(MarketPlayer):
 
     def _cycle_fee_rate(self) -> Dec:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
-        return hm.round_decimal((Dec(1) + self.model.fee_manager.nomin_fee_rate) * \
-                                (Dec(1) + self.model.fee_manager.havven_fee_rate) * \
+        return hm.round_decimal((Dec(1) + self.model.fee_manager.nomin_fee_rate) *
+                                (Dec(1) + self.model.fee_manager.havven_fee_rate) *
                                 (Dec(1) + self.model.fee_manager.fiat_fee_rate))
 
     def _forward_multiple_no_fees(self) -> Dec:
@@ -385,7 +430,7 @@ class Arbitrageur(MarketPlayer):
         The value multiple after one forward arbitrage cycle, neglecting fees.
         """
         # hav -> fiat -> nom -> hav
-        return hm.round_decimal(self.havven_fiat_market.highest_bid_price() / \
+        return hm.round_decimal(self.havven_fiat_market.highest_bid_price() /
                                 (self.nomin_fiat_market.lowest_ask_price() *
                                  self.havven_nomin_market.lowest_ask_price()))
 
@@ -395,7 +440,7 @@ class Arbitrageur(MarketPlayer):
         """
         # hav -> nom -> fiat -> hav
         return hm.round_decimal((self.havven_nomin_market.highest_bid_price() *
-                                 self.nomin_fiat_market.highest_bid_price()) / \
+                                 self.nomin_fiat_market.highest_bid_price()) /
                                 self.havven_fiat_market.lowest_ask_price())
 
     def _forward_multiple(self) -> Dec:
