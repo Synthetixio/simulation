@@ -124,6 +124,8 @@ def escrowed_havvens(havven_model: "model.HavvenModel") -> float:
 
 def create_datacollector() -> DataCollector:
     base_reporters = {
+        "0": lambda x: 0,  # Note: workaround for showing labels (more info server.py)
+        "1": lambda x: 1,
         "Nomin Price": lambda h: float(h.market_manager.nomin_fiat_market.price),
         "Nomin Ask": lambda h: float(h.market_manager.nomin_fiat_market.lowest_ask_price()),
         "Nomin Bid": lambda h: float(h.market_manager.nomin_fiat_market.highest_bid_price()),

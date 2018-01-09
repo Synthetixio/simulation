@@ -2,6 +2,7 @@ from agents import MarketPlayer
 from decimal import Decimal as Dec
 from typing import List, Any, Dict
 from core import orderbook as ob
+from managers.havvenmanager import HavvenManager as hm
 
 
 class IssuanceController(MarketPlayer):
@@ -40,18 +41,23 @@ class IssuanceController(MarketPlayer):
         for item in self.issuance_orders:
             if item['trade'] is None:
                 item['trade'] = self.place_nomin_fiat_ask_with_fee(
-                    item['remaining'], Dec(1-self.model.mint.non_discretionary_cap_buffer)
+                    item['remaining'], 1-self.model.mint.non_discretionary_cap_buffer
                 )
                 if item['trade'] is None:
                     print(item)
+                    print("remaining = 0:", item['remaining'] == 0)
+                    print(self.portfolio())
                     raise Exception("trade is None...")
 
         for item in self.burn_orders:
             if item['trade'] is None:
                 item['trade'] = self.place_nomin_fiat_bid_with_fee(
-                    item['remaining'], Dec(1+self.model.mint.non_discretionary_cap_buffer)
+                    item['remaining'], 1+self.model.mint.non_discretionary_cap_buffer
                 )
                 if item['trade'] is None:
+                    print(item)
+                    print("remaining = 0:", item['remaining'] == 0)
+                    print(self.portfolio())
                     raise Exception("trade is None...")
 
         self.issuance_orders = [i for i in self.issuance_orders if i['remaining'] > 0 or i['trade'] is None]
@@ -108,13 +114,10 @@ class IssuanceController(MarketPlayer):
                     raise Exception("order remaining <= 0 when order partially filled")
                 order['player'].fiat += record.price*record.quantity
                 self.fiat -= record.price*record.quantity
-                # print(f"issue order partially filled, give player {record.price*record.quantity} fiat")
-
             else:
                 # order was filled completely
                 order['player'].fiat += record.price*order['remaining']
-                self.fiat -= record.price*order['remaining']
-                # print(f"issue order completely filled, give player {record.price*order['remaining']} fiat")
+                self.fiat -= record.price*record.quantity
                 order['remaining'] = 0
 
         if record.buyer == self:
@@ -137,14 +140,10 @@ class IssuanceController(MarketPlayer):
                 # refund excess fiat, if price was below 1 (should never be above)
                 order['player'].fiat += record.quantity*(1-record.price)
                 self.fiat -= record.quantity*(1-record.price)
-                # print(f"burn order partially filled at {record.price} for {record.quantity}," +
-                #       f" refunded {record.quantity*(1-record.price)} fiat")
             else:
                 # order filled completely
                 order['player'].fiat += record.quantity*(1-record.price)
                 self.fiat -= record.quantity*(1-record.price)
-                # print(f"burn order completely filled at {record.price} for {record.quantity}," +
-                #       f" refunded {record.quantity*(1-record.price)} fiat")
                 order['remaining'] = 0
         self.trades.append(record)
 

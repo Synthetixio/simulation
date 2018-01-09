@@ -84,6 +84,11 @@ class AgentManager:
 
     def add_issuance_controller(self) -> 'ag.IssuanceController':
         issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
+
+        # give the issuance controller some extra fiat/nomins to avoid rounding errors
+        issuance_controller.fiat += 1
+        issuance_controller.nomins += 1
+
         self.running_player_total += 1
         self.havven_model.schedule.add(issuance_controller)
         self.agents['others'].append(issuance_controller)
@@ -103,7 +108,6 @@ class AgentManager:
         havven_foundation.nomins = havven_foundation.havvens * havven_foundation_initial_c
 
         self.havven_model.manager.issued_nomins += havven_foundation.havvens * havven_foundation_initial_c
-        print(havven_foundation.havvens, havven_foundation.issued_nomins)
 
         self.agents['others'].append(havven_foundation)
         return havven_foundation

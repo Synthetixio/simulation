@@ -13,6 +13,7 @@ class Mint:
     Handles issuance and burning of nomins.
     """
     issuance_controller = None
+    minimal_issuance_amount = Dec('0.0000001')
 
     def __init__(self, havven_manager: HavvenManager,
                  market_manager: MarketManager, fee_manager: FeeManager,
@@ -57,10 +58,9 @@ class Mint:
     def escrow_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """Escrow a number of havvens for the given agent, creating a sell order
         for the created nomins"""
-        if 0 <= value <= agent.available_havvens and self.cmax > 0:
-            nom_received = self.issued_nomins_received(value)
+        if self.minimal_issuance_amount <= value <= agent.available_havvens and self.cmax > 0:
+            nom_received = self.havven_manager.round_decimal(self.issued_nomins_received(value))
             agent.issued_nomins += nom_received
-            # print(f"escrowing {value} havvens, issuing {nom_received}")
             self.havven_manager.issued_nomins += nom_received
             self.issuance_controller.nomins += nom_received
             self.issuance_controller.place_issuance_order(nom_received, agent)
@@ -126,7 +126,8 @@ class Mint:
         :param agent: the agent burning nomins
         :param value: the amount of fiat to buy nomins with
         """
-        if 0 <= value <= agent.available_fiat and value <= agent.issued_nomins and self.cmax > 0:
+        value = self.havven_manager.round_decimal(value)
+        if self.minimal_issuance_amount <= value <= agent.available_fiat and value <= agent.issued_nomins and self.cmax > 0:
             agent.fiat -= value
             self.issuance_controller.fiat += value
             fee = self.market_manager.nomin_fiat_market.buyer_fee(Dec(1), value)

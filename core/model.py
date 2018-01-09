@@ -73,8 +73,6 @@ class HavvenModel(Model):
             agent_settings
         )
 
-        print(model_settings)
-
         issuance_controller = self.agent_manager.add_issuance_controller()
         self.mint.add_issuance_controller(issuance_controller)
 
@@ -117,7 +115,6 @@ class HavvenModel(Model):
             self.fee_manager.distribute_fees(self.schedule.agents)
 
         self.mint.calculate_copt_cmax()
-        print(f"copt: {self.mint.copt}, cmax: {self.mint.cmax}")
 
         # Collect data.
         self.datacollector.collect(self)

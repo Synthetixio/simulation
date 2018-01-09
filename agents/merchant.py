@@ -34,6 +34,10 @@ class Merchant(MarketPlayer):
     every step.
     """
 
+    # the minimal price the merchant will sell nomins for
+    minimal_sell_price = Dec('0.9')
+    nom_sell_order = None
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -60,7 +64,13 @@ class Merchant(MarketPlayer):
         self.last_restock += 1
         if self.last_restock > self.restock_tick_rate:
             self.last_restock = 0
-            self.sell_nomins_for_fiat_with_fee(self.available_nomins)
+
+            if self.available_nomins:
+                if self.nom_sell_order:
+                    self.nom_sell_order.cancel()
+                self.nom_sell_order = self.place_nomin_fiat_ask_with_fee(
+                    self.available_nomins, self.minimal_sell_price
+                )
 
             for item in self.inventory:
                 info = self.inventory[item]
@@ -94,8 +104,10 @@ class Buyer(MarketPlayer):
     """
     min_wage = 2
     max_wage = 10
-    min_mpc = 0.1
+    min_mpc = 0.1  # not Dec as multiplied by floats later
     max_mpc = 0.9
+
+    max_nomin_price = Dec('1.1')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -106,8 +118,11 @@ class Buyer(MarketPlayer):
         self.mpc = (self.max_mpc - self.min_mpc) * random.random() + self.min_mpc
         """This agent's marginal propensity to consume."""
 
+        self.order = None
+
     def setup(self, init_value: Dec):
-        self.fiat = init_value
+        # start with no money, as they have a wage
+        self.fiat = 0
 
     def step(self) -> None:
         # Earn some dough.
@@ -115,7 +130,12 @@ class Buyer(MarketPlayer):
 
         # Buy some crypto.
         if self.available_fiat:
-            self.sell_fiat_for_nomins_with_fee(self.available_fiat)
+            if self.order and self.order.active:
+                self.order.cancel()
+            # place a bid at max_nomin_price, as it would be dumb for anyone to pay more
+            self.order = self.place_nomin_fiat_bid_with_fee(
+                self.available_fiat/self.max_nomin_price, self.max_nomin_price
+            )
 
         # If feeling spendy, buy something.
         if random.random() < self.mpc:

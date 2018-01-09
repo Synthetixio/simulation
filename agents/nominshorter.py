@@ -42,7 +42,6 @@ class NominShorter(MarketPlayer):
             last_price = 0
             while trade is not None and self.available_nomins > 0:
                 if last_price == trade[0]:
-                    print("nom", self.unique_id, trade, self.portfolio())
                     break
                 last_price = trade[0]
                 ask = self._make_nom_fiat_trade(trade)

@@ -38,50 +38,14 @@ run_settings = [
         }
     },
     {
-        "name": "Low collateralisation ratio, high issuance",
-        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
-        and the nomin supply.</p><p>A low collateralisation ratio max (0.1) limits the supply of nomins quite harshly
-        in relation to the havven price. This scenario requires the havven price to rise extremely quickly
-        in order to allow for enough nomins to be created, if nomin demand is to be met and the price kept at 1.</p>""",
+        "name": "High number of bankers",
+        "description": """<p>This dataset highlights how the amount of bankers affects volatility
+        and the nomin supply.</p><p>The collateralisation ratio is based on demand for nomins.
+        Bankers are the only agent at the moment who issue nomins regularly.</p>""",
         "max_steps": 1000,
         "settings": {
             "Model": {
                 'num_agents': 125,
-                "utilisation_ratio_max": 0.1
-            },
-            "AgentFractions": {
-                "Banker": 100
-            }
-        }
-    },
-    {
-        "name": "Default collateralisation ratio, high issuance",
-        "description": """<p>This dataset highlights how the collateralisation ratio affects volatility
-        and the nomin supply.</p><p>The default collateralisation ratio max (0.25) creates a balanced
-        constraint in the supply of nomins. This situation requires the havven price to rise faster than
-        the nomin demand to allow for enough nomins to be created to keep the price at 1, without
-        flooding the nomin market.</p>""",
-        "max_steps": 1000,
-        "settings": {
-            "Model": {
-                'num_agents': 125,
-            },
-            "AgentFractions": {
-                "Banker": 100
-            }
-        }
-    },
-    {
-        "name": "High collateralisation ratio, high issuance",
-        "description": """<p>This dataset, highlights how the collateralisation ratio affects volatility
-        and nomin supply.</p><p>The high collateralisation ratio max (0.5)
-        allows for the issuance of a large amount of nomins, which causes the intrinsic value of havvens to skyrocket
-        as the value they can issue is so high. This creates massive oversupply of nomins, crashing the price.</p>""",
-        "max_steps": 1000,
-        "settings": {
-            "Model": {
-                'num_agents': 125,
-                "utilisation_ratio_max": 0.5
             },
             "AgentFractions": {
                 "Banker": 100
