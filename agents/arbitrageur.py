@@ -7,8 +7,6 @@ from core.orderbook import OrderBook
 from .marketplayer import MarketPlayer
 
 
-# TODO: consider if arbitrageurs should balance out their currency fractions periodically.
-
 currencies = ['h', 'n', 'f']
 market_directions = {
     # what to place to go from a->b
@@ -38,8 +36,10 @@ class Arbitrageur(MarketPlayer):
         self.nomins_to_purchase = Dec(0)
         self.nomin_purchase_order = None
         self.market_data = None
+        self.min_fiat = None
 
     def setup(self, init_value: Dec):
+        self.min_fiat = init_value
         self.fiat = init_value*2
         self.model.endow_havvens(self, init_value)
         self.nomins_to_purchase = init_value
@@ -58,7 +58,10 @@ class Arbitrageur(MarketPlayer):
         if self.nomins_to_purchase > 0:
             if self.nomin_purchase_order:
                 self.nomin_purchase_order.cancel()
-            self.nomin_purchase_order = self.sell_fiat_for_nomins_with_fee(self.nomins_to_purchase)
+            if self.available_fiat > self.min_fiat:
+                self.nomin_purchase_order = self.sell_fiat_for_nomins_with_fee(self.nomins_to_purchase)
+            else:
+                self.nomins_to_purchase = Dec(0)
 
         self.compute_market_data()
 
@@ -69,7 +72,6 @@ class Arbitrageur(MarketPlayer):
                 c = cycle[2]
                 profit, vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
-                    print(f"forward, {profit}")
                     self.trade_cycle(vol_a, a, b, c)
                     self.compute_market_data()
 
@@ -80,7 +82,6 @@ class Arbitrageur(MarketPlayer):
                 c = cycle[2]
                 profit, vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
-                    print(f"reverse, {profit}")
                     self.trade_cycle(vol_a, a, b, c)
                     self.compute_market_data()
 
@@ -88,6 +89,7 @@ class Arbitrageur(MarketPlayer):
         """
         Calculate the available volume and the profit the a->b->c->a cycle has
         """
+
         if a == 'h':
             volume = self.available_havvens
         elif a == 'n':
@@ -144,31 +146,29 @@ class Arbitrageur(MarketPlayer):
         """
         Do the trade cycle a->b->c->a, starting the cycle with volume(in terms of a)
         """
-        print(f"doing trade {a}-{b}-{c}-{a}")
-        initial_volume = volume
+
+        init_havvens = self.available_havvens
+        init_nomins = self.available_nomins
+        init_fiat = self.available_fiat
+
+        initial_wealth = self.wealth()
+
         if market_directions[a][b] == 'ask':
             trade = self.market_data[a][b][2].ask(
                 self.market_data[a][b][0],
                 volume,
                 self,
             )
-            volume = trade.quantity*trade.price
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)*trade.price
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[a][b][0], self.market_data[a][b][1])
         else:
             trade = self.market_data[a][b][2].bid(
                 self.market_data[a][b][0],
                 volume/self.market_data[a][b][0],
                 self
             )
-            if trade.active:
-                volume = volume/self.market_data[a][b][0] - trade.quantity
-            else:
-                volume = trade.quantity
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[a][b][0], self.market_data[a][b][1])
 
         if market_directions[b][c] == 'ask':
             trade = self.market_data[b][c][2].ask(
@@ -176,20 +176,16 @@ class Arbitrageur(MarketPlayer):
                 volume,
                 self
             )
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)*trade.price
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[b][c][0], self.market_data[b][c][1])
-            volume = trade.quantity*trade.price
         else:
             trade = self.market_data[b][c][2].bid(
                 self.market_data[b][c][0],
                 volume/self.market_data[b][c][0],
                 self
             )
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[b][c][0], self.market_data[b][c][1])
-            volume = trade.quantity
 
         if market_directions[c][a] == 'ask':
             trade = self.market_data[c][a][2].ask(
@@ -197,21 +193,21 @@ class Arbitrageur(MarketPlayer):
                 volume,
                 self
             )
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)*trade.price
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[c][a][0], self.market_data[c][a][1])
-            volume = trade.quantity*trade.price
         else:
             trade = self.market_data[c][a][2].bid(
                 self.market_data[c][a][0],
                 volume/self.market_data[c][a][0],
                 self
             )
-            print(trade.active, trade)
+            volume = (trade.initial_quantity - trade.quantity)
             trade.cancel()
-            print(trade.quantity, trade.price, self.market_data[c][a][0], self.market_data[c][a][1])
-            volume = trade.quantity
-        print(f'profited {volume - initial_volume}{a}\n===')
+        if (self.wealth() - initial_wealth) < 0:
+            print(f'{self.available_nomins - init_nomins}n')
+            print(f'{self.available_havvens - init_havvens}h')
+            print(f'{self.available_fiat - init_fiat}f')
+            print(f'profited {self.wealth() - initial_wealth} on {a}-{b}-{c}-{a}')
 
     def _cycle_fee_rate(self) -> Dec:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
