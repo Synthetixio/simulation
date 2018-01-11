@@ -2,17 +2,20 @@ from decimal import Decimal as Dec
 from typing import Dict, List, Any
 
 from managers import HavvenManager as hm
+from core import model
 from .marketplayer import MarketPlayer
 
 from core import orderbook as ob
 
+nom = 'nom'
+hav = 'hav'
+fiat = 'fiat'
 
-currencies = ['h', 'n', 'f']
 market_directions = {
     # what to place to go from a->b
-    'h': {'n': 'ask', 'f': 'ask'},
-    'n': {'h': 'bid', 'f': 'ask'},
-    'f': {'n': 'bid', 'h': 'bid'}
+    hav: {nom: 'ask', fiat: 'ask'},
+    nom: {hav: 'bid', fiat: 'ask'},
+    fiat: {nom: 'bid', hav: 'bid'}
 }
 
 
@@ -40,7 +43,7 @@ class Arbitrageur(MarketPlayer):
 
     def setup(self, init_value: Dec) -> None:
         self.min_fiat = init_value
-        self.fiat = init_value*2
+        self.fiat = init_value * 2
         self.model.endow_havvens(self, init_value)
         self.nomins_to_purchase = init_value
 
@@ -65,24 +68,28 @@ class Arbitrageur(MarketPlayer):
 
         self.compute_market_data()
 
-        for cycle in ['fnh', 'hfn', 'nhf']:
+        for cycle in [(fiat, nom, hav), (hav, fiat, nom), (nom, hav, fiat)]:
             if self._forward_multiple() > 1 + self.profit_threshold:
-                a = cycle[0]
-                b = cycle[1]
-                c = cycle[2]
+                a, b, c = cycle
                 vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
-                    self.trade_cycle(vol_a, a, b, c)
+                    try:
+                        self.trade_cycle(vol_a, a, b, c)
+                    except AttributeError:
+                        # one of the trades didn't go through, just ignore
+                        pass
                     self.compute_market_data()
 
-        for cycle in ['fhn', 'hnf', 'nfh']:
+        for cycle in [(fiat, hav, nom), (hav, nom, fiat), (nom, fiat, hav)]:
             if self._reverse_multiple() > 1 + self.profit_threshold:
-                a = cycle[0]
-                b = cycle[1]
-                c = cycle[2]
+                a, b, c = cycle
                 vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
-                    self.trade_cycle(vol_a, a, b, c)
+                    try:
+                        self.trade_cycle(vol_a, a, b, c)
+                    except AttributeError:
+                        # one of the trades didn't go through, just ignore
+                        pass
                     self.compute_market_data()
 
     def calculate_cycle_volume(self, a, b, c) -> Dec:
@@ -90,9 +97,9 @@ class Arbitrageur(MarketPlayer):
         Calculate the available volume and the profit the a->b->c->a cycle has
         """
 
-        if a == 'h':
+        if a == hav:
             volume = self.available_havvens
-        elif a == 'n':
+        elif a == nom:
             volume = self.available_nomins
         else:
             volume = self.available_fiat
@@ -107,7 +114,7 @@ class Arbitrageur(MarketPlayer):
             profit *= self.market_data[a][b][0]
         else:
             volume = min(
-                self.market_data[a][b][1]/self.market_data[a][b][0],
+                self.market_data[a][b][1] / self.market_data[a][b][0],
                 volume
             )
             profit /= self.market_data[a][b][0]
@@ -121,7 +128,7 @@ class Arbitrageur(MarketPlayer):
 
         else:
             volume = min(
-                self.market_data[b][c][1]/self.market_data[b][c][0],
+                self.market_data[b][c][1] / self.market_data[b][c][0],
                 volume
             )
             profit /= self.market_data[a][b][0]
@@ -135,7 +142,7 @@ class Arbitrageur(MarketPlayer):
 
         else:
             volume = min(
-                self.market_data[c][a][1]/self.market_data[c][a][0],
+                self.market_data[c][a][1] / self.market_data[c][a][0],
                 volume
             )
             profit /= self.market_data[a][b][0]
@@ -159,12 +166,12 @@ class Arbitrageur(MarketPlayer):
                 volume,
                 self,
             )
-            volume = (trade.initial_quantity - trade.quantity)*trade.price
+            volume = (trade.initial_quantity - trade.quantity) * trade.price
             trade.cancel()
         else:
             trade = self.market_data[a][b][2].bid(
                 self.market_data[a][b][0],
-                volume/self.market_data[a][b][0],
+                volume / self.market_data[a][b][0],
                 self
             )
             volume = (trade.initial_quantity - trade.quantity)
@@ -176,12 +183,12 @@ class Arbitrageur(MarketPlayer):
                 volume,
                 self
             )
-            volume = (trade.initial_quantity - trade.quantity)*trade.price
+            volume = (trade.initial_quantity - trade.quantity) * trade.price
             trade.cancel()
         else:
             trade = self.market_data[b][c][2].bid(
                 self.market_data[b][c][0],
-                volume/self.market_data[b][c][0],
+                volume / self.market_data[b][c][0],
                 self
             )
             volume = (trade.initial_quantity - trade.quantity)
@@ -193,12 +200,12 @@ class Arbitrageur(MarketPlayer):
                 volume,
                 self
             )
-            volume = (trade.initial_quantity - trade.quantity)*trade.price
+            volume = (trade.initial_quantity - trade.quantity) * trade.price
             trade.cancel()
         else:
             trade = self.market_data[c][a][2].bid(
                 self.market_data[c][a][0],
-                volume/self.market_data[c][a][0],
+                volume / self.market_data[c][a][0],
                 self
             )
             volume = (trade.initial_quantity - trade.quantity)
@@ -246,27 +253,27 @@ class Arbitrageur(MarketPlayer):
     def compute_market_data(self) -> None:
         self.market_data = {
             # what to buy into to go a->b instantly
-            'h': {
-                'f': [self.havven_fiat_market.highest_bid_price(),
-                      self.havven_fiat_market.highest_bid_quantity(),
-                      self.havven_fiat_market],
-                'n': [self.havven_nomin_market.highest_bid_price(),
+            hav: {
+                fiat: [self.havven_fiat_market.highest_bid_price(),
+                       self.havven_fiat_market.highest_bid_quantity(),
+                       self.havven_fiat_market],
+                nom: [self.havven_nomin_market.highest_bid_price(),
                       self.havven_nomin_market.highest_bid_quantity(),
                       self.havven_nomin_market]
             },
-            'n': {
-                'h': [self.havven_nomin_market.lowest_ask_price(),
+            nom: {
+                hav: [self.havven_nomin_market.lowest_ask_price(),
                       self.havven_nomin_market.lowest_ask_quantity(),
                       self.havven_nomin_market],
-                'f': [self.nomin_fiat_market.highest_bid_price(),
-                      self.nomin_fiat_market.highest_bid_quantity(),
-                      self.nomin_fiat_market]
+                fiat: [self.nomin_fiat_market.highest_bid_price(),
+                       self.nomin_fiat_market.highest_bid_quantity(),
+                       self.nomin_fiat_market]
             },
-            'f': {
-                'h': [self.havven_fiat_market.lowest_ask_price(),
+            fiat: {
+                hav: [self.havven_fiat_market.lowest_ask_price(),
                       self.havven_fiat_market.lowest_ask_quantity(),
                       self.havven_fiat_market],
-                'n': [self.nomin_fiat_market.lowest_ask_price(),
+                nom: [self.nomin_fiat_market.lowest_ask_price(),
                       self.nomin_fiat_market.lowest_ask_quantity(),
                       self.nomin_fiat_market]
             }
