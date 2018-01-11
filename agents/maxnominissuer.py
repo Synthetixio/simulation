@@ -7,13 +7,12 @@ from core import orderbook as ob
 from .marketplayer import MarketPlayer
 
 
-class Banker(MarketPlayer):
+class MaxNominIssuer(MarketPlayer):
     """
-    Wants to buy havvens and issue nomins, in order to accrue fees.
-    They do this by constantly targeting copt with their issuance,
-      burning and issuing as needed.
+    Issues nomins up to c_max, and uses the funds from fees/issuance to buy more havvens
+    They trust that havven value will go up, so they should never be too far off 100% escrowed,
+      and over time should be able to escrow more, as demand for nomins increases.
     """
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.fiat_havven_order: Optional[Tuple[int, "ob.Bid"]] = None
@@ -46,7 +45,7 @@ class Banker(MarketPlayer):
                 self.fiat_havven_order[1].cancel()
                 self.fiat_havven_order = None
 
-        if self.available_nomins > 0:
+        if self.available_nomins > 0 and self.nomin_havven_order is not None:
             if len(self.model.datacollector.model_vars['0']) > 0:
                 havven_supply = self.model.datacollector.model_vars['Havven Supply'][-1]
                 fiat_supply = self.model.datacollector.model_vars['Fiat Supply'][-1]
@@ -57,12 +56,11 @@ class Banker(MarketPlayer):
                         self.available_nomins * self.sell_rate,
                         self.havven_nomin_market.price * (Dec(1) - self.trade_premium)
                     )
-                    if order is None:
-                        return
-                    self.nomin_havven_order = (
-                        self.model.manager.time,
-                        order
-                    )
+                    if order is not None:
+                        self.nomin_havven_order = (
+                            self.model.manager.time,
+                            order
+                        )
 
                 else:
                     order = self.place_nomin_fiat_ask_with_fee(
@@ -75,18 +73,18 @@ class Banker(MarketPlayer):
                         self.model.manager.time,
                         order
                     )
-        #
-        # if self.available_fiat > 0 and not self.fiat_havven_order:
-        #     order = self.place_havven_fiat_bid_with_fee(
-        #         hm.round_decimal(self.available_fiat * self.sell_rate),
-        #         self.havven_fiat_market.price * (Dec(1) - self.trade_premium)
-        #     )
-        #     if order is None:
-        #         return
-        #     self.fiat_havven_order = (
-        #         self.model.manager.time,
-        #         order
-        #     )
-        #
-        # if self.available_havvens > 0:
-        #     self.escrow_havvens(self._fraction(self.available_havvens, Dec(5)))
+
+        if self.available_fiat > 0 and not self.fiat_havven_order:
+            order = self.place_havven_fiat_bid_with_fee(
+                hm.round_decimal(self.available_fiat * self.sell_rate),
+                self.havven_fiat_market.price * (Dec(1) - self.trade_premium)
+            )
+            if order is None:
+                return
+            self.fiat_havven_order = (
+                self.model.manager.time,
+                order
+            )
+
+        if self.available_havvens > 0:
+            self.escrow_havvens(self._fraction(self.available_havvens, Dec(5)))
