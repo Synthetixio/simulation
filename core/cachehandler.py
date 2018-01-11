@@ -25,7 +25,8 @@ run_settings = [
     #   - any settings that are not in settings.ini are ignored
     {
         "name": "Balanced",
-        "description": """<p>This dataset runs the simulation with the default model settings,
+        "description": """<h5>Press the play button on the right of the titlebar to start the simulation.</h5>
+        <p>This dataset runs the simulation with the default model settings,
         viewable in <i>settings</i>.</p><p>The agent fractions have been selected to be a good balance of what
         could be expected in a real system. For more information about what the actors represent, read the
         <i>About</i> section.</p>""",
