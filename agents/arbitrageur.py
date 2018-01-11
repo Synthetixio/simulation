@@ -34,7 +34,7 @@ class Arbitrageur(MarketPlayer):
         This arbitrageur will only trade if it can make a profit higher than
         this fraction.
         """
-
+        self.minimal_trade_vol = Dec('0.01')
         self.nomins_to_purchase = Dec(0)
         self.nomin_purchase_order = None
         self.market_data = None
@@ -60,56 +60,34 @@ class Arbitrageur(MarketPlayer):
                 self.nomin_purchase_order.cancel()
             self.nomin_purchase_order = self.sell_fiat_for_nomins_with_fee(self.nomins_to_purchase)
 
-        self.market_data = {
-            # what to buy into to go a->b instantly
-            'h': {
-                'f': [self.havven_fiat_market.highest_bid_price(),
-                      self.havven_fiat_market.highest_bid_quantity(),
-                      self.havven_fiat_market],
-                'n': [self.havven_nomin_market.highest_bid_price(),
-                      self.havven_nomin_market.highest_bid_quantity(),
-                      self.havven_nomin_market]
-            },
-            'n': {
-                'h': [self.havven_nomin_market.lowest_ask_price(),
-                      self.havven_nomin_market.lowest_ask_quantity(),
-                      self.havven_nomin_market],
-                'f': [self.nomin_fiat_market.highest_bid_price(),
-                      self.nomin_fiat_market.highest_bid_quantity(),
-                      self.nomin_fiat_market]
-            },
-            'f': {
-                'h': [self.havven_fiat_market.lowest_ask_price(),
-                      self.havven_fiat_market.lowest_ask_quantity(),
-                      self.havven_fiat_market],
-                'n': [self.nomin_fiat_market.lowest_ask_price(),
-                      self.nomin_fiat_market.lowest_ask_quantity(),
-                      self.nomin_fiat_market]
-            }
-        }
+        self.compute_market_data()
 
-        if self._forward_multiple() > 1 + self.profit_threshold:
-            for cycle in ['fnh', 'hfn', 'nhf']:
+        for cycle in ['fnh', 'hfn', 'nhf']:
+            if self._forward_multiple() > 1 + self.profit_threshold:
                 a = cycle[0]
                 b = cycle[1]
                 c = cycle[2]
-                vol_a, profit = self.calculate_volume_profit(a, b, c)
+                profit, vol_a = self.calculate_cycle_volume(a, b, c)
+                if vol_a > self.minimal_trade_vol:
+                    print(f"forward, {profit}")
+                    self.trade_cycle(vol_a, a, b, c)
+                    self.compute_market_data()
 
-        if self._reverse_multiple() > 1 + self.profit_threshold:
-            for cycle in ['fhn', 'hnf', 'nfh']:
+        for cycle in ['fhn', 'hnf', 'nfh']:
+            if self._reverse_multiple() > 1 + self.profit_threshold:
                 a = cycle[0]
                 b = cycle[1]
                 c = cycle[2]
-                vol_a, profit = self.calculate_volume_profit(a, b, c)
+                profit, vol_a = self.calculate_cycle_volume(a, b, c)
+                if vol_a > self.minimal_trade_vol:
+                    print(f"reverse, {profit}")
+                    self.trade_cycle(vol_a, a, b, c)
+                    self.compute_market_data()
 
-        pass
-
-    def calculate_volume_profit(self, a, b, c):
+    def calculate_cycle_volume(self, a, b, c):
         """
-        Calculate the available volume and the profit the a>b>c>a cycle has
+        Calculate the available volume and the profit the a->b->c->a cycle has
         """
-        profit = 1
-
         if a == 'h':
             volume = self.available_havvens
         elif a == 'n':
@@ -117,307 +95,123 @@ class Arbitrageur(MarketPlayer):
         else:
             volume = self.available_fiat
 
-        if market_directions[a][b] == 'bid':
+        profit = 1
+
+        if market_directions[a][b] == 'ask':
+            volume = min(
+                self.market_data[a][b][1],
+                volume
+            )
             profit *= self.market_data[a][b][0]
         else:
+            volume = min(
+                self.market_data[a][b][1]/self.market_data[a][b][0],
+                volume
+            )
             profit /= self.market_data[a][b][0]
 
-        if market_directions[b][c] == 'bid':
-            profit *= self.market_data[b][c][0]
+        if market_directions[b][c] == 'ask':
+            volume = min(
+                self.market_data[b][c][1],
+                volume
+            )
+            profit *= self.market_data[a][b][0]
+
         else:
-            profit /= self.market_data[b][c][0]
+            volume = min(
+                self.market_data[b][c][1]/self.market_data[b][c][0],
+                volume
+            )
+            profit /= self.market_data[a][b][0]
 
-        if market_directions[c][a] == 'bid':
-            profit *= self.market_data[c][a][0]
+        if market_directions[c][a] == 'ask':
+            volume = min(
+                self.market_data[c][a][1],
+                volume
+            )
+            profit *= self.market_data[a][b][0]
+
         else:
-            profit /= self.market_data[c][a][0]
+            volume = min(
+                self.market_data[c][a][1]/self.market_data[c][a][0],
+                volume
+            )
+            profit /= self.market_data[a][b][0]
 
-        if profit < 1:
-            return None, profit
+        return profit, volume
 
-    @staticmethod
-    def _base_to_quoted_yield(market: OrderBook, base_capital: Dec) -> Dec:
+    def trade_cycle(self, volume, a, b, c):
         """
-        The quantity of the quoted currency you could obtain at the current
-        best market price, selling a given quantity of the base currency.
+        Do the trade cycle a->b->c->a, starting the cycle with volume(in terms of a)
         """
-        price = market.highest_bid_price()
-        feeless_capital = market.base_qty_rcvd(base_capital)
-        return market.bids_not_lower_quoted_quantity(price, feeless_capital)
+        print(f"doing trade {a}-{b}-{c}-{a}")
+        initial_volume = volume
+        if market_directions[a][b] == 'ask':
+            trade = self.market_data[a][b][2].ask(
+                self.market_data[a][b][0],
+                volume,
+                self,
+            )
+            volume = trade.quantity*trade.price
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[a][b][0], self.market_data[a][b][1])
+        else:
+            trade = self.market_data[a][b][2].bid(
+                self.market_data[a][b][0],
+                volume/self.market_data[a][b][0],
+                self
+            )
+            if trade.active:
+                volume = volume/self.market_data[a][b][0] - trade.quantity
+            else:
+                volume = trade.quantity
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[a][b][0], self.market_data[a][b][1])
 
-    @staticmethod
-    def _quoted_to_base_yield(market: OrderBook, quoted_capital: Dec) -> Dec:
-        """
-        The quantity of the base currency you could obtain at the current
-        best market price, selling a given quantity of the quoted currency.
-        """
-        price = market.lowest_ask_price()
-        feeless_capital = market.quoted_qty_rcvd(quoted_capital)
-        return market.asks_not_higher_base_quantity(price, feeless_capital)
+        if market_directions[b][c] == 'ask':
+            trade = self.market_data[b][c][2].ask(
+                self.market_data[b][c][0],
+                volume,
+                self
+            )
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[b][c][0], self.market_data[b][c][1])
+            volume = trade.quantity*trade.price
+        else:
+            trade = self.market_data[b][c][2].bid(
+                self.market_data[b][c][0],
+                volume/self.market_data[b][c][0],
+                self
+            )
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[b][c][0], self.market_data[b][c][1])
+            volume = trade.quantity
 
-    def havven_to_fiat_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of fiat obtained, spending a quantity of havvens.
-        """
-        return self._base_to_quoted_yield(self.havven_fiat_market, capital)
-
-    def fiat_to_havven_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of havvens obtained, spending a quantity of fiat.
-        """
-        return self._quoted_to_base_yield(self.havven_fiat_market, capital)
-
-    def havven_to_nomin_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of nomins obtained, spending a quantity of havvens.
-        """
-        return self._base_to_quoted_yield(self.havven_nomin_market, capital)
-
-    def nomin_to_havven_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of havvens obtained, spending a quantity of nomins.
-        """
-        return self._quoted_to_base_yield(self.havven_nomin_market, capital)
-
-    def nomin_to_fiat_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of fiat obtained, spending a quantity of nomins.
-        """
-        return self._base_to_quoted_yield(self.nomin_fiat_market, capital)
-
-    def fiat_to_nomin_yield(self, capital: Dec) -> Dec:
-        """
-        The quantity of nomins obtained, spending a quantity of fiat.
-        """
-        return self._quoted_to_base_yield(self.nomin_fiat_market, capital)
-
-    def forward_havven_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one forward havven arbitrage cycle: havvens -> fiat -> nomins -> havvens.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        c_qty = min(havvens, self.havven_fiat_bid_qty)
-        havvens -= c_qty
-        f_qty = self.havven_to_fiat_yield(c_qty)
-        fiat += f_qty
-        f_qty = min(f_qty, self.nomin_fiat_ask_qty)
-        fiat -= f_qty
-        n_qty = self.fiat_to_nomin_yield(f_qty)
-        nomins += n_qty
-        n_qty = min(n_qty, self.havven_nomin_ask_qty)
-        nomins -= n_qty
-        c_qty = self.nomin_to_havven_yield(n_qty)
-        havvens += c_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def forward_havven_cycle_trade(self) -> None:
-        """
-        Perform a single forward havven arbitrage cycle;
-        havvens -> fiat -> nomins -> havvens.
-        """
-        c_qty = min(self.available_havvens, self.havven_fiat_bid_qty)
-        pre_fiat = self.fiat
-        self.sell_havvens_for_fiat_with_fee(c_qty)
-        f_qty = min(self.fiat - pre_fiat, self.nomin_fiat_ask_qty)
-        pre_nomins = self.nomins
-        self.sell_fiat_for_nomins_with_fee(f_qty)
-        n_qty = min(self.nomins - pre_nomins, self.havven_nomin_ask_qty)
-        self.sell_nomins_for_havvens_with_fee(n_qty)
-
-    def forward_fiat_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one forward fiat arbitrage cycle: fiat -> nomins -> havvens -> fiat.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        f_qty = min(fiat, self.nomin_fiat_ask_qty)
-        fiat -= f_qty
-        n_qty = self.fiat_to_nomin_yield(f_qty)
-        nomins += n_qty
-        n_qty = min(n_qty, self.havven_nomin_ask_qty)
-        nomins -= n_qty
-        c_qty = self.nomin_to_havven_yield(n_qty)
-        havvens += c_qty
-        c_qty = min(c_qty, self.havven_fiat_bid_qty)
-        havvens -= c_qty
-        f_qty = self.havven_to_fiat_yield(c_qty)
-        fiat += f_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def forward_fiat_cycle_trade(self) -> None:
-        """
-        Perform a single forward fiat arbitrage cycle;
-        fiat -> nomins -> havvens -> fiat.
-        """
-        f_qty = min(self.available_fiat, self.nomin_fiat_ask_qty)
-        pre_nomins = self.nomins
-        self.sell_fiat_for_nomins_with_fee(f_qty)
-        n_qty = min(self.nomins - pre_nomins, self.havven_nomin_ask_qty)
-        pre_havvens = self.havvens
-        self.sell_nomins_for_havvens_with_fee(n_qty)
-        c_qty = min(self.havvens - pre_havvens, self.havven_fiat_bid_qty)
-        self.sell_havvens_for_fiat_with_fee(c_qty)
-
-    def forward_nomin_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one forward nomin arbitrage cycle: nomins -> havvens -> fiat -> nomins.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        n_qty = min(nomins, self.havven_nomin_ask_qty)
-        nomins -= n_qty
-        c_qty = self.nomin_to_havven_yield(n_qty)
-        havvens += c_qty
-        c_qty = min(c_qty, self.havven_fiat_bid_qty)
-        havvens -= c_qty
-        f_qty = self.havven_to_fiat_yield(c_qty)
-        fiat += f_qty
-        f_qty = min(f_qty, self.nomin_fiat_ask_qty)
-        fiat -= f_qty
-        n_qty = self.fiat_to_nomin_yield(f_qty)
-        nomins += n_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def forward_nomin_cycle_trade(self) -> None:
-        """
-        Perform a single forward nomin arbitrage cycle;
-        nomins -> havvens -> fiat -> nomins.
-        """
-        n_qty = min(self.available_nomins, self.havven_nomin_ask_qty)
-        pre_havvens = self.havvens
-        self.sell_nomins_for_havvens_with_fee(n_qty)
-        c_qty = min(self.havvens - pre_havvens, self.havven_fiat_bid_qty)
-        pre_fiat = self.fiat
-        self.sell_havvens_for_fiat_with_fee(c_qty)
-        f_qty = min(self.fiat - pre_fiat, self.nomin_fiat_ask_qty)
-        self.sell_fiat_for_nomins_with_fee(f_qty)
-
-    def reverse_havven_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one reverse havven arbitrage cycle: havvens -> nomins -> fiat -> havvens.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        c_qty = min(havvens, self.havven_nomin_bid_qty)
-        havvens -= c_qty
-        n_qty = self.havven_to_nomin_yield(c_qty)
-        nomins += n_qty
-        n_qty = min(n_qty, self.nomin_fiat_bid_qty)
-        nomins -= n_qty
-        f_qty = self.nomin_to_fiat_yield(n_qty)
-        fiat += f_qty
-        f_qty = min(f_qty, self.havven_fiat_ask_qty)
-        fiat -= f_qty
-        c_qty = self.fiat_to_havven_yield(f_qty)
-        havvens += c_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def reverse_havven_cycle_trade(self) -> None:
-        """
-        Perform a single reverse havven arbitrage cycle;
-        havvens -> nomins -> fiat -> havvens.
-        """
-        c_qty = min(self.available_havvens, self.havven_nomin_bid_qty)
-        pre_nomins = self.nomins
-        self.sell_havvens_for_nomins_with_fee(c_qty)
-        n_qty = min(self.nomins - pre_nomins, self.nomin_fiat_bid_qty)
-        pre_fiat = self.fiat
-        self.sell_nomins_for_fiat_with_fee(n_qty)
-        f_qty = min(self.fiat - pre_fiat, self.havven_fiat_ask_qty)
-        self.sell_fiat_for_havvens_with_fee(f_qty)
-
-    def reverse_nomin_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one reverse nomin arbitrage cycle: nomins -> fiat -> havvens -> nomins.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        n_qty = min(nomins, self.nomin_fiat_bid_qty)
-        nomins -= n_qty
-        f_qty = self.nomin_to_fiat_yield(n_qty)
-        fiat += f_qty
-        f_qty = min(f_qty, self.havven_fiat_ask_qty)
-        fiat -= f_qty
-        c_qty = self.fiat_to_havven_yield(f_qty)
-        havvens += c_qty
-        c_qty = min(c_qty, self.havven_nomin_bid_qty)
-        havvens -= c_qty
-        n_qty = self.havven_to_nomin_yield(c_qty)
-        nomins += n_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def reverse_nomin_cycle_trade(self) -> None:
-        """
-        Perform a single reverse nomin arbitrage cycle;
-        nomins -> fiat -> havvens -> nomins.
-        """
-        n_qty = min(self.available_nomins, self.nomin_fiat_bid_qty)
-        pre_fiat = self.fiat
-        self.sell_nomins_for_fiat_with_fee(n_qty)
-        f_qty = min(self.fiat - pre_fiat, self.havven_fiat_ask_qty)
-        pre_havvens = self.havvens
-        self.sell_fiat_for_havvens_with_fee(f_qty)
-        c_qty = min(self.havvens - pre_havvens, self.havven_nomin_bid_qty)
-        self.sell_havvens_for_nomins_with_fee(c_qty)
-
-    def reverse_fiat_cycle_balances(self) -> Dict[str, Dec]:
-        """
-        Return the estimated wallet balances of this agent after
-        one reverse fiat arbitrage cycle: fiat -> havvens -> nomins -> fiat.
-        """
-        havvens = self.havvens
-        nomins = self.nomins
-        fiat = self.fiat
-
-        f_qty = min(fiat, self.havven_fiat_ask_qty)
-        fiat -= f_qty
-        c_qty = self.fiat_to_havven_yield(f_qty)
-        havvens += c_qty
-        c_qty = min(c_qty, self.havven_nomin_bid_qty)
-        havvens -= c_qty
-        n_qty = self.havven_to_nomin_yield(c_qty)
-        nomins += n_qty
-        n_qty = min(n_qty, self.nomin_fiat_bid_qty)
-        nomins -= n_qty
-        f_qty = self.nomin_to_fiat_yield(n_qty)
-        fiat += f_qty
-
-        return {"havvens": havvens, "nomins": nomins, "fiat": fiat}
-
-    def reverse_fiat_cycle_trade(self) -> None:
-        """
-        Perform a single reverse fiat arbitrage cycle;
-        fiat -> havvens -> nomins -> fiat.
-        """
-        f_qty = min(self.available_fiat, self.havven_fiat_ask_qty)
-        pre_havvens = self.havvens
-        self.sell_fiat_for_havvens_with_fee(f_qty)
-        c_qty = min(self.havvens - pre_havvens, self.havven_nomin_bid_qty)
-        self.sell_havvens_for_nomins_with_fee(c_qty)
-        pre_nomins = self.nomins
-        n_qty = min(self.nomins - pre_nomins, self.nomin_fiat_bid_qty)
-        self.sell_nomins_for_fiat_with_fee(n_qty)
+        if market_directions[c][a] == 'ask':
+            trade = self.market_data[c][a][2].ask(
+                self.market_data[c][a][0],
+                volume,
+                self
+            )
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[c][a][0], self.market_data[c][a][1])
+            volume = trade.quantity*trade.price
+        else:
+            trade = self.market_data[c][a][2].bid(
+                self.market_data[c][a][0],
+                volume/self.market_data[c][a][0],
+                self
+            )
+            print(trade.active, trade)
+            trade.cancel()
+            print(trade.quantity, trade.price, self.market_data[c][a][0], self.market_data[c][a][1])
+            volume = trade.quantity
+        print(f'profited {volume - initial_volume}{a}\n===')
 
     def _cycle_fee_rate(self) -> Dec:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
@@ -452,3 +246,32 @@ class Arbitrageur(MarketPlayer):
         """The return after one reverse arbitrage cycle."""
         # As above. If the fees were not just levied as percentages this would need to be updated.
         return hm.round_decimal(self._reverse_multiple_no_fees() / self._cycle_fee_rate())
+
+    def compute_market_data(self) -> None:
+        self.market_data = {
+            # what to buy into to go a->b instantly
+            'h': {
+                'f': [self.havven_fiat_market.highest_bid_price(),
+                      self.havven_fiat_market.highest_bid_quantity(),
+                      self.havven_fiat_market],
+                'n': [self.havven_nomin_market.highest_bid_price(),
+                      self.havven_nomin_market.highest_bid_quantity(),
+                      self.havven_nomin_market]
+            },
+            'n': {
+                'h': [self.havven_nomin_market.lowest_ask_price(),
+                      self.havven_nomin_market.lowest_ask_quantity(),
+                      self.havven_nomin_market],
+                'f': [self.nomin_fiat_market.highest_bid_price(),
+                      self.nomin_fiat_market.highest_bid_quantity(),
+                      self.nomin_fiat_market]
+            },
+            'f': {
+                'h': [self.havven_fiat_market.lowest_ask_price(),
+                      self.havven_fiat_market.lowest_ask_quantity(),
+                      self.havven_fiat_market],
+                'n': [self.nomin_fiat_market.lowest_ask_price(),
+                      self.nomin_fiat_market.lowest_ask_quantity(),
+                      self.nomin_fiat_market]
+            }
+        }
