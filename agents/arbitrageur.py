@@ -1,10 +1,10 @@
 from decimal import Decimal as Dec
-from typing import Dict
-from itertools import permutations
+from typing import Dict, List, Any
 
 from managers import HavvenManager as hm
-from core.orderbook import OrderBook
 from .marketplayer import MarketPlayer
+
+from core import orderbook as ob
 
 
 currencies = ['h', 'n', 'f']
@@ -32,13 +32,13 @@ class Arbitrageur(MarketPlayer):
         This arbitrageur will only trade if it can make a profit higher than
         this fraction.
         """
-        self.minimal_trade_vol = Dec('0.01')
-        self.nomins_to_purchase = Dec(0)
-        self.nomin_purchase_order = None
-        self.market_data = None
-        self.min_fiat = None
+        self.minimal_trade_vol: Dec = Dec('0.01')
+        self.nomins_to_purchase: Dec = Dec(0)
+        self.nomin_purchase_order: ob.LimitOrder = None
+        self.market_data: Dict[str, Dict[str, List[Any]]] = None
+        self.min_fiat: Dec = None
 
-    def setup(self, init_value: Dec):
+    def setup(self, init_value: Dec) -> None:
         self.min_fiat = init_value
         self.fiat = init_value*2
         self.model.endow_havvens(self, init_value)
@@ -70,7 +70,7 @@ class Arbitrageur(MarketPlayer):
                 a = cycle[0]
                 b = cycle[1]
                 c = cycle[2]
-                profit, vol_a = self.calculate_cycle_volume(a, b, c)
+                vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
                     self.trade_cycle(vol_a, a, b, c)
                     self.compute_market_data()
@@ -80,12 +80,12 @@ class Arbitrageur(MarketPlayer):
                 a = cycle[0]
                 b = cycle[1]
                 c = cycle[2]
-                profit, vol_a = self.calculate_cycle_volume(a, b, c)
+                vol_a = self.calculate_cycle_volume(a, b, c)
                 if vol_a > self.minimal_trade_vol:
                     self.trade_cycle(vol_a, a, b, c)
                     self.compute_market_data()
 
-    def calculate_cycle_volume(self, a, b, c):
+    def calculate_cycle_volume(self, a, b, c) -> Dec:
         """
         Calculate the available volume and the profit the a->b->c->a cycle has
         """
@@ -140,9 +140,9 @@ class Arbitrageur(MarketPlayer):
             )
             profit /= self.market_data[a][b][0]
 
-        return profit, volume
+        return volume
 
-    def trade_cycle(self, volume, a, b, c):
+    def trade_cycle(self, volume, a, b, c) -> None:
         """
         Do the trade cycle a->b->c->a, starting the cycle with volume(in terms of a)
         """
