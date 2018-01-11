@@ -210,7 +210,7 @@ def make_server() -> "tornado.web.Application":
     if settings["Server"]["cached"]:
         print("Running cached data server...")
 
-        server = CachedModularServer(settings, charts, "Havven Model (Alpha)")
+        server = CachedModularServer(settings, charts, "Havven Model")
 
     else:
         print("Running model server...")
@@ -244,7 +244,7 @@ def make_server() -> "tornado.web.Application":
             settings,
             model.HavvenModel,
             charts,
-            "Havven Model (Alpha)",
+            "Havven Model",
             {
                 "num_agents": n_slider,
                 "continuous_order_matching": match_checkbox,
