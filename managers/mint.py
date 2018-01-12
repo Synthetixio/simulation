@@ -112,6 +112,20 @@ class Mint:
             )
         )
 
+    def havvens_off_optimal(self, agent: "agents.MarketPlayer") -> Dec:
+        """
+        How many havvens above or below is an agent to be at copt
+        """
+        current_escrowed = self.escrowed_havvens(agent)
+        unescrowed = agent.havvens - current_escrowed
+        debt = 0
+        if unescrowed < 0:  # i.e. in debt
+            debt = unescrowed
+
+        goal_escrowed = (self.copt / self.cmax) * agent.havvens
+
+        return current_escrowed - goal_escrowed + debt
+
     def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
         """
         Return the remaining quantity of tokens this agent can issued on the back of their
