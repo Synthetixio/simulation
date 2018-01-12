@@ -208,7 +208,8 @@ class OrderBook:
     """
 
     def __init__(self, model_manager: "HavvenManager",
-                 base: str, quote: str,
+                 base: str,
+                 quote: str,
                  matcher: Matcher,
                  quoted_fee: Callable[[Dec], Dec],
                  base_fee: Callable[[Dec], Dec],
