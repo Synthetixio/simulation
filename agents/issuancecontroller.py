@@ -82,6 +82,7 @@ class IssuanceController(MarketPlayer):
         })
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
+        print(order, "cancelled")
         pass
 
     def notify_trade(self, record: "ob.TradeRecord") -> None:
@@ -98,6 +99,8 @@ class IssuanceController(MarketPlayer):
             if order is None:
                 raise Exception("No issue order with remaining > 0, even though ask trade got filled")
             if order['remaining'] < record.quantity:
+                print([str(i) for i in self.orders])
+                print(self.issuance_orders)
                 raise Exception("issuance orders got filled in wrong order for some reason " +
                                 f"({order['remaining']} < {record.quantity})")
 
@@ -124,6 +127,8 @@ class IssuanceController(MarketPlayer):
             if order is None:
                 raise Exception("No burn order with remaining > 0, even though bid trade got filled")
             if order['remaining'] < record.quantity:
+                print(self.orders)
+                print(self.burn_orders)
                 raise Exception("burn orders got filled in wrong order for some reason " +
                                 f"({order['remaining']} < {record.quantity})")
             if bid.active:

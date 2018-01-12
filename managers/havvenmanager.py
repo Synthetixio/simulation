@@ -62,10 +62,6 @@ class HavvenManager:
         the precision setting.
         Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
         """
-        # This check for numbers which are smaller than the precision allows will
-        # be commented out for now as it seems to kill economic activity.
-        # if value < 1E-8:
-        #     return Dec(0)
         return round(Dec(value), cls.currency_precision)
 
     @classmethod
@@ -76,13 +72,12 @@ class HavvenManager:
         Equivalent to Dec(value).quantize(Dec(1e(-cls.currency_precision))).
         This function really only need be used for products and quotients.
         """
-        # This check for numbers which are smaller than the precision allows will
-        # be commented out for now as it seems to kill economic activity.
-        # if value < Dec('1E-8'):
-        #     return Dec(0)
         return round(value, cls.currency_precision)
 
     @property
     def active_havvens(self):
         active_havvens = sum(i.havvens for i in self.model.schedule.agents if i.escrowed_havvens > 0)
-        return active_havvens + self.model.havven_foundation.havvens
+        if active_havvens > 0:
+            return active_havvens
+        # give some initial value if there are no active ones
+        return self.havven_supply
