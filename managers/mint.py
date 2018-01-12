@@ -68,9 +68,9 @@ class Mint:
     def issued_nomins_received(self, havvens: Dec) -> Dec:
         """The number of nomins created by escrowing a number of havvens"""
         n_i = (
-            havvens *
-            self.cmax *
-            self.market_manager.havven_nomin_market.price
+            havvens * self.market_manager.havven_fiat_market.price *
+            self.cmax /
+            self.market_manager.nomin_fiat_market.price
         )
         return n_i
 
@@ -81,8 +81,9 @@ class Mint:
         """
         return HavvenManager.round_decimal(
             (
-                agent.issued_nomins /
-                self.market_manager.havven_nomin_market.price /
+                agent.issued_nomins *
+                self.market_manager.nomin_fiat_market.price /
+                self.market_manager.havven_fiat_market.price /
                 self.cmax
             )
         )
@@ -94,8 +95,9 @@ class Mint:
         return HavvenManager.round_decimal(
             (
                 agent.available_havvens *
-                self.cmax *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price *
+                self.cmax /
+                self.market_manager.nomin_fiat_market.price
             )
         )
 
@@ -106,8 +108,9 @@ class Mint:
         return HavvenManager.round_decimal(
             (
                 agent.available_havvens *
-                self.copt *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price *
+                self.cmax /
+                self.market_manager.nomin_fiat_market.price
             )
         )
 

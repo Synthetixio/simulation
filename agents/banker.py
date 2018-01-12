@@ -33,6 +33,7 @@ class Banker(MarketPlayer):
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
+        print(self, f"{self.collateralisation * (1 - self.collateralisation_diff)}, {self.model.mint.copt}")
 
         if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
             # first try to buy more havvens with nomins
@@ -43,16 +44,20 @@ class Banker(MarketPlayer):
                 # only spend enough to get to havvens needed, or just buy as many as they can
                 quantity = min(havvens_needed, self.available_nomins*price)
 
+                print(f"buying {quantity}hav")
+
                 trade = self.place_havven_nomin_bid_with_fee(price, quantity)
                 trade.cancel()  # don't hold onto this trade, as burning nomins if still off copt
 
             # if still under collateralised, burn nomins using fiat
             if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
                 nom_to_burn = self.model.mint.optimal_issuance_rights(self)
+                print(f'burning {nom_to_burn}')
                 if self.fiat < nom_to_burn:
                     raise Exception("not enough fiat to burn nomins to get to c_opt")
                 self.free_havvens(nom_to_burn)
 
         elif self.collateralisation * (1 - self.collateralisation_diff) < self.model.mint.copt:
             to_escrow = self.model.mint.optimal_issuance_rights(self)
+            print(f"escrowing {to_escrow}")
             self.escrow_havvens(to_escrow)

@@ -82,7 +82,6 @@ class IssuanceController(MarketPlayer):
         })
 
     def notify_cancelled(self, order: "ob.LimitOrder") -> None:
-        print(order, "cancelled")
         pass
 
     def notify_trade(self, record: "ob.TradeRecord") -> None:
