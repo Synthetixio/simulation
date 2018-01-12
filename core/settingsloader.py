@@ -78,13 +78,14 @@ def get_defaults():
             'Arbitrageur': 3,
             'Banker': 25,
             'Randomizer': 15,
+            'MaxNominIssuer': 10,
             'NominShorter': 15,
             'HavvenEscrowNominShorter': 10,
             'HavvenSpeculator': 6,
             'NaiveSpeculator': 0,
             'Merchant': 0,
             'Buyer': 6,
-            'MarketMaker': 20
+            'MarketMaker': 10
         },
         'Havven': {
             'havven_supply': '1000000000',  # static supply of havvens throughout the system
@@ -94,10 +95,12 @@ def get_defaults():
         },
         'AgentDescriptions': {
             "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
-            "Banker": "The banker acquires as many Havvens as they can and issues nomins" +
-                      " to buy more",
+            "Banker": "The banker acquires as many Havvens for generating as many fees as" +
+                      " possible, by targeting c_opt",
             "Randomizer": "The randomizer places random bids and asks on all markets" +
                           " close to the market price",
+            'MaxNominIssuer': "The max nomin issuer acquires as many Havvens as they can and issues nomins" +
+                              " to buy more",
             "NominShorter": "The nomin shorter sells nomins when the price is high" +
                             " and buys when they are low",
             "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave" +
