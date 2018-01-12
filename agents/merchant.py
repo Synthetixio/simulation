@@ -107,7 +107,7 @@ class Buyer(MarketPlayer):
     min_mpc = 0.1  # not Dec as multiplied by floats later
     max_mpc = 0.9
 
-    max_nomin_price = Dec('1.1')
+    max_nomin_price = Dec('1')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

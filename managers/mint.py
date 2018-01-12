@@ -21,6 +21,7 @@ class Mint:
         self.havven_manager = havven_manager
         self.market_manager = market_manager
         self.fee_manager = fee_manager
+
         self.copt_sensitivity_parameter: Dec = Dec(mint_settings['copt_sensitivity_parameter'])
         """How sensitive is copt/cmax to the price of nomins"""
         self.copt_flattening_parameter: int = mint_settings['copt_flattening_parameter']
@@ -49,8 +50,6 @@ class Mint:
         """Optimal collateralisation ratio"""
         self.cmax: Dec = Dec(-1)
         """Maximal collateralisation value"""
-
-        self.calculate_copt_cmax()
 
     def add_issuance_controller(self, issuance_controller: 'agents.IssuanceController'):
         self.issuance_controller = issuance_controller
@@ -162,4 +161,4 @@ class Mint:
     @property
     def global_collateralisation(self) -> Dec:
         return (self.market_manager.nomin_fiat_market.price * self.havven_manager.issued_nomins) / \
-               (self.market_manager.havven_fiat_market.price * self.havven_manager.havven_supply)
+               (self.market_manager.havven_fiat_market.price * self.havven_manager.active_havvens)

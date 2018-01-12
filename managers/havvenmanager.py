@@ -14,7 +14,12 @@ class HavvenManager:
     The decimal context precision should be significantly higher than this.
     """
 
-    def __init__(self, continuous_order_matching: bool, havven_settings: Dict[str, Any]) -> None:
+    def __init__(
+            self,
+            continuous_order_matching: bool,
+            havven_settings: Dict[str, Any],
+            model: '__import__("model").HavvenModel'
+    ) -> None:
         """
         :param continuous_order_matching:
         :param havven_settings:
@@ -48,6 +53,8 @@ class HavvenManager:
         self.volume_weighted_average: bool = havven_settings['use_volume_weighted_avg']
         """Whether to calculate the rolling average taking into account the volume of the trades"""
 
+        self.model = model
+
     @classmethod
     def round_float(cls, value: float) -> Dec:
         """
@@ -74,3 +81,8 @@ class HavvenManager:
         # if value < Dec('1E-8'):
         #     return Dec(0)
         return round(value, cls.currency_precision)
+
+    @property
+    def active_havvens(self):
+        active_havvens = sum(i.havvens for i in self.model.schedule.agents if i.escrowed_havvens > 0)
+        return active_havvens + self.model.havven_foundation.havvens

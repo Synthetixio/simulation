@@ -119,6 +119,15 @@ def get_defaults():
         }
 
     }
+
+    from agents import player_names
+    for item in player_names:
+        if item not in settings['AgentDescriptions']:
+            print("=====================")
+            print(f'ERROR: {item} not in default settings!!')
+            print("=====================")
+            raise Exception
+
     return copy.deepcopy(settings)
 
 

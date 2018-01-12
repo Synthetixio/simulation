@@ -54,7 +54,8 @@ class HavvenModel(Model):
         # Initialise simulation managers.
         self.manager = HavvenManager(
             continuous_order_matching,
-            havven_settings
+            havven_settings,
+            self
         )
 
         self.fee_manager = FeeManager(
@@ -63,8 +64,7 @@ class HavvenModel(Model):
         )
         self.market_manager = MarketManager(self.manager, self.fee_manager)
 
-        self.mint = Mint(self.manager, self.market_manager, self.fee_manager,
-                         mint_settings)
+        self.mint = Mint(self.manager, self.market_manager, self.fee_manager, mint_settings)
 
         self.agent_manager = AgentManager(
             self,
@@ -76,11 +76,15 @@ class HavvenModel(Model):
         issuance_controller = self.agent_manager.add_issuance_controller()
         self.mint.add_issuance_controller(issuance_controller)
 
+        self.havven_foundation = None
         if agent_settings['havven_foundation_enabled']:
-            havven_foundation = self.agent_manager.add_havven_foundation(
+            self.havven_foundation = self.agent_manager.add_havven_foundation(
                 agent_settings['havven_foundation_initial_c'],
                 agent_settings['havven_foundation_cut']
             )
+
+        self.mint.calculate_copt_cmax()
+
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:

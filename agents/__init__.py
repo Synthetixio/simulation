@@ -24,7 +24,7 @@ player_names = {
     'Merchant': Merchant,
     'Buyer': Buyer,
     'MarketMaker': MarketMaker,
-    'IssuanceController': IssuanceController,
+    # 'IssuanceController': IssuanceController,
     'MaxNominIssuer': MaxNominIssuer,
 }
 

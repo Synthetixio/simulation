@@ -43,7 +43,10 @@ class IssuanceController(MarketPlayer):
                     item['remaining'], 1 - self.model.mint.non_discretionary_cap_buffer
                 )
                 if item['trade'] is None:
-                    raise Exception("trade is None in IssuanceController")
+                    print("Fatal error with issuance")
+                    print(item)
+                    print(self.portfolio())
+                    # raise Exception("trade is None in IssuanceController")
 
         for item in self.burn_orders:
             if item['trade'] is None:
@@ -51,7 +54,10 @@ class IssuanceController(MarketPlayer):
                     item['remaining'], 1 + self.model.mint.non_discretionary_cap_buffer
                 )
                 if item['trade'] is None:
-                    raise Exception("trade is None in IssuanceController")
+                    print("Fatal error with issuance")
+                    print(item)
+                    print(self.portfolio())
+                    # raise Exception("trade is None in IssuanceController")
 
         self.issuance_orders = [i for i in self.issuance_orders if i['remaining'] > 0 or i['trade'] is None]
         self.burn_orders = [i for i in self.burn_orders if i['remaining'] > 0 or i['trade'] is None]

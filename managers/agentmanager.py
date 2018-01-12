@@ -86,8 +86,8 @@ class AgentManager:
         issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
 
         # give the issuance controller some extra fiat/nomins to avoid rounding errors
-        issuance_controller.fiat += 1
-        issuance_controller.nomins += 1
+        issuance_controller.fiat += Dec('5')
+        issuance_controller.nomins += Dec('5')
 
         self.running_player_total += 1
         self.havven_model.schedule.add(issuance_controller)
