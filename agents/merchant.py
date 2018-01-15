@@ -35,7 +35,7 @@ class Merchant(MarketPlayer):
     """
 
     # the minimal price the merchant will sell nomins for
-    minimal_sell_price = Dec('0.9')
+    minimal_sell_price = Dec('1')
     nom_sell_order = None
 
     def __init__(self, *args, **kwargs) -> None:
