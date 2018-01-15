@@ -10,6 +10,7 @@ from .marketmaker import MarketMaker
 from .issuancecontroller import IssuanceController
 from .havvenfoundation import HavvenFoundation
 from .feeoptimiser import FeeOptimiser
+from .valuehavvenbuyers import ValueHavvenBuyers
 
 # player names for the UI sliders
 player_names = {
@@ -27,6 +28,7 @@ player_names = {
     'IssuanceController': IssuanceController,
     # 'HavvenFoundation': HavvenFoundation,
     'FeeOptimiser': FeeOptimiser,
+    'ValueHavvenBuyers': ValueHavvenBuyers,
 }
 
 # exclude players when showing profit %

@@ -84,7 +84,8 @@ def get_defaults():
             'NaiveSpeculator': 0,
             'Merchant': 0,
             'Buyer': 6,
-            'MarketMaker': 20
+            'MarketMaker': 20,
+            'ValueHavvenBuyers': 10,
         },
         'Havven': {
             'havven_supply': '1000000000',  # static supply of havvens throughout the system
@@ -112,7 +113,9 @@ def get_defaults():
             "Buyer": "The buyers bring fiat into the system systematically, trading" +
                      " it for nomins, to buy goods from the merchant",
             "MarketMaker": "The market maker creates liquidity on some market in what" +
-                           " they hope to be a profitable manner"
+                           " they hope to be a profitable manner",
+            'ValueHavvenBuyers': "The Value Havven Buyers wait until the value of havven utility" +
+                                 " is greater than the market price before buying",
         }
 
     }
