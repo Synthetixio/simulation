@@ -54,7 +54,7 @@ class MaxNominIssuer(MarketPlayer):
                 if havven_supply > fiat_supply:
                     order = self.place_havven_nomin_bid_with_fee(
                         self.available_nomins * self.sell_rate,
-                        self.havven_nomin_market.price * (Dec(1) - self.trade_premium)
+                        self.havven_nomin_market.price * (Dec(1) + self.trade_premium)
                     )
                     if order is not None:
                         self.nomin_havven_order = (
@@ -65,7 +65,7 @@ class MaxNominIssuer(MarketPlayer):
                 else:
                     order = self.place_nomin_fiat_ask_with_fee(
                         self.available_nomins * self.sell_rate,
-                        self.nomin_fiat_market.price * (Dec(1) + self.trade_premium)
+                        self.nomin_fiat_market.price * (Dec(1) - self.trade_premium)
                     )
                     if order is None:
                         return
@@ -77,7 +77,7 @@ class MaxNominIssuer(MarketPlayer):
         if self.available_fiat > 0 and not self.fiat_havven_order:
             order = self.place_havven_fiat_bid_with_fee(
                 hm.round_decimal(self.available_fiat * self.sell_rate),
-                self.havven_fiat_market.price * (Dec(1) - self.trade_premium)
+                self.havven_fiat_market.price * (Dec(1) + self.trade_premium)
             )
             if order is None:
                 return

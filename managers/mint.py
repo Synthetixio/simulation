@@ -57,12 +57,17 @@ class Mint:
     def escrow_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """Escrow a number of havvens for the given agent, creating a sell order
         for the created nomins"""
+        value = self.havven_manager.round_decimal(value)
         if self.minimal_issuance_amount <= value <= agent.available_havvens and self.cmax > 0:
             nom_received = self.havven_manager.round_decimal(self.issued_nomins_received(value))
+            if nom_received <= Dec(0):
+                return False
             agent.issued_nomins += nom_received
             self.havven_manager.issued_nomins += nom_received
             self.issuance_controller.nomins += nom_received
             self.issuance_controller.place_issuance_order(nom_received, agent)
+            fee = self.market_manager.nomin_fiat_market.seller_fee(Dec(1), value)
+            agent.fiat += nom_received - fee  # give the nomin value @ 1 instantly, rest comes later
         return False
 
     def issued_nomins_received(self, havvens: Dec) -> Dec:
@@ -143,7 +148,9 @@ class Mint:
         :param value: the amount of fiat to buy nomins with
         """
         value = self.havven_manager.round_decimal(value)
-        if self.minimal_issuance_amount <= value <= agent.available_fiat and value <= agent.issued_nomins and self.cmax > 0:
+        if self.minimal_issuance_amount <= value <= agent.available_fiat and \
+                value <= agent.issued_nomins and self.cmax > 0:
+
             agent.fiat -= value
             self.issuance_controller.fiat += value
             fee = self.market_manager.nomin_fiat_market.buyer_fee(Dec(1), value)

@@ -150,6 +150,14 @@ def get_vis_elements() -> List[VisualizationElement]:
         ),
 
         ChartModule([
+            {"Label": "Copt", "Color": "darkred"},
+            {"Label": "Cmax", "Color": "red"},
+        ],
+            desc="Collateralisation optimal/max over time",
+            title="C_max and C_opt",
+            group="Issuance"
+        ),
+        ChartModule([
             {"Label": "Fee Pool", "Color": "blue"},
         ],
             desc="The amount of fees collected by the system, that haven't yet been distributed.",
@@ -209,7 +217,6 @@ def make_server() -> "tornado.web.Application":
 
     if settings["Server"]["cached"]:
         print("Running cached data server...")
-
         server = CachedModularServer(settings, charts, "Havven Model")
 
     else:
