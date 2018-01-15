@@ -21,6 +21,7 @@ class Mint:
         self.havven_manager = havven_manager
         self.market_manager = market_manager
         self.fee_manager = fee_manager
+
         self.copt_sensitivity_parameter: Dec = Dec(mint_settings['copt_sensitivity_parameter'])
         """How sensitive is copt/cmax to the price of nomins"""
         self.copt_flattening_parameter: int = mint_settings['copt_flattening_parameter']
@@ -50,28 +51,31 @@ class Mint:
         self.cmax: Dec = Dec(-1)
         """Maximal collateralisation value"""
 
-        self.calculate_copt_cmax()
-
     def add_issuance_controller(self, issuance_controller: 'agents.IssuanceController'):
         self.issuance_controller = issuance_controller
 
     def escrow_havvens(self, agent: "agents.MarketPlayer", value: Dec) -> bool:
         """Escrow a number of havvens for the given agent, creating a sell order
         for the created nomins"""
+        value = self.havven_manager.round_decimal(value)
         if self.minimal_issuance_amount <= value <= agent.available_havvens and self.cmax > 0:
             nom_received = self.havven_manager.round_decimal(self.issued_nomins_received(value))
+            if nom_received <= Dec(0):
+                return False
             agent.issued_nomins += nom_received
             self.havven_manager.issued_nomins += nom_received
             self.issuance_controller.nomins += nom_received
             self.issuance_controller.place_issuance_order(nom_received, agent)
+            fee = self.market_manager.nomin_fiat_market.seller_fee(Dec(1), value)
+            agent.fiat += nom_received - fee  # give the nomin value @ 1 instantly, rest comes later
         return False
 
     def issued_nomins_received(self, havvens: Dec) -> Dec:
         """The number of nomins created by escrowing a number of havvens"""
         n_i = (
-            havvens *
-            self.cmax *
-            self.market_manager.havven_nomin_market.price
+            havvens * self.market_manager.havven_fiat_market.price *
+            self.cmax /
+            self.market_manager.nomin_fiat_market.price
         )
         return n_i
 
@@ -82,8 +86,9 @@ class Mint:
         """
         return HavvenManager.round_decimal(
             (
-                agent.issued_nomins /
-                self.market_manager.havven_nomin_market.price /
+                agent.issued_nomins *
+                self.market_manager.nomin_fiat_market.price /
+                self.market_manager.havven_fiat_market.price /
                 self.cmax
             )
         )
@@ -95,8 +100,9 @@ class Mint:
         return HavvenManager.round_decimal(
             (
                 agent.available_havvens *
-                self.cmax *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price *
+                self.cmax /
+                self.market_manager.nomin_fiat_market.price
             )
         )
 
@@ -107,10 +113,25 @@ class Mint:
         return HavvenManager.round_decimal(
             (
                 agent.available_havvens *
-                self.copt *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price *
+                self.cmax /
+                self.market_manager.nomin_fiat_market.price
             )
         )
+
+    def havvens_off_optimal(self, agent: "agents.MarketPlayer") -> Dec:
+        """
+        How many havvens above or below is an agent to be at copt
+        """
+        current_escrowed = self.escrowed_havvens(agent)
+        unescrowed = agent.havvens - current_escrowed
+        debt = 0
+        if unescrowed < 0:  # i.e. in debt
+            debt = unescrowed
+
+        goal_escrowed = (self.copt / self.cmax) * agent.havvens
+
+        return current_escrowed - goal_escrowed + debt
 
     def remaining_issuance_rights(self, agent: "agents.MarketPlayer") -> Dec:
         """
@@ -127,7 +148,9 @@ class Mint:
         :param value: the amount of fiat to buy nomins with
         """
         value = self.havven_manager.round_decimal(value)
-        if self.minimal_issuance_amount <= value <= agent.available_fiat and value <= agent.issued_nomins and self.cmax > 0:
+        if self.minimal_issuance_amount <= value <= agent.available_fiat and \
+                value <= agent.issued_nomins and self.cmax > 0:
+
             agent.fiat -= value
             self.issuance_controller.fiat += value
             fee = self.market_manager.nomin_fiat_market.buyer_fee(Dec(1), value)
@@ -148,4 +171,4 @@ class Mint:
     @property
     def global_collateralisation(self) -> Dec:
         return (self.market_manager.nomin_fiat_market.price * self.havven_manager.issued_nomins) / \
-               (self.market_manager.havven_fiat_market.price * self.havven_manager.havven_supply)
+               (self.market_manager.havven_fiat_market.price * self.havven_manager.active_havvens)

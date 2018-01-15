@@ -78,6 +78,7 @@ def get_defaults():
             'Arbitrageur': 3,
             'Banker': 25,
             'Randomizer': 15,
+            'MaxNominIssuer': 10,
             'NominShorter': 15,
             'HavvenEscrowNominShorter': 10,
             'HavvenSpeculator': 6,
@@ -95,10 +96,12 @@ def get_defaults():
         },
         'AgentDescriptions': {
             "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
-            "Banker": "The banker acquires as many Havvens as they can and issues nomins" +
-                      " to buy more",
+            "Banker": "The banker acquires as many Havvens for generating as many fees as" +
+                      " possible, by targeting c_opt",
             "Randomizer": "The randomizer places random bids and asks on all markets" +
                           " close to the market price",
+            'MaxNominIssuer': "The max nomin issuer acquires as many Havvens as they can and issues nomins" +
+                              " to buy more",
             "NominShorter": "The nomin shorter sells nomins when the price is high" +
                             " and buys when they are low",
             "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave" +
@@ -119,6 +122,15 @@ def get_defaults():
         }
 
     }
+
+    from agents import player_names
+    for item in player_names:
+        if item not in settings['AgentDescriptions']:
+            print("=====================")
+            print(f'ERROR: {item} not in default settings!!')
+            print("=====================")
+            raise Exception
+
     return copy.deepcopy(settings)
 
 

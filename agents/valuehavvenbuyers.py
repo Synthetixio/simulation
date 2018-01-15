@@ -14,9 +14,8 @@ class ValueHavvenBuyers(MarketPlayer):
       and then sell them back in
     """
     havven_fiat_trade = None
-    discount_purchase_rate = Dec('0.85')
-    'At what "value" do they purchase the havvens'
-
+    purchase_rate = Dec('1.2')
+    'How over "value" do they purchase the havvens'
 
     def setup(self, init_value: Dec) -> None:
         self.fiat = init_value * Dec(4)
@@ -29,9 +28,8 @@ class ValueHavvenBuyers(MarketPlayer):
         havven_value_multiplier = self.havven_value_calculation()
 
         # just place their value trade every step, instead of checking if the current market conditions are good
-        price = (Dec(1) / havven_value_multiplier) * self.havven_fiat_market.price * self.discount_purchase_rate
-        print(price)
-        self.havven_fiat_trade = self.place_havven_fiat_bid(self.fiat/price, price)
+        price = havven_value_multiplier * self.havven_fiat_market.price * self.purchase_rate
+        self.havven_fiat_trade = self.place_havven_fiat_bid_with_fee(self.available_fiat/price, price)
 
     def havven_value_calculation(self) -> Dec:
         return self.model.mint.cmax * self.nomin_fiat_market.price / self.havven_fiat_market.price

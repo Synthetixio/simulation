@@ -96,8 +96,6 @@ class FeeManager:
         # TODO: * distribute by issued nomins
         # TODO: * distribute by motility
 
-        total_escrowed_havvens = sum(i.escrowed_havvens for i in schedule_agents)
-
         pre_nomins = self.model_manager.nomins
 
         # calculate alphabase
@@ -129,7 +127,7 @@ class FeeManager:
             else:
                 fee_mult = 0
 
-            qty = (agent.havvens * fee_mult / abase * pre_nomins) * Dec('0.99')
+            qty = (agent.havvens * fee_mult / abase * pre_nomins) * Dec('0.995')
 
             agent.nomins += qty
             self.model_manager.nomins -= qty
