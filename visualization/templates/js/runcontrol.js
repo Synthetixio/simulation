@@ -33,6 +33,7 @@ var player; // Variable to store the continuous player
 var control = new MesaVisualizationControl();
 var elements = [];  // List of Element objects
 var model_params = {};
+var group_changed = false;
 
 // Playback buttons
 var playPauseButton = $('#play-pause');
@@ -344,8 +345,7 @@ var reset = function ($e) {
     send({"type": "reset", "run_num": control.run_number});
     // Reset all the visualizations
     clear_graphs();
-
-    show_group($(".list-group-item")[1]);
+    if (!group_changed) show_group($(".list-group-item")[1]);
 
     if (!control.running) {
         $(playPauseButton.children()[0]).html('<span style="font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);" class="glyphicon glyphicon-play"></span>');
@@ -423,9 +423,6 @@ var run = function ($e) {
         anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-play\"></span>");
     }
     else if (!control.done) {
-        if (control.data.length <= 1) {
-            show_group($(".list-group-item")[1]);
-        }
         control.running = true;
         player = setInterval(single_step, 1000 / control.fps);
         anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-pause\"></span>");
@@ -491,6 +488,7 @@ function show_group(group) {
     });
     update_graphs(true);
     window.dispatchEvent(new Event('resize'));
+    group_changed = true;
 }
 
 

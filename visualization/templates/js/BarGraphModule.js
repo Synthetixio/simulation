@@ -108,15 +108,20 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
         options.plotOptions = {
             column: {
                 stacking: 'normal',
-                pointPadding: 0.2,
+                pointPadding: 0.1,
                 borderWidth: 0
+            },
+            series: {
+                pointPadding: 0.1,
+                groupPadding: 0.2,
             }
         };
 
         options.chart = {
             type: 'column',
             animation: false,
-            height: 300
+            height: 300,
+            zoomType: 'x',
         };
 
         options.tooltip = {
