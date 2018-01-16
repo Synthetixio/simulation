@@ -328,7 +328,6 @@ var parseDatasetInfo = function (dataset) {
             }
         )
     }
-    ;
 
     let number_agents_param = {
         name: "Number of agents",
