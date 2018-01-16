@@ -26,7 +26,8 @@ var BarGraphModule = function (group, title, desc, label, width, height) {
         chart: {
 			animation: false,
             height: 250,
-            min : 0
+            min : 0,
+            zoomType: 'x',
 		},
         credits: {
 			enabled: false

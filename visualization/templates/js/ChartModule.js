@@ -55,11 +55,15 @@ var ChartModule = function(group, title, desc, series, width, height) {
 		chart: {
 			animation: false,
             height: 250,
-			min : 0
+			min : 0,
+			zoomType: 'x',
 		},
         credits: {
 			enabled: false
 		},
+		xAxis: {
+			allowDecimals: false,
+		}
 
 	});
 

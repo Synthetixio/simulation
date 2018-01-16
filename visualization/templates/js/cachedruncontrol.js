@@ -17,7 +17,7 @@
 
 var fps_default = $('#fps_default')[0].content;
 
-var MesaVisualizationControl = function() {
+var MesaVisualizationControl = function () {
     this.draw_delay_period = 5;
     this.tick = 0; // Counts at which tick of the model we are.
     this.done = false;
@@ -52,7 +52,7 @@ var agent_values = {};
 // Open the websocket connection; support TLS-specific URLs when appropriate
 var ws = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
 
-ws.onopen = function() {
+ws.onopen = function () {
     console.log("Connection opened!");
     send({"type": "get_datasets"}); // Request model parameters when websocket is ready
     control.ready = false;
@@ -61,13 +61,13 @@ ws.onopen = function() {
 
 
 // Add model parameters that can be edited prior to a model run
-var initGUI = function() {
+var initGUI = function () {
 
-    var onSubmitCallback = function(param_name, value) {
+    var onSubmitCallback = function (param_name, value) {
         send({"type": "submit_params", "param": param_name, "value": value});
     };
 
-    var addBooleanInput = function(param, obj) {
+    var addBooleanInput = function (param, obj) {
         var dom_id = param + '_id';
         var label = $("<p><label for='" + dom_id + "' class='label label-primary'>" + obj.name + "</label></p>")[0];
         var checkbox = $("<input class='model-parameter' id='" + dom_id + "' type='checkbox'/>")[0];
@@ -78,13 +78,13 @@ var initGUI = function() {
         $(checkbox).bootstrapSwitch({
             'state': obj.value,
             'size': 'small',
-            'onSwitchChange': function(e, state) {
+            'onSwitchChange': function (e, state) {
                 onSubmitCallback(param, state);
             }
         });
     };
 
-    var addNumberInput = function(param, obj) {
+    var addNumberInput = function (param, obj) {
         var dom_id = param + '_id';
         var label = $("<p><label for='" + dom_id + "' class='label label-primary'>" + obj.name + "</label></p>")[0];
         var number_input = $("<input class='model-parameter' id='" + dom_id + "' type='number'/>")[0];
@@ -93,12 +93,12 @@ var initGUI = function() {
         input_group.append(label);
         input_group.append(number_input);
         $(number_input).val(obj.value);
-        $(number_input).on('change', function() {
+        $(number_input).on('change', function () {
             onSubmitCallback(param, Number($(this).val()));
         })
     };
 
-    var addSliderInput = function(param, obj) {
+    var addSliderInput = function (param, obj) {
         var dom_id = param + '_id';
         var label = $("<p></p>")[0];
         var tooltip = $("<a data-toggle='tooltip' data-placement='top' class='label label-primary'>" + obj.name + "</a>")[0];
@@ -123,13 +123,13 @@ var initGUI = function() {
             ticks_labels: false,
             ticks_positions: false
         }).slider('disable');
-        $(slider_input).on('change', function() {
+        $(slider_input).on('change', function () {
             onSubmitCallback(param, Number($(this).val()));
         });
         $(input_group).click();
     };
 
-    var addChoiceInput = function(param, obj) {
+    var addChoiceInput = function (param, obj) {
         var dom_id = param + '_id';
         var label = $("<p><label for='" + dom_id + "' class='label label-primary'>" + obj.name + "</label></p>")[0];
         sidebar.append(label);
@@ -143,10 +143,10 @@ var initGUI = function() {
         var choice_container = $("<ul class='dropdown-menu' role='menu' aria-labelledby='" + dom_id + "'></ul>")[0];
         for (var i = 0; i < obj.choices.length; i++) {
             var choice = $("<li role='presentation'><a role='menuitem' tabindex='-1' href='#'>" + obj.choices[i] + "</a></li>")[0];
-            $(choice).on('click', function() {
+            $(choice).on('click', function () {
                 var value = $(this).children()[0].text;
-               $(button).text(value + ' ');
-               onSubmitCallback(param, value);
+                $(button).text(value + ' ');
+                onSubmitCallback(param, value);
             });
             choice_container.append(choice);
         }
@@ -156,12 +156,12 @@ var initGUI = function() {
         sidebar.append(dropdown);
     };
 
-    var addTextBox = function(param, obj) {
+    var addTextBox = function (param, obj) {
         var well = $('<div class="well">' + obj.value + '</div>')[0];
         sidebar.append(well);
     };
 
-    var addAgentSliders = function(param, obj) {
+    var addAgentSliders = function (param, obj) {
         // this will assume only one of these exists
 
         let data = obj.value;
@@ -201,15 +201,15 @@ var initGUI = function() {
                 name: data[i].name,
                 min: min_val,
                 max: max_val,
-                value: parseFloat(data[i].value)/total*max_val,
+                value: parseFloat(data[i].value) / total * max_val,
                 step: step,
-                tooltip_position:'right',
+                tooltip_position: 'right',
                 ticks: false,
                 ticks_labels: false,
                 ticks_positions: false,
                 width: '100%'
             }).slider('disable');
-            $(slider_input).on('change', function() {
+            $(slider_input).on('change', function () {
                 var slider = $(slider_input)[0];
                 var sum = 0;
                 var sum_others = 0;
@@ -236,7 +236,7 @@ var initGUI = function() {
                             $(item).slider('setValue', 0.01);
                         }
                     }
-                    return_val[item.id] = parseFloat(item.value)/max_val;
+                    return_val[item.id] = parseFloat(item.value) / max_val;
                 });
 
                 onSubmitCallback(param, return_val);
@@ -244,7 +244,7 @@ var initGUI = function() {
         }
     };
 
-    var addParamInput = function(param, option) {
+    var addParamInput = function (param, option) {
         param = option.name;
         switch (option['param_type']) {
             case 'checkbox':
@@ -295,7 +295,7 @@ var initGUI = function() {
 };
 
 
-var parseDatasetInfo = function(dataset) {
+var parseDatasetInfo = function (dataset) {
     let data;
     for (let i in control.dataset_info) {
         if (control.dataset_info[i].name === dataset) {
@@ -327,7 +327,8 @@ var parseDatasetInfo = function(dataset) {
                 description: data["settings"]["AgentDescriptions"][i]
             }
         )
-    };
+    }
+    ;
 
     let number_agents_param = {
         name: "Number of agents",
@@ -353,7 +354,7 @@ var parseDatasetInfo = function(dataset) {
 
 
 /** Parse and handle an incoming message on the WebSocket connection. */
-ws.onmessage = function(message) {
+ws.onmessage = function (message) {
     var msg = JSON.parse(message.data);
     switch (msg["type"]) {
         case "viz_state":
@@ -405,15 +406,15 @@ ws.onmessage = function(message) {
 };
 
 
-/**	 Turn an object into a string to send to the server, and send it. v*/
-var send = function(message) {
+/**     Turn an object into a string to send to the server, and send it. v*/
+var send = function (message) {
     msg = JSON.stringify(message);
     ws.send(msg);
 };
 
 
 /** Reset the model, and rest the appropriate local variables. */
-var reset = function($e) {
+var reset = function ($e) {
     if ($e !== undefined)
         $e.preventDefault();
 
@@ -447,7 +448,7 @@ var reset = function($e) {
 
 
 /** Send a message to the server get the next visualization state. */
-var single_step = function() {
+var single_step = function () {
     if (control.tick < 0) {
         control.tick = 0;
     }
@@ -455,14 +456,19 @@ var single_step = function() {
     let fps = parseInt(control.fps);
     if (control.tick >= control.data[control.dataset].length && control.last_sent !== control.data[control.dataset].length) {
         control.last_sent = control.data[control.dataset].length;
-        if (!control.done) send({"type": "get_steps", "step": control.data[control.dataset].length, "fps": fps, "dataset": control.dataset});
+        if (!control.done) send({
+            "type": "get_steps",
+            "step": control.data[control.dataset].length,
+            "fps": fps,
+            "dataset": control.dataset
+        });
     }
 
 };
 
 
-/** Step the model forward. */
-var back = function($e) {
+/** Step the model backward. */
+var back = function ($e) {
     if ($e !== undefined) $e.preventDefault();
 
     if (!control.running) {
@@ -476,7 +482,7 @@ var back = function($e) {
 
 
 /** Step the model forward. */
-var step = function($e) {
+var step = function ($e) {
     if ($e !== undefined) $e.preventDefault();
 
     if (!control.running && !control.done) {
@@ -491,7 +497,7 @@ var step = function($e) {
 
 
 /** Call the step function at fixed intervals, until getting an end message from the server. */
-var run = function($e) {
+var run = function ($e) {
     // stop the page scrolling on function call
     if ($e !== undefined) $e.preventDefault();
     var anchor = $(playPauseButton.children()[0]);
@@ -509,13 +515,13 @@ var run = function($e) {
         }
         control.running = true;
         player = setInterval(
-            function() {
+            function () {
                 if (!control.running) {
                     return;
                 }
                 single_step();
                 update_graphs(false);
-            }, 1000/control.fps
+            }, 1000 / control.fps
         );
         anchor.html("<span style=\"font-size: 16.5px;text-shadow: 0 0 12px rgba(0,255,125,1);\" class=\"glyphicon glyphicon-pause\"></span>");
     }
@@ -530,13 +536,13 @@ stepButton.on('click', step);
 resetButton.on('click', reset);
 
 
-$("#dataset_selector").on('change', function() {
+$("#dataset_selector").on('change', function () {
     parseDatasetInfo(control.dataset);
     initGUI();
     control.ready = true;
     reset();
     $("#DatasetDescription")[0].innerHTML =
-        "<h4>"+control.dataset_name+":</h4><p>" +
+        "<h4>" + control.dataset_name + ":</h4><p>" +
         control.description + '</p>';
     show_group($("#sidebar-hideall")[0]);
 });
@@ -546,13 +552,13 @@ function update_graphs(force_draw) {
     if (control.tick === 0) {
         tickControl[0].innerHTML = "Tick: " + (control.tick) + "/" + control.dataset_max_steps;
     } else {
-        tickControl[0].innerHTML = "Tick: " + (control.tick-1) + "/" + control.dataset_max_steps;
+        tickControl[0].innerHTML = "Tick: " + (control.tick - 1) + "/" + control.dataset_max_steps;
     }
 
     if (control.tick <= control.data[control.dataset].length) {
         for (var i in elements) {
             let to_render = [];
-            for (let j = 0; j < control.tick;  j++) {
+            for (let j = 0; j < control.tick; j++) {
                 to_render.push(control.data[control.dataset][j][i])
             }
 
@@ -580,7 +586,7 @@ function clear_graphs() {
 function show_group(group) {
     $(".list-group-item").removeClass("active");
     $(group).addClass("active");
-    $(".graph_div").each(function() {
+    $(".graph_div").each(function () {
         if (group === undefined || this.dataset.for !== group.id) {
             $(this).removeClass("hidden").addClass("hidden");
         } else {
@@ -592,9 +598,9 @@ function show_group(group) {
 }
 
 
-if(window.chrome){
+if (window.chrome) {
     // apply niceScroll only if chrome to avoid freezes from scroll events.
-    $(function() {
+    $(function () {
         $("html").niceScroll();
     });
 }
