@@ -37,6 +37,7 @@ class Arbitrageur(MarketPlayer):
     def setup(self, init_value: Dec):
         self.fiat = init_value
         self.model.endow_havvens(self, init_value)
+        self.wage_parameter = init_value/Dec(100)
 
     def step(self) -> None:
         """
@@ -48,6 +49,7 @@ class Arbitrageur(MarketPlayer):
         favourable such cycle if the profit available around that
         cycle is better than the profit threshold (including fees).
         """
+        super().step()
 
         self.havven_fiat_bid_qty = self.havven_fiat_market.highest_bid_quantity()
         self.havven_nomin_bid_qty = self.havven_nomin_market.highest_bid_quantity()

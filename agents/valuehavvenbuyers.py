@@ -18,9 +18,12 @@ class ValueHavvenBuyers(MarketPlayer):
     'How over "value" do they purchase the havvens'
 
     def setup(self, init_value: Dec) -> None:
+        self.wage_parameter = init_value/Dec(100)
         self.fiat = init_value * Dec(4)
 
     def step(self) -> None:
+        super().step()
+
         if self.havven_fiat_trade:
             self.havven_fiat_trade.cancel()
             self.havven_fiat_trade = None

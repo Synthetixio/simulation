@@ -85,7 +85,6 @@ class HavvenModel(Model):
 
         self.mint.calculate_copt_cmax()
 
-
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""

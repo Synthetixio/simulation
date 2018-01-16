@@ -28,12 +28,20 @@ class Banker(MarketPlayer):
         self.step()
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
         init_value = init_value * Dec(random.random()/10 + 0.9)
         endowment = hm.round_decimal(init_value * Dec(4))
         self.fiat = init_value
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
+        super().step()
+
+        # spend excess fiat on havvens
+        if self.available_fiat > self.issued_nomins:
+            quantity = self.available_fiat - self.issued_nomins
+            price = self.havven_fiat_market.lowest_ask_price()
+            self.place_havven_fiat_bid_with_fee(quantity/price, price*Dec('1.05'))
 
         if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
             # first try to buy more havvens with nomins

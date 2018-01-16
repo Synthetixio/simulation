@@ -35,7 +35,7 @@ class Merchant(MarketPlayer):
     """
 
     # the minimal price the merchant will sell nomins for
-    minimal_sell_price = Dec('1')
+    minimal_sell_price = Dec('0.98')
     nom_sell_order = None
 
     def __init__(self, *args, **kwargs) -> None:
@@ -58,9 +58,13 @@ class Merchant(MarketPlayer):
         """Time between inventory restocking. Randomised to prevent all merchants restocking at once."""
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         self.fiat = init_value
 
     def step(self) -> None:
+        super().step()
+
         self.last_restock += 1
         if self.last_restock > self.restock_tick_rate:
             self.last_restock = 0
@@ -107,7 +111,7 @@ class Buyer(MarketPlayer):
     min_mpc = 0.1  # not Dec as multiplied by floats later
     max_mpc = 0.9
 
-    max_nomin_price = Dec('1')
+    max_nomin_price = Dec('1.02')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -121,12 +125,13 @@ class Buyer(MarketPlayer):
         self.order = None
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         # start with no money, as they have a wage
-        self.fiat = 0
+        self.fiat = init_value/Dec(10)
 
     def step(self) -> None:
-        # Earn some dough.
-        self.fiat += self.wage
+        super().step()
 
         # Buy some crypto.
         if self.available_fiat:

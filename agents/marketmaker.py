@@ -97,6 +97,8 @@ class MarketMaker(MarketPlayer):
         Initially give the players the two currencies of their trade_market
         if they trade in nomins, start with fiat instead, to purchase the nomins
         """
+        self.wage_parameter = init_value/Dec(100)
+
         if self.trade_market == self.havven_fiat_market:
             self.fiat = init_value * Dec(3)
             self.model.endow_havvens(self, init_value * Dec(3))
@@ -107,6 +109,8 @@ class MarketMaker(MarketPlayer):
             self.fiat = init_value * Dec(6)
 
     def step(self) -> None:
+        super().step()
+
         # don't do anything until only holding the correct two currencies
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:

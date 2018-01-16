@@ -28,10 +28,14 @@ class Randomizer(MarketPlayer):
         """Don't submit more than this number of orders."""
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         self.fiat = init_value
         self.model.endow_havvens(self, Dec(3) * init_value)
 
     def step(self) -> None:
+        super().step()
+
         # Cancel expired orders
         condemned = []
         for order in self.orders:

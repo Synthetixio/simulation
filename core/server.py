@@ -150,11 +150,12 @@ def get_vis_elements() -> List[VisualizationElement]:
         ),
 
         ChartModule([
-            {"Label": "Copt", "Color": "darkred"},
-            {"Label": "Cmax", "Color": "red"},
+            {"Label": "C_Global", "Color": "darkcyan"},
+            {"Label": "C_opt", "Color": "darkred"},
+            {"Label": "C_max", "Color": "red"},
         ],
             desc="Collateralisation optimal/max over time",
-            title="C_max and C_opt",
+            title="Collateralisation targets",
             group="Issuance"
         ),
         ChartModule([
