@@ -33,17 +33,12 @@ class MaxNominIssuer(MarketPlayer):
     def step(self) -> None:
         # clear old and filled orders
         if self.nomin_havven_order is not None and not self.nomin_havven_order[1].active:
-            if self.model.manager.time >= self.nomin_havven_order[0] + self.trade_duration:
-                self.nomin_havven_order[1].cancel()
-                self.nomin_havven_order = None
+            self.nomin_havven_order[1].cancel()
+            self.nomin_havven_order = None
         if self.nomin_fiat_order is not None and not self.nomin_fiat_order[1].active:
-            if self.model.manager.time >= self.nomin_fiat_order[0] + self.trade_duration:
-                self.nomin_fiat_order[1].cancel()
-                self.nomin_fiat_order = None
+            self.nomin_fiat_order[1].cancel()
         if self.fiat_havven_order is not None and not self.fiat_havven_order[1].active:
-            if self.model.manager.time >= self.fiat_havven_order[0] + self.trade_duration:
-                self.fiat_havven_order[1].cancel()
-                self.fiat_havven_order = None
+            self.fiat_havven_order[1].cancel()
 
         if self.available_nomins > 0 and self.nomin_havven_order is not None:
             if len(self.model.datacollector.model_vars['0']) > 0:
