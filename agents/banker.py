@@ -60,8 +60,10 @@ class Banker(MarketPlayer):
             if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
                 nom_to_burn = self.model.mint.optimal_issuance_rights(self)
                 if self.fiat < nom_to_burn:
-                    raise Exception("not enough fiat to burn nomins to get to c_opt")
-                self.free_havvens(nom_to_burn)
+                    self.free_havvens(self.fiat)
+                    print("not enough fiat to burn nomins to get to c_opt")
+                else:
+                    self.free_havvens(nom_to_burn)
 
         elif self.collateralisation * (1 - self.collateralisation_diff) < self.model.mint.copt:
             to_escrow = self.model.mint.optimal_issuance_rights(self)

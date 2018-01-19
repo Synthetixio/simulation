@@ -14,6 +14,10 @@ class ValueHavvenBuyers(MarketPlayer):
       and then sell them back in
     """
     havven_fiat_trade = None
+
+    minimal_price = Dec('0.05')
+    'What is the least they will pay'
+
     purchase_rate = Dec('1.2')
     'How over "value" do they purchase the havvens'
 
@@ -32,6 +36,7 @@ class ValueHavvenBuyers(MarketPlayer):
 
         # just place their value trade every step, instead of checking if the current market conditions are good
         price = havven_value_multiplier * self.havven_fiat_market.price * self.purchase_rate
+        price = max(self.minimal_price, price)
         self.havven_fiat_trade = self.place_havven_fiat_bid_with_fee(self.available_fiat/price, price)
 
     def havven_value_calculation(self) -> Dec:

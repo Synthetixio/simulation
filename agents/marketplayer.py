@@ -500,45 +500,47 @@ class MarketPlayer(Agent):
         """
         self.fiat += self.wage_parameter
 
-        if random.random() < 0.0001:
-            # 1:10000 chance of a sell off half of initial wealth
+        if random.random() < 0.01 and self.model.manager.time > 10:
+            # 1:100 chance of a sell off half of initial wealth
             amount = Dec(self.initial_wealth/2)
             self.sell_off_total += amount
 
             print(f"{self.name} selling off {amount}, owns {self.wealth()}")
 
-            if self.wealth() < amount:
-                print(self.wealth(), amount)
-                print(self.portfolio())
-                raise Exception(f"{self.name} too poor to pay off sell off")
+            self.cancel_orders()
 
-            if self.fiat >= amount:
-                # if enough fiat to pay off the whole debt, do it
-                if self.available_fiat < amount:
-                    self.cancel_orders()
+            if self.fiat > amount:
                 self.fiat -= amount
                 return True
-            elif self.escrowed_havvens > 0:
+
+            if self.escrowed_havvens > 0:
                 # if not enough fiat to pay off the debt, free as many havvens as possible with the fiat
                 self.free_havvens(min(self.issued_nomins, self.fiat))
 
-            self.cancel_orders()
-
-            # use excess fiat to pay off as much as possible
-            amount -= self.fiat
-            if amount <= 0:
-                raise Exception(f"{self.name} somehow paid off sell off fully with fiat")
             self.fiat = Dec(0)
 
-            # sell off nomins next
-            self.sell_nomins_for_fiat_with_fee(self.available_nomins)
-            if self.fiat > amount:
-                self.fiat -= amount
-                return True
-            self.sell_havvens_for_fiat_with_fee(self.havvens)
-            if self.fiat > amount:
-                self.fiat -= amount
-                return True
-            raise Exception(f"{self.name} couldn't pay off the debt")
+            # sell off nomins next, 10% at a time
+            for i in range(1, 11):
+                self.sell_nomins_for_fiat_with_fee(self.nomins/Dec(10))
+                if self.fiat > amount:
+                    self.fiat -= amount
+                    return True
+
+            amount -= self.fiat
+            self.fiat = Dec(0)
+
+            for i in range(1, 11):
+                self.sell_havvens_for_fiat_with_fee(self.havvens)
+                if self.fiat > amount:
+                    self.fiat -= amount
+                    return True
+            if self.issued_nomins:
+                self.issued_nomins = Dec(0)
+
+            # refresh the player's initial conditions
+            self.__init__(self.unique_id, self.model)
+            # refresh this agent's values
+            self.setup(self.model.agent_manager.wealth_parameter)
+            return False
 
         return True

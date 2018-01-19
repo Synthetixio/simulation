@@ -80,6 +80,8 @@ class MarketMaker(MarketPlayer):
         How close the bets get at the end
         '''
 
+        self.minimal_price: Dec = Dec('0.0001')
+
         self.trade_market = random.choice([
             self.havven_fiat_market,
             self.nomin_fiat_market,
@@ -100,13 +102,13 @@ class MarketMaker(MarketPlayer):
         self.wage_parameter = init_value/Dec(100)
 
         if self.trade_market == self.havven_fiat_market:
-            self.fiat = init_value * Dec(3)
-            self.model.endow_havvens(self, init_value * Dec(3))
+            self.fiat = init_value * Dec(5)
+            self.model.endow_havvens(self, init_value * Dec(5))
         if self.trade_market == self.havven_nomin_market:
-            self.fiat = init_value * Dec(4)
-            self.model.endow_havvens(self, init_value * Dec(2))
+            self.fiat = init_value * Dec(5)
+            self.model.endow_havvens(self, init_value * Dec(5))
         if self.trade_market == self.nomin_fiat_market:
-            self.fiat = init_value * Dec(6)
+            self.fiat = init_value * Dec(5)
 
     def step(self) -> None:
         super().step()
@@ -115,21 +117,15 @@ class MarketMaker(MarketPlayer):
         if self.trade_market == self.havven_nomin_market:
             if self.available_fiat > 0:
                 self.sell_fiat_for_havvens_with_fee(self.available_fiat / Dec(2))
-                self.sell_fiat_for_nomins_with_fee(self.available_fiat / Dec(2))
-                if self.available_fiat > 1:
-                    return
+                self.sell_fiat_for_nomins_with_fee(self.available_fiat)
         if self.trade_market == self.nomin_fiat_market:
             if self.available_havvens > 0:
-                self.sell_havvens_for_fiat_with_fee(self.available_nomins / Dec(2))
-                self.sell_havvens_for_nomins_with_fee(self.available_nomins / Dec(2))
-                if self.available_havvens > 1:
-                    return
+                self.sell_havvens_for_fiat_with_fee(self.available_havvens / Dec(2))
+                self.sell_havvens_for_nomins_with_fee(self.available_havvens)
         if self.trade_market == self.havven_fiat_market:
             if self.available_nomins > 0:
                 self.sell_nomins_for_fiat_with_fee(self.available_nomins / Dec(2))
-                self.sell_nomins_for_havvens_with_fee(self.available_nomins / Dec(2))
-                if self.available_nomins > 1:
-                    return
+                self.sell_nomins_for_havvens_with_fee(self.available_nomins)
 
         # if the duration has ended, close the trades
         if self.last_bet_end >= self.minimal_wait + self.bet_duration:
@@ -207,6 +203,7 @@ class MarketMaker(MarketPlayer):
         multiplied by the current bet margin 1-(fraction of time remaining)*(max-min margin)+min_margin
         """
         price = start_price + Dec(gradient * time_in_effect)
+        price = max(self.minimal_price, price)
         multiplier = 1 - (
             (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
              (self.initial_bet_margin - self.ending_bet_margin)
@@ -237,6 +234,7 @@ class MarketMaker(MarketPlayer):
         multiplied by the current bet margin 1+(fraction of time remaining)*(max-min margin)+min_margin
         """
         price = start_price + Dec(gradient * time_in_effect)
+        price = max(self.minimal_price*2, price)  # do 2x minimal for ask, as bids and asks will have same price
         multiplier = 1 + (
             (Dec((self.bet_duration - time_in_effect) / self.bet_duration) *
              (self.initial_bet_margin - self.ending_bet_margin)
