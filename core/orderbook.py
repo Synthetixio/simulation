@@ -29,8 +29,11 @@ class LimitOrder:
         self.time = time
         """The time this order was created, or last modified."""
 
-        self.quantity = quantity
+        self.initial_quantity = quantity
         """Denominated in the base currency."""
+
+        self.quantity = quantity
+        """Remaining quantity to fill denominated in the base currency."""
 
         self.issuer = issuer
         """The player which issued this order."""
@@ -205,7 +208,8 @@ class OrderBook:
     """
 
     def __init__(self, model_manager: "HavvenManager",
-                 base: str, quote: str,
+                 base: str,
+                 quote: str,
                  matcher: Matcher,
                  quoted_fee: Callable[[Dec], Dec],
                  base_fee: Callable[[Dec], Dec],
@@ -718,6 +722,7 @@ class OrderBook:
         self.bids.remove(bid)
         bid.issuer.orders.remove(bid)
         bid.active = False
+        bid.quantity = Dec(0)
         self.step()
         bid.issuer.notify_cancelled(bid)
 
@@ -834,6 +839,7 @@ class OrderBook:
         self.asks.remove(ask)
         ask.issuer.orders.remove(ask)
         ask.active = False
+        ask.quantity = Dec(0)
         self.step()
         ask.issuer.notify_cancelled(ask)
 
