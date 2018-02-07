@@ -861,8 +861,11 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
-                trade.buyer.notify_trade(trade)
-                trade.seller.notify_trade(trade)
+                if trade.seller == trade.buyer:
+                    trade.seller.notify_trade(trade)
+                else:
+                    trade.seller.notify_trade(trade)
+                    trade.buyer.notify_trade(trade)
 
                 # update closing price every time there is a new trade
                 self.candle_data[-1][1] = trade.price
@@ -886,8 +889,11 @@ class OrderBook:
             # If a trade was made, then save it in the history.
             if trade is not None:
                 self.history.append(trade)
-                trade.buyer.notify_trade(trade)
-                trade.seller.notify_trade(trade)
+                if trade.seller == trade.buyer:
+                    trade.seller.notify_trade(trade)
+                else:
+                    trade.seller.notify_trade(trade)
+                    trade.buyer.notify_trade(trade)
 
             return trade
 

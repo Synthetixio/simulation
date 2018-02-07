@@ -22,7 +22,8 @@ var DepthGraphModule = function (group, title, desc, label, width, height) {
         chart: {
 			animation: false,
             height: 250,
-            type: 'area'
+            type: 'area',
+            zoomType: 'x',
 		},
         title: {
             text: title

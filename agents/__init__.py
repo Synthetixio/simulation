@@ -9,11 +9,11 @@ from .merchant import Merchant, Buyer
 from .marketmaker import MarketMaker
 from .issuancecontroller import IssuanceController
 from .havvenfoundation import HavvenFoundation
-from .feeoptimiser import FeeOptimiser
+from .valuehavvenbuyers import ValueHavvenBuyers
+from .maxnominissuer import MaxNominIssuer
 
 # player names for the UI sliders
 player_names = {
-    # 'CentralBank': CentralBank,
     'Arbitrageur': Arbitrageur,
     'Banker': Banker,
     'Randomizer': Randomizer,
@@ -24,9 +24,8 @@ player_names = {
     'Merchant': Merchant,
     'Buyer': Buyer,
     'MarketMaker': MarketMaker,
-    'IssuanceController': IssuanceController,
-    # 'HavvenFoundation': HavvenFoundation,
-    'FeeOptimiser': FeeOptimiser,
+    'ValueHavvenBuyers': ValueHavvenBuyers,
+    'MaxNominIssuer': MaxNominIssuer,
 }
 
 # exclude players when showing profit %

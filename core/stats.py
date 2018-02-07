@@ -141,6 +141,8 @@ def create_datacollector() -> DataCollector:
         "Gini": gini,
         "Nomins": lambda h: float(h.manager.issued_nomins),
         "Escrowed Havvens": escrowed_havvens,
+        "Copt": lambda h: float(h.mint.copt),
+        "Cmax": lambda h: float(h.mint.cmax),
         # "Wealth SD": stats.wealth_sd,
         "Max Wealth": max_wealth,
         "Min Wealth": min_wealth,
