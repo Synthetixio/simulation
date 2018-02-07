@@ -28,12 +28,20 @@ class Banker(MarketPlayer):
         self.step()
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
         init_value = init_value * Dec(random.random()/10 + 0.9)
         endowment = hm.round_decimal(init_value * Dec(4))
         self.fiat = init_value
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
+        super().step()
+
+        # spend excess fiat on havvens
+        if self.available_fiat > self.issued_nomins:
+            quantity = self.available_fiat - self.issued_nomins
+            price = self.havven_fiat_market.lowest_ask_price()
+            self.place_havven_fiat_bid_with_fee(quantity/price, price*Dec('1.05'))
 
         if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
             # first try to buy more havvens with nomins
@@ -52,8 +60,10 @@ class Banker(MarketPlayer):
             if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
                 nom_to_burn = self.model.mint.optimal_issuance_rights(self)
                 if self.fiat < nom_to_burn:
-                    raise Exception("not enough fiat to burn nomins to get to c_opt")
-                self.free_havvens(nom_to_burn)
+                    self.free_havvens(self.fiat)
+                    print("not enough fiat to burn nomins to get to c_opt")
+                else:
+                    self.free_havvens(nom_to_burn)
 
         elif self.collateralisation * (1 - self.collateralisation_diff) < self.model.mint.copt:
             to_escrow = self.model.mint.optimal_issuance_rights(self)

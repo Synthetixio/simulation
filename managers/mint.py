@@ -75,7 +75,7 @@ class Mint:
         n_i = (
             havvens *
             self.cmax *
-            self.market_manager.havven_fiat_market.price /
+            self.intrinsic_havven_value /
             self.market_manager.nomin_fiat_market.price
         )
         return n_i
@@ -89,7 +89,7 @@ class Mint:
             (
                 agent.issued_nomins *
                 self.market_manager.nomin_fiat_market.price /
-                self.market_manager.havven_fiat_market.price /
+                self.intrinsic_havven_value /
                 self.cmax
             )
         )
@@ -102,7 +102,7 @@ class Mint:
             (
                 agent.available_havvens *
                 self.cmax *
-                self.market_manager.havven_fiat_market.price /
+                self.intrinsic_havven_value /
                 self.market_manager.nomin_fiat_market.price
             )
         )
@@ -115,8 +115,9 @@ class Mint:
             (
                 agent.available_havvens *
                 self.copt *
-                self.market_manager.havven_fiat_market.price /
+                self.intrinsic_havven_value /
                 self.market_manager.nomin_fiat_market.price
+
             )
         )
 
@@ -171,5 +172,10 @@ class Mint:
 
     @property
     def global_collateralisation(self) -> Dec:
-        return (self.market_manager.nomin_fiat_market.price * self.havven_manager.issued_nomins) / \
-               (self.market_manager.havven_fiat_market.price * self.havven_manager.active_havvens)
+        return (self.market_manager.nomin_fiat_market.spread_median() * (self.havven_manager.issued_nomins - self.issuance_controller.nomins)) / \
+               (self.intrinsic_havven_value * self.havven_manager.active_havvens)
+
+    @property
+    def intrinsic_havven_value(self) -> Dec:
+        fees = self.fee_manager.fees_distributed + self.havven_manager.nomins
+        return max(Dec(0.01), fees/(self.havven_manager.havven_supply * Dec('0.001')))

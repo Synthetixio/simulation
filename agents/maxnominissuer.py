@@ -26,11 +26,15 @@ class MaxNominIssuer(MarketPlayer):
         self.step()
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         endowment = hm.round_decimal(init_value * Dec(4))
         self.fiat = init_value
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
+        super().step()
+
         # clear old and filled orders
         if self.nomin_havven_order is not None and not self.nomin_havven_order[1].active:
             self.nomin_havven_order[1].cancel()

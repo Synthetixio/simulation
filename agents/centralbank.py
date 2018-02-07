@@ -35,6 +35,8 @@ class CentralBank(MarketPlayer):
         """The bank will try to correct the price if it strays out of this range."""
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         self.model.endow_havvens(
             self, Dec(self.unique_id * init_value)
         )
@@ -43,6 +45,7 @@ class CentralBank(MarketPlayer):
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:
+        super().step()
         self.cancel_orders()
         # # TODO: fix logic
         #

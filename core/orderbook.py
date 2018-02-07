@@ -608,6 +608,17 @@ class OrderBook:
         """
         return self.lowest_ask_price() - self.highest_bid_price()
 
+    def spread_median(self) -> Dec:
+        lowest_ask = self.lowest_ask_price()
+        highest_bid = self.highest_bid_price()
+        if not lowest_ask and not highest_bid:
+            return Dec(1)
+        if not lowest_ask:
+            return highest_bid
+        if not highest_bid:
+            return lowest_ask
+        return (highest_bid + lowest_ask) / 2
+
     def add_new_bid(self, bid: Bid) -> None:
         """
         Add a new Bid. This should be called only in the Bid constructor.
@@ -837,7 +848,13 @@ class OrderBook:
 
         # Delete order from the ask list and issuer.
         self.asks.remove(ask)
-        ask.issuer.orders.remove(ask)
+        try:
+            ask.issuer.orders.remove(ask)
+        except ValueError:
+            # TODO: fix ask still existing on orderbooks even though removed from issuer
+            # Seems like order.cancel() might be the issue, even though it all seems fine?
+            pass
+
         ask.active = False
         ask.quantity = Dec(0)
         self.step()

@@ -121,6 +121,7 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
                 type: 'candlestick',
                 name: 'Havven Candle Data',
                 min : 0,
+                softThreshold: true,
                 data: [],
                 upColor: '#0F0',
                 color: '#F00',
@@ -141,12 +142,16 @@ var CandleStickModule = function(group, title, desc, label, width, height, line_
             }, {
                 type: 'line',
                 name: 'Rolling Average',
+                min : 0,
+                softThreshold: true,
                 data: [],
                 color: line_colour,
 
             }, {
                 type: 'column',
                 name: 'Volume',
+                min : 0,
+                softThreshold: true,
                 data: [],
                 zIndex: -1,
                 yAxis: 1,

@@ -60,6 +60,8 @@ class Speculator(MarketPlayer):
             raise Exception(f"currency:{self.primary_currency} isn't in [havvens, fiat, nomins]")
 
     def setup(self, init_value):
+        self.wage_parameter = init_value/Dec(100)
+
         if self.primary_currency == "fiat":
             self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
         elif self.primary_currency == "nomins":
@@ -174,6 +176,9 @@ class Speculator(MarketPlayer):
                         return None
         return None
 
+    def step(self):
+        super().step()
+
 
 class HavvenSpeculator(Speculator):
     """
@@ -238,6 +243,8 @@ class HavvenSpeculator(Speculator):
             self.sell_function = self.sell_havvens_for_nomins_with_fee
 
     def step(self):
+        super().step()
+
         if self.primary_currency == "nomins":
             if self.available_fiat > 0:
                 self.sell_fiat_for_nomins_with_fee(self.available_fiat)
@@ -272,6 +279,7 @@ class NaiveSpeculator(Speculator):
 
     def setup(self, init_value):
         super().setup(init_value)
+
         self.change_currency()
 
     def change_currency(self, currency: Optional[str] = None) -> None:
@@ -335,6 +343,8 @@ class NaiveSpeculator(Speculator):
             self.sell_b_function = self.sell_havvens_for_fiat_with_fee
 
     def step(self) -> None:
+        super().step()
+
         if self.active_trade_a:
             if not self._check_trade_profit(*self.active_trade_a, self.direction_a):
                 order = self.active_trade_a[2]

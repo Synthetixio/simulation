@@ -30,9 +30,13 @@ class NominShorter(MarketPlayer):
     """The rate below which the player will buy nomins"""
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         self.fiat = init_value * Dec(2)
 
     def step(self) -> None:
+        super().step()
+
         # get rid of havvens, as that isn't the point of this player
         if self.available_havvens:
             self.sell_havvens_for_nomins(self.available_havvens)
@@ -111,6 +115,8 @@ class HavvenEscrowNominShorter(NominShorter):
     """
 
     def setup(self, init_value: Dec):
+        self.wage_parameter = init_value/Dec(100)
+
         self.havvens = init_value * Dec(2)
         self.fiat = init_value
 

@@ -49,6 +49,7 @@ class Arbitrageur(MarketPlayer):
         self.min_fiat = init_value
         self.fiat = init_value * 2
         self.model.endow_havvens(self, init_value)
+        self.wage_parameter = init_value/Dec(100)
         self.nomins_to_purchase = init_value
 
     def step(self) -> None:
@@ -61,6 +62,7 @@ class Arbitrageur(MarketPlayer):
         favourable such cycle if the profit available around that
         cycle is better than the profit threshold (including fees).
         """
+        super().step()
 
         if self.nomins_to_purchase > 0:
             if self.nomin_purchase_order:

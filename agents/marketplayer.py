@@ -1,6 +1,7 @@
 from collections import namedtuple
 from decimal import Decimal as Dec
 from typing import List, Tuple, Optional
+import random
 
 from mesa import Agent
 
@@ -33,6 +34,10 @@ class MarketPlayer(Agent):
         self.unavailable_fiat: Dec = Dec(0)
         self.unavailable_havvens: Dec = Dec(0)
         self.unavailable_nomins: Dec = Dec(0)
+
+        self.wage_parameter: Dec = Dec(0)
+        self.sell_off_total: Dec = Dec(0)
+        self.fiat_debt: Dec = Dec(0)
 
         self.initial_wealth: Dec = self.wealth()
 
@@ -128,9 +133,12 @@ class MarketPlayer(Agent):
         if havvens < 0:  # ignore havven 'debt'
             escrowed_havvens = self.havvens
             havvens = 0
+
+        fiat = self.fiat - self.wage_parameter * self.model.manager.time
+
         return self.model.fiat_value(havvens=(havvens + escrowed_havvens),
                                      nomins=(self.nomins - self.issued_nomins),
-                                     fiat=self.fiat)
+                                     fiat=fiat)
 
     def portfolio(self, fiat_values: bool = False) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
         """
@@ -481,4 +489,58 @@ class MarketPlayer(Agent):
         self.trades.append(record)
 
     def step(self) -> None:
-        pass
+        if not self.wage_step():
+            pass
+
+    def wage_step(self) -> bool:
+        """
+        Pay the agent's wage
+        return True if the agent should work as normal
+        TODO: return False if the agent should sell off everything)
+        """
+        self.fiat += self.wage_parameter
+
+        if random.random() < 0.01 and self.model.manager.time > 10:
+            # 1:100 chance of a sell off half of initial wealth
+            amount = Dec(self.initial_wealth/2)
+            self.sell_off_total += amount
+
+            print(f"{self.name} selling off {amount}, owns {self.wealth()}")
+
+            self.cancel_orders()
+
+            if self.fiat > amount:
+                self.fiat -= amount
+                return True
+
+            if self.escrowed_havvens > 0:
+                # if not enough fiat to pay off the debt, free as many havvens as possible with the fiat
+                self.free_havvens(min(self.issued_nomins, self.fiat))
+
+            self.fiat = Dec(0)
+
+            # sell off nomins next, 10% at a time
+            for i in range(1, 11):
+                self.sell_nomins_for_fiat_with_fee(self.nomins/Dec(10))
+                if self.fiat > amount:
+                    self.fiat -= amount
+                    return True
+
+            amount -= self.fiat
+            self.fiat = Dec(0)
+
+            for i in range(1, 11):
+                self.sell_havvens_for_fiat_with_fee(self.havvens)
+                if self.fiat > amount:
+                    self.fiat -= amount
+                    return True
+            if self.issued_nomins:
+                self.issued_nomins = Dec(0)
+
+            # refresh the player's initial conditions
+            self.__init__(self.unique_id, self.model)
+            # refresh this agent's values
+            self.setup(self.model.agent_manager.wealth_parameter)
+            return False
+
+        return True
