@@ -71,7 +71,8 @@ class Mint:
         n_i = (
             havvens *
             self.cmax *
-            self.market_manager.havven_nomin_market.price
+            self.market_manager.havven_fiat_market.price /
+            self.market_manager.nomin_fiat_market.price
         )
         return n_i
 
@@ -82,8 +83,9 @@ class Mint:
         """
         return HavvenManager.round_decimal(
             (
-                agent.issued_nomins /
-                self.market_manager.havven_nomin_market.price /
+                agent.issued_nomins *
+                self.market_manager.nomin_fiat_market.price /
+                self.market_manager.havven_fiat_market.price /
                 self.cmax
             )
         )
@@ -96,7 +98,8 @@ class Mint:
             (
                 agent.available_havvens *
                 self.cmax *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price /
+                self.market_manager.nomin_fiat_market.price
             )
         )
 
@@ -108,7 +111,9 @@ class Mint:
             (
                 agent.available_havvens *
                 self.copt *
-                self.market_manager.havven_nomin_market.price
+                self.market_manager.havven_fiat_market.price /
+                self.market_manager.nomin_fiat_market.price
+
             )
         )
 
