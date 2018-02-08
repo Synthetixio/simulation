@@ -4,128 +4,146 @@ settingsloader.py
 Loads settings from the settings file if it exists, otherwise generates a new
 one with certain defaults.
 """
-import configparser
+import json
 import os.path
 import copy
+from decimal import Decimal as Dec
+
+
+SETTINGS_FILE = "settings.json"
 
 
 def get_defaults():
     settings = {
-        # settings for the server/client side
-        'Server': {
-            # Whether to used cached results or not
-            'cached': True,
+        # settings for the server
+        "Server": {
+            # generate and display cached results instead of generating them on the fly
+            "cached": True,
+            "port": 3000,
+            # maximum fps for the app to run at
+            "fps_max": 15,
+            # default setting for fps
+            "fps_default": 15,
+            # limit how many steps can be generated in the non-cached version
+            "cap_realtime_steps": False,
+            "max_steps": 1500
+        },
 
-            # whether to run the model in a separate thread for each socket connection
-            # it runs worse with threading, so better to just leave it as false...
-            'threaded': False,
-            'port': 3000,
-            'fps_max': 15,  # max fps for the model to run at
-            'fps_default': 15,
-            'max_steps': 1500  # max number of steps to generate up to
+        "Model": {
+            # Number of agents for the model to have
+            "num_agents_max": 175,
+            "num_agents_min": 20,
+            "num_agents": 50,
+            # Randomise the agent fractions
+            "random_agents": False
         },
-        # settings concerning the model setup
-        'Model': {
-            'num_agents_max': 175,
-            'num_agents_min': 20,
-            'num_agents': 50,
 
-            # ignore Agent Fractions, and choose random figures
-            'random_agents': False,
-            'continuous_order_matching': True,
+        "Market": {
+            "continuous_order_matching": True
         },
-        # settings for everything fee related
-        'Fees': {
-            'fee_period': 50,
-            'stable_nomin_fee_level': '0.005',  # 0 <= percentage < 1
-            'stable_havven_fee_level': '0.005',  # 0 <= percentage < 1
-            'stable_fiat_fee_level': '0.005',  # 0 <= percentage < 1
-            'stable_nomin_issuance_fee': '0',  # 0 <= percentage < 1
-            'stable_nomin_redemption_fee': '0'  # 0 <= percentage < 1
-        },
-        # settings for escrow, issuance, destruction, freeing of havvens/nomins
-        'Mint': {
-            # optimal collateralization parameters
-            'copt_sensitivity_parameter': '1.0',  # strictly > 0
-            'copt_flattening_parameter': 1,  # integer >= 1; i%2 == 1
-            # cmax = copt * buffer_parameter
-            'copt_buffer_parameter': '1.1',  # >= 1
 
-            # minimal cmax value > 0 (model wont work with 0; should be a low value < 0.1)
-            'minimal_cmax': '0.01',
+        "Fees": {
+            # how long between fee distributions
+            "fee_period": 50,
+            "nomin_issuance_fee": "0",
+            "nomin_burning_fee": "0",
+            # charge fees per transfer
+            "transfer_fee": True,
+            "transfer_fee_settings": {
+                "nomin_fee_level": "0.002",
+                "havven_fee_level": "0.002",
+                "fiat_fee_level": "0.00"
+            },
+            # charge fees over time on all nomins
+            "hedging_fee": False,
+            "hedging_fee_settings": {
+                # hedging fee will be charged per tick
+                "hedge_length": 50,
+                "nomin_fee_level": "0.005",
+                "havven_fee_level": "0.005",
+                "fiat_fee_level": "0.005"
+            }
+        },
 
-            # True: nomins sold automatically/auctioned on the market when issued
-            # False: nomins are given to players who issue (TODO: not implemeted)
-            'non_discretionary_issuance': True,
-            # if non discretionary, how off 1 is havven willing to go
-            # i.e. sell nomins for 1-buffer, buy for 1+buffer
-            'non_discretionary_cap_buffer': 0  # 0 <= buffer
+        "Mint": {
+            # allow burning nomins directly
+            "discretionary_burning": True,
+            # have a fixed cmax value
+            "fixed_cmax": False,
+            # if its fixed, up to what value
+            "fixed_cmax_value": "0.2",
+            # will the cmax value scale up with copt if its fixed
+            "fixed_cmax_moves_up": False,
+            # how low can cmax go
+            "minimal_cmax": "0",
+            # calculate and use copt for fee distribution
+            "use_copt": True,
+            "copt_settings": {
+                "copt_sensitivity_parameter": "1.0",
+                "copt_flattening_parameter": 1,
+                "copt_buffer_parameter": "1.1"
+            },
+            # buffer on either side of issuance and burning
+            # i.e. if 5%:
+            #   burn nomins down to a value of 0.95
+            #   issue nomins up to a value of 1.05
+            "non_discretionary_cap_buffer": 0
         },
-        'Agents': {
-            'agent_minimum': 1,  # >= 0
-            # multiplier for all agents to work with bigger numbers, rather than fractions
-            'wealth_parameter': 1000,
 
-            # Havven foundation for starting nomin issuance
-            'havven_foundation_enabled': True,
-            'havven_foundation_initial_c': '0.1',
-            # what percentage of havvens does the foundation hold
-            'havven_foundation_cut': '0.2',
+        "Havven": {
+            "havven_supply": "1000000000",
+            # initial supply of nomins (to help with some calculations)
+            "nomin_supply": "0",
+            "rolling_avg_time_window": 7,
+            "use_volume_weighted_avg": True
         },
-        # settings for the breakdown of how many of each agent exists in the model
-        'AgentFractions': {
-            # these are normalised to a total of 1 later
-            'Arbitrageur': 3,
-            'Banker': 25,
-            'Randomizer': 15,
-            'MaxNominIssuer': 10,
-            'NominShorter': 15,
-            'HavvenEscrowNominShorter': 10,
-            'HavvenSpeculator': 6,
-            'NaiveSpeculator': 0,
-            'Merchant': 0,
-            'Buyer': 6,
-            'MarketMaker': 20,
-            'ValueHavvenBuyers': 10,
-        },
-        'Havven': {
-            'havven_supply': '1000000000',  # static supply of havvens throughout the system
-            'nomin_supply': '0',
-            'rolling_avg_time_window': 7,
-            'use_volume_weighted_avg': True,
-        },
-        'AgentDescriptions': {
-            "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
-            "Banker": "The banker acquires as many Havvens for generating as many fees as" +
-                      " possible, by targeting c_opt",
-            "Randomizer": "The randomizer places random bids and asks on all markets" +
-                          " close to the market price",
-            'MaxNominIssuer': "The max nomin issuer acquires as many Havvens as they can and issues nomins" +
-                              " to buy more",
-            "NominShorter": "The nomin shorter sells nomins when the price is high" +
-                            " and buys when they are low",
-            "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave" +
-                                        " the same as the nomin shorters, but aquire" +
-                                        " nomins through escrowing havvens",
-            "HavvenSpeculator": "The havven speculator buys havvens hoping the price" +
-                                " will appreciate after some period.",
-            "NaiveSpeculator": "The naive speculator behaves similarly to the havven" +
-                               " speculators, but does so on all the markets",
-            "Merchant": "The merchant provides goods for Buyers, selling them for " +
-                        "nomins. They sell the nomins back into fiat",
-            "Buyer": "The buyers bring fiat into the system systematically, trading" +
-                     " it for nomins, to buy goods from the merchant",
-            "MarketMaker": "The market maker creates liquidity on some market in what" +
-                           " they hope to be a profitable manner",
-            'ValueHavvenBuyers': "The Value Havven Buyers wait until the value of havven utility" +
-                                 " is greater than the market price before buying",
+
+        "Agents": {
+            # minimum number of each agent
+            "agent_minimum": 1,
+            "wealth_parameter": 1000,
+            # add a havven foundation for setting initial parameters for copt
+            "havven_foundation_enabled": True,
+            # what value of cmax will havven use
+            "havven_foundation_initial_c": "0.1",
+            # what portion of all havvens does the foundation get
+            "havven_foundation_cut": "0.2",
+
+            "AgentFractions": {
+                "Arbitrageur": 3,
+                "Banker": 25,
+                "Randomizer": 15,
+                "MaxNominIssuer": 10,
+                "NominShorter": 15,
+                "HavvenEscrowNominShorter": 10,
+                "HavvenSpeculator": 6,
+                "NaiveSpeculator": 0,
+                "Merchant": 0,
+                "Buyer": 6,
+                "MarketMaker": 20,
+                "ValueHavvenBuyers": 10
+            },
+
+            "AgentDescriptions": {
+                "Arbitrageur": "The arbitrageur finds arbitrage cycles and profits off them",
+                "Banker": "The banker acquires as many Havvens for generating as many fees as possible, by targeting c_opt",
+                "Randomizer": "The randomizer places random bids and asks on all markets close to the market price",
+                "MaxNominIssuer": "The max nomin issuer acquires as many Havvens as they can and issues nomins to buy more",
+                "NominShorter": "The nomin shorter sells nomins when the price is high and buys when they are low",
+                "HavvenEscrowNominShorter": "The havven escrow nomin shorters behave the same as the nomin shorters, but aquire nomins through escrowing havvens",
+                "HavvenSpeculator": "The havven speculator buys havvens hoping the price will appreciate after some period.",
+                "NaiveSpeculator": "The naive speculator behaves similarly to the havven speculators, but does so on all the markets",
+                "Merchant": "The merchant provides goods for Buyers, selling them for nomins. They sell the nomins back into fiat",
+                "Buyer": "The buyers bring fiat into the system systematically, trading it for nomins, to buy goods from the merchant",
+                "MarketMaker": "The market maker creates liquidity on some market in what they hope to be a profitable manner",
+                "ValueHavvenBuyers": "The Value Havven Buyers wait until the value of havven utility is greater than the market price before buying",
+            }
         }
-
     }
 
     from agents import player_names
     for item in player_names:
-        if item not in settings['AgentDescriptions']:
+        if item not in settings['Agents']['AgentDescriptions'] or item not in settings['Agents']['AgentFractions']:
             print("=====================")
             print(f'ERROR: {item} not in default settings!!')
             print("=====================")
@@ -134,57 +152,57 @@ def get_defaults():
     return copy.deepcopy(settings)
 
 
+def parse_config(defaults, config):
+    settings = {}
+    for item in defaults:
+        if item not in config:
+            print(f"Warning: {item} not set in config, using default value...")
+            settings[item] = defaults[item]
+        elif type(defaults[item]) == dict:
+            settings[item] = parse_config(defaults[item], config[item])
+        elif type(defaults[item]) == int:
+            settings[item] = int(config[item])
+        elif type(defaults[item]) == bool:
+            if type(config[item]) == bool:
+                settings[item] = bool(config[item])
+            elif config[item].lower() in ['true', 'false']:
+                settings[item] = eval(config[item].title())
+        elif type(defaults[item]) == Dec:
+            try:
+                settings[item] = Dec(config[item])
+            except:
+                print("Warning: {config[item]} is not Decimal friendly, using default value...")
+                settings[item] = defaults[item]
+        elif type(defaults[item]) == str:
+            settings[item] = str(defaults[item])
+        else:
+            raise Exception(f"Error: unexpected type in defaults {type(defaults[item])}")
+    return settings
+
+
+def set_dec_to_str(defaults):
+    settings = {}
+    for item in defaults:
+        if type(defaults[item]) == dict:
+            settings[item] = set_dec_to_str(defaults[item])
+        elif type(defaults[item]) == Dec:
+            settings[item] = str(defaults[item])
+        else:
+            settings[item] = defaults[item]
+    return settings
+
+
 def load_settings():
     settings = get_defaults()
 
-    config = configparser.ConfigParser()
-    config.optionxform = str  # allow for camelcase
-
-    if os.path.exists("settings.ini"):
-        print("Loading settings from settings.ini")
-        config.read("settings.ini")
-        for section in config:
-            if section not in settings:
-                if section is not "DEFAULT":
-                    print(f"{section} is not a valid section, skipping.")
-                continue
-            for item in config[section]:
-                if item not in settings[section]:
-                    print(f"{item} is not a valid setting for {section}, skipping.")
-                    continue
-                if type(settings[section][item]) == str:
-                    settings[section][item] = config[section][item]
-                elif type(settings[section][item]) == int:
-                    try:
-                        settings[section][item] = config.getint(section, item)
-                    except ValueError:
-                        print(
-                            f'''
-Expected int for ({section}, {item}), got value "{config.get(section, item)}"
-Using default value of: {settings[section][item]}
-'''
-                        )
-                elif type(settings[section][item]) == bool:
-                    try:
-                        settings[section][item] = config.getboolean(section, item)
-                    except ValueError:
-                        print(
-                            f'''
-Expected boolean for ({section}, {item}), got value "{config.get(section, item)}"
-Using default value of: {settings[section][item]}
-'''
-                        )
+    if os.path.exists(SETTINGS_FILE):
+        print(f"Loading settings from {SETTINGS_FILE}")
+        with open(SETTINGS_FILE, 'r') as f:
+            config = json.load(f)
+        settings = parse_config(settings, config)
     else:
-        print("No settings.ini file present, creating one with default settings.")
-        for section in settings:
-            config.add_section(section)
-            for item in settings[section]:
-                config.set(section, item, str(settings[section][item]))
-        with open("settings.ini", 'w') as f:
-            config.write(f)
-    # make all the agent fractions floats based on max
-    total = sum(settings['AgentFractions'][i] for i in settings['AgentFractions'])
-    for i in settings['AgentFractions']:
-        settings['AgentFractions'][i] = settings['AgentFractions'][i] / total
-
+        print(f"No {SETTINGS_FILE} file present, creating one with default settings.")
+        json_friendly = set_dec_to_str(settings)
+        with open(SETTINGS_FILE, 'w') as f:
+            json.dump(json_friendly, f)
     return settings

@@ -81,3 +81,7 @@ class HavvenManager:
             return active_havvens
         # give some initial value if there are no active ones
         return self.havven_supply
+
+    @property
+    def active_nomins(self):
+        return self.nomin_supply

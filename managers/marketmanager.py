@@ -220,3 +220,19 @@ class MarketManager:
     def fiat_to_nomins(self, quantity: Dec) -> Dec:
         """Convert a quantity of fiat to its equivalent quantity in nomins."""
         return HavvenManager.round_decimal(quantity / self.nomin_fiat_market.price)
+
+    @property
+    def active_havven_value(self) -> Dec:
+        return self.model_manager.active_havvens * self.havven_fiat_market.price
+
+    @property
+    def havven_value(self) -> Dec:
+        return self.model_manager.havven_supply * self.havven_fiat_market.price
+
+    @property
+    def active_nomin_value(self) -> Dec:
+        return self.model_manager.active_nomins * self.nomin_fiat_market.price
+
+    @property
+    def nomin_value(self) -> Dec:
+        return self.model_manager.nomin_supply * self.nomin_fiat_market.price
