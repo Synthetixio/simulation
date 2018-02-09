@@ -10,3 +10,4 @@ sortedcontainers
 tqdm
 pytest
 jsoncomment
+tornado

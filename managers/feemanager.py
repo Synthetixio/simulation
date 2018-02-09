@@ -26,18 +26,62 @@ class FeeManager:
         self.model_manager = model_manager
 
         # Fees are distributed at regular intervals
-        self.fee_period: int = fee_settings['fee_period']
+        self.fee_period: int = fee_settings['fee_distribution_period']
 
-        # Multiplicative transfer fee rates
-        self.nomin_fee_rate = Dec(fee_settings['stable_nomin_fee_level'])
-        self.havven_fee_rate = Dec(fee_settings['stable_havven_fee_level'])
-        self.fiat_fee_rate = Dec(fee_settings['stable_fiat_fee_level'])
+        self.use_transfer_fee = fee_settings['transfer_fee']
+        if self.use_transfer_fee:
+            # Multiplicative transfer fee rates
+            self.nomin_transfer_fee_rate = Dec(fee_settings['transfer_fee_settings']['nomin_fee_level'])
+            # these two should probably be 0...
+            self.havven_transfer_fee_rate = Dec(fee_settings['transfer_fee_settings']['havven_fee_level'])
+            self.fiat_transfer_fee_rate = Dec(fee_settings['transfer_fee_settings']['fiat_fee_level'])
 
         # Multiplicative issuance fee rates
-        self.issuance_fee_rate = Dec(fee_settings['stable_nomin_issuance_fee'])
-        self.redemption_fee_rate = Dec(fee_settings['stable_nomin_redemption_fee'])
+        # only the burning fee rate is actually used, as a fee is
+        # charged on the market buy/sell of nomins for issuance/burning
+        # this will need to be implemented if an extra fee will be added...
+        self.issuance_fee_rate = Dec(fee_settings['nomin_issuance_fee'])
+        self.burning_fee_rate = Dec(fee_settings['nomin_burning_fee'])
+
+        self.use_hedging_fee = fee_settings['hedging_fee']
+        if self.use_hedging_fee:
+            self.nomin_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['nomin_fee_level'])
+            # these two should always be 0...
+            self.havven_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['havven_fee_level'])
+            self.fiat_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['fiat_fee_level'])
+            self.hedge_length = fee_settings['hedging_fee_settings']['hedge_length']
 
         self.fees_distributed = Dec(0)
+
+    @property
+    def nomin_fee_rate(self) -> Dec:
+        if self.use_transfer_fee:
+            return self.nomin_transfer_fee_rate
+        return Dec(0)
+
+    @property
+    def havven_fee_rate(self) -> Dec:
+        if self.use_transfer_fee:
+            return self.havven_transfer_fee_rate
+        return Dec(0)
+
+    @property
+    def fiat_fee_rate(self) -> Dec:
+        if self.use_transfer_fee:
+            return self.fiat_transfer_fee_rate
+        return Dec(0)
+
+    def collect_hedge_fees(self, actor):
+        if self.use_hedging_fee:
+            nom_fee = self.nomin_hedge_fee_rate * actor.nomins / self.hedge_length
+            actor.nomins -= nom_fee
+            self.model_manager.nomins += nom_fee
+            hav_fee = self.havven_hedge_fee_rate * actor.havvens / self.hedge_length
+            actor.havvens -= hav_fee
+            self.model_manager.nomins += hav_fee
+            fiat_fee = self.fiat_hedge_fee_rate * actor.fiat / self.hedge_length
+            actor.fiat -= fiat_fee
+            self.model_manager.nomins += fiat_fee
 
     def transferred_fiat_received(self, quantity: Dec) -> Dec:
         """
@@ -46,6 +90,8 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
+        if not self.use_transfer_fee:
+            return quantity
         return HavvenManager.round_decimal(quantity / (Dec(1) + self.fiat_fee_rate))
 
     def transferred_havvens_received(self, quantity: Dec) -> Dec:
@@ -55,6 +101,8 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
+        if not self.use_transfer_fee:
+            return quantity
         return HavvenManager.round_decimal(quantity / (Dec(1) + self.havven_fee_rate))
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
@@ -64,24 +112,32 @@ class FeeManager:
         A user can only transfer less than their total balance when fees
           are taken into account.
         """
+        if not self.use_transfer_fee:
+            return quantity
         return HavvenManager.round_decimal(quantity / (Dec(1) + self.nomin_fee_rate))
 
     def transferred_fiat_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of fiat.
         """
+        if not self.use_transfer_fee:
+            return Dec(0)
         return HavvenManager.round_decimal(quantity * self.fiat_fee_rate)
 
     def transferred_havvens_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of havvens.
         """
+        if not self.use_transfer_fee:
+            return Dec(0)
         return HavvenManager.round_decimal(quantity * self.havven_fee_rate)
 
     def transferred_nomins_fee(self, quantity: Dec) -> Dec:
         """
         Return the fee charged for transferring a quantity of nomins.
         """
+        if not self.use_transfer_fee:
+            return Dec(0)
         return HavvenManager.round_decimal(quantity * self.nomin_fee_rate)
 
     def distribute_fees(

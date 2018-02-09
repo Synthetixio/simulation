@@ -219,7 +219,6 @@ def make_server() -> "tornado.web.Application":
     if settings["Server"]["cached"]:
         print("Running cached data server...")
         server = CachedModularServer(settings, charts, "Havven Model")
-
     else:
         print("Running model server...")
 
@@ -234,18 +233,17 @@ def make_server() -> "tornado.web.Application":
         #     'slider', "Utilisation Ratio", settings["Model"]["collateralisation_ratio_max"], 0.0, 1.0, 0.01
         # )
 
-        match_checkbox = UserSettableParameter(
-            'checkbox', "Continuous order matching", settings["Model"]["continuous_order_matching"]
-        )
-
         if settings['Model']['random_agents']:
             agent_fraction_selector = UserSettableParameter(
                 'agent_fractions', "Agent fraction selector", None
             )
         else:
             # the none value will randomize the data on every model reset
+            agent_fractions = settings['Agents']['AgentFractions']
+            sum_fractions = sum([agent_fractions[i] for i in agent_fractions])
+            normalised_fractions = {i: agent_fractions[i]/sum_fractions for i in agent_fractions}
             agent_fraction_selector = UserSettableParameter(
-                'agent_fractions', "Agent fraction selector", settings['AgentFractions']
+                'agent_fractions', "Agent fraction selector", normalised_fractions
             )
 
         server = ModularServer(
@@ -255,7 +253,6 @@ def make_server() -> "tornado.web.Application":
             "Havven Model",
             {
                 "num_agents": n_slider,
-                "continuous_order_matching": match_checkbox,
                 'agent_fractions': agent_fraction_selector
             }
         )

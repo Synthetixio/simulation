@@ -44,7 +44,7 @@ def get_defaults():
 
         "Fees": {
             # how long between fee distributions
-            "fee_period": 50,
+            "fee_distribution_period": 50,
             "nomin_issuance_fee": "0",
             "nomin_burning_fee": "0",
             # charge fees per transfer
@@ -70,10 +70,12 @@ def get_defaults():
             "discretionary_burning": True,
             # have a fixed cmax value
             "fixed_cmax": False,
-            # if its fixed, up to what value
-            "fixed_cmax_value": "0.2",
-            # will the cmax value scale up with copt if its fixed
-            "fixed_cmax_moves_up": False,
+            "fixed_cmax_settings": {
+                # if its fixed, up to what value
+                "fixed_cmax_value": "0.2",
+                # will the cmax value scale up with copt if its fixed
+                "fixed_cmax_moves_up": False,
+            },
             # how low can cmax go
             "minimal_cmax": "0",
             # calculate and use copt for fee distribution
@@ -204,5 +206,5 @@ def load_settings():
         print(f"No {SETTINGS_FILE} file present, creating one with default settings.")
         json_friendly = set_dec_to_str(settings)
         with open(SETTINGS_FILE, 'w') as f:
-            json.dump(json_friendly, f)
+            json.dump(json_friendly, f, sort_keys=True, indent=4)
     return settings

@@ -99,6 +99,20 @@ run_settings = [
 ]
 
 
+def set_run_settings(defaults, run_settings):
+    settings = {}
+
+    for item in defaults:
+        if item not in run_settings:
+            settings[item] = defaults[item]
+        elif type(item) == dict:
+            settings[item] = set_run_settings(defaults[item], run_settings[item])
+        else:
+            # this doesn't check type, assumes it is correct (as it is set in the code above)
+            settings[item] = run_settings[item]
+    return settings
+
+
 def generate_new_caches(data):
     """
     generate a new dataset for each dataset that doesn't already exist in data
@@ -120,12 +134,10 @@ def generate_new_caches(data):
         result = []
         settings = settingsloader.get_defaults()
 
-        for section in item["settings"]:
-            for setting in item['settings'][section]:
-                settings[section][setting] = item["settings"][section][setting]
+        settings = set_run_settings(settings, item['settings'])
 
         model_settings = settings['Model']
-        model_settings['agent_fractions'] = settings['AgentFractions']
+        model_settings['agent_fractions'] = settings['Agents']['AgentFractions']
 
         havven_model = model.HavvenModel(
             model_settings,
@@ -136,8 +148,8 @@ def generate_new_caches(data):
         )
         vis_elements = get_vis_elements()
 
-        # # The following is for running the loop without tqdm
-        # # as when profiling the model tqdm shows up as ~17% runtime
+        # # The following is for running the loop without tqdm for profiling
+        # # As when profiling the model, tqdm shows up as ~17% runtime
         # for i in range(item["max_steps"]):
         #     if not i % 100:
         #         print(f"{n+1}/{len(run_settings)} [{'='*(i//100)}{'-'*(item['max_steps']//100 - i//100)}" +

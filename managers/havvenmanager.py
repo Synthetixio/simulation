@@ -16,12 +16,10 @@ class HavvenManager:
 
     def __init__(
             self,
-            continuous_order_matching: bool,
             havven_settings: Dict[str, Any],
             model: '__import__("model").HavvenModel'
     ) -> None:
         """
-        :param continuous_order_matching:
         :param havven_settings:
          - havven_supply: the total amount of havvens in the system
          - nomin_supply: the amount of nomins the havven system begins with
@@ -34,10 +32,6 @@ class HavvenManager:
 
         # Initiate Time
         self.time: int = 0
-
-        # If true, match orders whenever an order is posted,
-        #   otherwise do so at the end of each period
-        self.continuous_order_matching: bool = continuous_order_matching
 
         # Money Supply
         self.havven_supply = Dec(havven_settings['havven_supply'])

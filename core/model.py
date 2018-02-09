@@ -32,15 +32,14 @@ class HavvenModel(Model):
          - agent_fraction: what percentage of each agent to use
          - num_agents: the total number of agents to use
          - utilisation_ratio_max: the max utilisation ratio for nomin issuance against havvens
-         - continuous_order_matching: whether to match orders as they come,
          or at the end of each tick
         :param fee_settings: explained in feemanager.py
         :param agent_settings: explained in agentmanager.py
         :param havven_settings: explained in havvenmanager.py
         """
+        # since this can be set on the frontend, it is added to model_settings
         agent_fractions = model_settings['agent_fractions']
         num_agents = model_settings['num_agents']
-        continuous_order_matching = model_settings['continuous_order_matching']
 
         # Mesa setup.
         super().__init__()
@@ -53,7 +52,6 @@ class HavvenModel(Model):
 
         # Initialise simulation managers.
         self.manager = HavvenManager(
-            continuous_order_matching,
             havven_settings,
             self
         )
@@ -106,12 +104,6 @@ class HavvenModel(Model):
         self.market_manager.havven_nomin_market.step_history()
         self.market_manager.havven_fiat_market.step_history()
         self.market_manager.nomin_fiat_market.step_history()
-
-        # Resolve outstanding trades.
-        if not self.manager.continuous_order_matching:
-            self.market_manager.havven_nomin_market.match()
-            self.market_manager.havven_fiat_market.match()
-            self.market_manager.nomin_fiat_market.match()
 
         # Distribute fees periodically.
         if ((self.manager.time + 1) % self.fee_manager.fee_period) == 0:

@@ -99,7 +99,6 @@ Client -> Server:
 """
 import copy
 import os
-import threading
 import time
 
 import tornado.autoreload
@@ -134,7 +133,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.resetlock = threading.Lock()
         self.step = -1
         self.last_step_time = time.time()
         self.current_run_num = 0
@@ -147,7 +145,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         """
         # self is the connection, not a single socket object
         self.model_handler = ModelHandler(
-            self.application.threaded,
             self.application.model_name,
             copy.deepcopy(self.application.model_cls),
             copy.deepcopy(self.application.model_params),
@@ -155,11 +152,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             copy.deepcopy(self.application.model_settings)
         )
         self.model_handler.reset_model(self.current_run_num)
-        if self.application.threaded:
-            self.model_run_thread = threading.Thread(
-                target=self.model_handler.run_model,
-                args=(self.model_handler,)
-            ).start()
 
         if self.application.verbose:
             print("Socket opened:", self)
@@ -194,30 +186,26 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         if msg["type"] == "get_steps":
             # message format: {'type':'get_steps', 'run_num':int, 'step':int, 'fps':int}
-            with self.resetlock:
-                # ignore old messages...
-                if msg['run_num'] != self.model_handler.current_run_num:
-                    return
-                client_current_step = msg['step']
-                if client_current_step > self.application.max_steps:
-                    message = {"type": "end"}
-                    self.write_message(message)
-                    return
-                elif self.model_handler.threaded:
-                    client_fps = msg['fps']
-                    data = self.collect_data_from_step(client_current_step, client_fps)
 
-                else:
-                    curr_time = time.time()
-                    # added first less than just in case the time rolls back to 0...
-                    # this will prevent someone spamming get_steps, to stop both repeated steps being sent,
-                    # as well as clogging up the server with requests
-                    if self.last_step_time < curr_time < self.last_step_time + self.application.min_step_time:
-                        return
-                    self.last_step_time = curr_time
-                    self.model_handler.step()
-                    data = [self.model_handler.data[-1]]
-                self.current_run_num = self.model_handler.current_run_num
+            # ignore old messages...
+            if msg['run_num'] != self.model_handler.current_run_num:
+                return
+            client_current_step = msg['step']
+            if client_current_step > self.application.max_steps:
+                message = {"type": "end"}
+                self.write_message(message)
+                return
+            else:
+                curr_time = time.time()
+                # added first less than just in case the time rolls back to 0...
+                # this will prevent someone spamming get_steps, to stop both repeated steps being sent,
+                # as well as clogging up the server with requests
+                if self.last_step_time < curr_time < self.last_step_time + self.application.min_step_time:
+                    return
+                self.last_step_time = curr_time
+                self.model_handler.step()
+                data = [self.model_handler.data[-1]]
+            self.current_run_num = self.model_handler.current_run_num
             message = {
                 "type": "viz_state",
                 "data": data,
@@ -227,9 +215,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         elif msg["type"] == "reset":
             # message format: {'type':'reset', 'run_num':int}
-            with self.resetlock:
-                self.current_run_num = msg["run_num"]
-                self.model_handler.reset_model(self.current_run_num)
+            self.current_run_num = msg["run_num"]
+            self.model_handler.reset_model(self.current_run_num)
 
         elif msg["type"] == "submit_params":
             # message format: {'type':'submit_params', 'param':"str", 'value':<object>}
@@ -261,8 +248,7 @@ class ModelHandler:
     model = None
     current_run_num = -1
 
-    def __init__(self, threaded, name, model_cls, model_params, visualization_elements, model_settings):
-        self.threaded = threaded
+    def __init__(self, name, model_cls, model_params, visualization_elements, model_settings):
         self.model_name = name
         self.model_cls = model_cls
         self.description = 'No description available'
@@ -275,22 +261,16 @@ class ModelHandler:
 
         self.model_settings = model_settings
 
-        self.resetting = False
         self.current_step = 0
         self.max_calc_step = 10
 
         self.running = True
         self.data = []
-        self.data_lock = threading.Lock()
-        self.lock = threading.Lock()
 
     def reset_model(self, run_num):
         """Clear old and create a new model"""
-        self.resetting = True
-        with self.lock:
-            self.create_model()
+        self.create_model()
         self.current_run_num = run_num
-        self.resetting = False
         self.current_step = 0
 
     def create_model(self):
@@ -310,9 +290,6 @@ class ModelHandler:
             self.model_settings['Havven'],
             self.model_settings['Mint']
         )
-        # clear the data queue
-        with self.data_lock:
-            self.data = []
 
     def render_model(self):
         """collect the data from the model and put it in the queue to be sent for rendering"""
@@ -329,29 +306,6 @@ class ModelHandler:
 
     def set_model_kwargs(self, key, val):
         self.model_kwargs[key] = val
-
-    @staticmethod
-    def run_model(model_handler):
-        try:
-            while model_handler.running:
-                # allow the model to reset if it hasn't already
-                # TODO: does this cause the lag?
-                while model_handler.resetting:
-                    time.sleep(0.02)
-                # slow it down significantly if the data isn't being used
-                # higher value causes lag when the page is first created
-                while len(model_handler.data) > model_handler.max_calc_step:
-                    time.sleep(0.02)
-
-                with model_handler.data_lock:
-                    model_handler.step()
-
-        except Exception as e:
-            print("==========-ERROR-==========")
-            print(__import__('traceback').print_tb(e))
-            print("Model run thread closed.")
-            print("=========-END ERR-=========")
-            return
 
     def set_model_params(self, param, value):
         if isinstance(self.model_kwargs[param], UserSettableParameter):
@@ -389,7 +343,6 @@ class ModularServer(tornado.web.Application):
         self.port = settings['Server']['port']
 
         # Prep visualization elements:
-        self.threaded = settings['Server']['threaded']
         self.visualization_elements = visualization_elements
         self.model_name = name
         self.model_cls = model_cls

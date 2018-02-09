@@ -214,8 +214,7 @@ class OrderBook:
                  quoted_fee: Callable[[Dec], Dec],
                  base_fee: Callable[[Dec], Dec],
                  quoted_qty_rcvd: Callable[[Dec], Dec],
-                 base_qty_rcvd: Callable[[Dec], Dec],
-                 continuous_order_matching: bool = True) -> None:
+                 base_qty_rcvd: Callable[[Dec], Dec]) -> None:
         # hold onto the model to be able to access variables
         self.model_manager = model_manager
 
@@ -259,9 +258,6 @@ class OrderBook:
         self.candle_data: List[List[Dec]] = [[Dec(1), Dec(1), Dec(1), Dec(1)]]
         self.price_data: List[Dec] = [self._cached_price]
         self.volume_data: List[Dec] = [Dec(0)]
-
-        # Try to match orders after each trade is submitted
-        self.continuous_order_matching: bool = continuous_order_matching
 
     @property
     def name(self) -> str:
@@ -432,8 +428,7 @@ class OrderBook:
         bid = Bid(price, quantity, fee, agent, self)
 
         # Attempt to trade the bid immediately.
-        if self.continuous_order_matching:
-            self.match()
+        self.match()
 
         return bid
 
@@ -458,8 +453,7 @@ class OrderBook:
         ask = Ask(price, quantity, fee, agent, self)
 
         # Attempt to trade the ask immediately.
-        if self.continuous_order_matching:
-            self.match()
+        self.match()
 
         return ask
 
@@ -472,7 +466,7 @@ class OrderBook:
 
         # cancel the bid if it isn't filled immediately, as a market buy/sell should
         # always be filled (unless the market dries up)
-        if not self.continuous_order_matching and bid:
+        if bid:
             bid.cancel()
         return bid
 
@@ -485,7 +479,7 @@ class OrderBook:
 
         # cancel the ask if it isn't filled immediately, as a market buy/sell should
         # always be filled (unless the market dries up)
-        if not self.continuous_order_matching and ask:
+        if ask:
             ask.cancel()
         return ask
 
