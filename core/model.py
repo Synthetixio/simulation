@@ -82,6 +82,7 @@ class HavvenModel(Model):
             )
 
         self.mint.calculate_copt_cmax()
+        self.datacollector.collect(self)
 
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
@@ -107,7 +108,10 @@ class HavvenModel(Model):
 
         # Distribute fees periodically.
         if ((self.manager.time + 1) % self.fee_manager.fee_period) == 0:
-            self.fee_manager.distribute_fees(self.schedule.agents, self.mint.copt, self.mint.cmax)
+            if self.mint.use_copt:
+                self.fee_manager.distribute_fees_using_collateralisation_targets(
+                    self.schedule.agents, self.mint.copt, self.mint.cmax
+                )
 
         # calculate copt and cmax after fees distributed to reward good players
         self.mint.calculate_copt_cmax()

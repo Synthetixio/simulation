@@ -228,17 +228,14 @@ def make_server() -> "tornado.web.Application":
             settings["Model"]["num_agents"], settings["Model"]["num_agents_min"],
             settings["Model"]["num_agents_max"], 1
         )
-        #
-        # ur_slider = UserSettableParameter(
-        #     'slider', "Utilisation Ratio", settings["Model"]["collateralisation_ratio_max"], 0.0, 1.0, 0.01
-        # )
 
         if settings['Model']['random_agents']:
+            # the None value will randomize the data on every model reset
+            # until the values are changed by the user
             agent_fraction_selector = UserSettableParameter(
                 'agent_fractions', "Agent fraction selector", None
             )
         else:
-            # the none value will randomize the data on every model reset
             agent_fractions = settings['Agents']['AgentFractions']
             sum_fractions = sum([agent_fractions[i] for i in agent_fractions])
             normalised_fractions = {i: agent_fractions[i]/sum_fractions for i in agent_fractions}

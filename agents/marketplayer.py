@@ -134,13 +134,13 @@ class MarketPlayer(Agent):
             escrowed_havvens = self.havvens
             havvens = 0
 
-        fiat = self.fiat - self.wage_parameter * self.model.manager.time
+        fiat = self.fiat
 
         return self.model.fiat_value(havvens=(havvens + escrowed_havvens),
                                      nomins=(self.nomins - self.issued_nomins),
                                      fiat=fiat)
 
-    def portfolio(self, fiat_values: bool = False) -> Tuple[Dec, Dec, Dec, Dec, Dec]:
+    def portfolio(self, fiat_values: bool = False) -> Portfolio:
         """
         Return the parts of the agent that dictate its wealth.
         If fiat_value is True, then return the equivalent fiat values at the going market rates.
@@ -183,7 +183,18 @@ class MarketPlayer(Agent):
         Return the total profit accrued over the initial wealth.
         May be negative.
         """
-        return self.wealth() - self.initial_wealth
+        escrowed_havvens = self.escrowed_havvens
+        havvens = self.havvens - escrowed_havvens
+        if havvens < 0:  # ignore havven 'debt'
+            escrowed_havvens = self.havvens
+            havvens = 0
+
+        fiat = self.fiat - self.wage_parameter * self.model.manager.time
+
+        wealth = self.model.fiat_value(havvens=(havvens + escrowed_havvens),
+                                     nomins=(self.nomins - self.issued_nomins),
+                                     fiat=fiat)
+        return wealth - self.initial_wealth
 
     def profit_fraction(self) -> Dec:
         """

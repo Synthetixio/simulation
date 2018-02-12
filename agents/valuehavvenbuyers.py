@@ -13,13 +13,17 @@ class ValueHavvenBuyers(MarketPlayer):
     They then wait for the market to catch up to the real value of havvens
       and then sell them back in
     """
-    havven_fiat_trade = None
+    havven_fiat_buy = None
+    havven_fiat_sell = None
 
-    minimal_price = Dec('0.05')
+    minimal_price = Dec('0.1')
     'What is the least they will pay'
 
-    purchase_rate = Dec('1.2')
+    purchase_rate_mutiplier = Dec('1.2')
     'How over "value" do they purchase the havvens'
+
+    sell_rate_multiplier = Dec('5')
+    'How over "value" do they sell the havvens'
 
     def setup(self, init_value: Dec) -> None:
         self.wage_parameter = init_value/Dec(100)
@@ -28,16 +32,24 @@ class ValueHavvenBuyers(MarketPlayer):
     def step(self) -> None:
         super().step()
 
-        if self.havven_fiat_trade:
-            self.havven_fiat_trade.cancel()
-            self.havven_fiat_trade = None
+        if self.havven_fiat_buy:
+            self.havven_fiat_buy.cancel()
+            self.havven_fiat_buy = None
+
+        if self.havven_fiat_sell:
+            self.havven_fiat_sell.cancel()
+            self.havven_fiat_sell = None
 
         havven_value_multiplier = self.havven_value_calculation()
 
         # just place their value trade every step, instead of checking if the current market conditions are good
-        price = havven_value_multiplier * self.havven_fiat_market.price * self.purchase_rate
-        price = max(self.minimal_price, price)
-        self.havven_fiat_trade = self.place_havven_fiat_bid_with_fee(self.available_fiat/price, price)
+        buy_price = havven_value_multiplier * self.havven_fiat_market.price * self.purchase_rate_mutiplier
+        buy_price = max(self.minimal_price, buy_price)
+        self.havven_fiat_buy = self.place_havven_fiat_bid_with_fee(self.available_fiat/buy_price, buy_price)
+
+        sell_price = havven_value_multiplier * self.havven_fiat_market.price * self.sell_rate_multiplier
+        sell_price = max(sell_price, self.sell_rate_multiplier * self.minimal_price)
+        self.havven_fiat_sell = self.place_havven_fiat_ask_with_fee(self.available_havvens, sell_price)
 
     def havven_value_calculation(self) -> Dec:
         return self.model.mint.cmax * self.nomin_fiat_market.price / self.havven_fiat_market.price

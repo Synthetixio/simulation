@@ -128,7 +128,7 @@ class Buyer(MarketPlayer):
         self.wage_parameter = init_value/Dec(100)
 
         # start with no money, as they have a wage
-        self.fiat = init_value/Dec(10)
+        self.fiat = Dec(0)
 
     def step(self) -> None:
         super().step()
@@ -137,7 +137,8 @@ class Buyer(MarketPlayer):
         if self.available_fiat:
             if self.order and self.order.active:
                 self.order.cancel()
-            # place a bid at max_nomin_price, as it would be dumb for anyone to pay more
+            # place a bid at max_nomin_price, as paying more than a dollar for a nomin is counter-intuitive
+            #   when there is no urgent need to acquire them
             self.order = self.place_nomin_fiat_bid_with_fee(
                 self.available_fiat / self.max_nomin_price, self.max_nomin_price
             )

@@ -163,16 +163,23 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         data = []
         while len(data) < 1:
             if fps is None:
-                self.model_handler.max_calc_step = min(
-                    step + self.application.calculation_buffer,
-                    self.application.max_steps
-                )
+                if self.application.cap_steps:
+                    self.model_handler.max_calc_step = min(
+                        step + self.application.calculation_buffer,
+                        self.application.max_steps
+                    )
+                else:
+                    self.model_handler.max_calc_step = step + self.application.calculation_buffer
+
                 data = self.model_handler.data[step:]
             else:
-                self.model_handler.max_calc_step = min(
-                    step + max(self.application.calculation_buffer, fps * 10),
-                    self.application.max_steps
-                )
+                if self.application.cap_steps:
+                    self.model_handler.max_calc_step = min(
+                        step + max(self.application.calculation_buffer, fps * 10),
+                        self.application.max_steps
+                    )
+                else:
+                    self.model_handler.max_calc_step = step + max(self.application.calculation_buffer, fps * 10)
                 data = self.model_handler.data[step:]
         return data
 
@@ -191,7 +198,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if msg['run_num'] != self.model_handler.current_run_num:
                 return
             client_current_step = msg['step']
-            if client_current_step > self.application.max_steps:
+            if client_current_step > self.application.max_steps and self.application.cap_steps:
                 message = {"type": "end"}
                 self.write_message(message)
                 return
@@ -348,6 +355,7 @@ class ModularServer(tornado.web.Application):
         self.model_cls = model_cls
         self.model_params = model_params
         self.max_steps = settings['Server']['max_steps']
+        self.cap_steps = settings['Server']['cap_realtime_steps']
         self.calculation_buffer = 16
         self.fps_max = settings['Server']['fps_max']
         self.min_step_time = 1 / (self.fps_max + 5)  # give some extra buffer room, just in case

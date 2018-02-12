@@ -18,17 +18,16 @@ def get_defaults():
         # settings for the server
         "Server": {
             # generate and display cached results instead of generating them on the fly
-            "cached": True,
+            "cached": False,
             "port": 3000,
             # maximum fps for the app to run at
-            "fps_max": 15,
+            "fps_max": 20,
             # default setting for fps
             "fps_default": 15,
             # limit how many steps can be generated in the non-cached version
             "cap_realtime_steps": False,
             "max_steps": 1500
         },
-
         "Model": {
             # Number of agents for the model to have
             "num_agents_max": 175,
@@ -37,22 +36,17 @@ def get_defaults():
             # Randomise the agent fractions
             "random_agents": False
         },
-
-        "Market": {
-            "continuous_order_matching": True
-        },
-
         "Fees": {
             # how long between fee distributions
             "fee_distribution_period": 50,
-            "nomin_issuance_fee": "0",
-            "nomin_burning_fee": "0",
+            "nomin_issuance_fee": Dec("0"),
+            "nomin_burning_fee": Dec("0"),
             # charge fees per transfer
             "transfer_fee": True,
             "transfer_fee_settings": {
-                "nomin_fee_level": "0.002",
-                "havven_fee_level": "0.002",
-                "fiat_fee_level": "0.00"
+                "nomin_fee_level": Dec("0.002"),
+                "havven_fee_level": Dec("0.002"),
+                "fiat_fee_level": Dec("0.00")
             },
             # charge fees over time on all nomins
             "hedging_fee": False,
@@ -72,32 +66,32 @@ def get_defaults():
             "fixed_cmax": False,
             "fixed_cmax_settings": {
                 # if its fixed, up to what value
-                "fixed_cmax_value": "0.2",
+                "fixed_cmax_value": Dec("0.2"),
                 # will the cmax value scale up with copt if its fixed
                 "fixed_cmax_moves_up": False,
             },
             # how low can cmax go
-            "minimal_cmax": "0",
+            "minimal_cmax": Dec("0.01"),
             # calculate and use copt for fee distribution
             "use_copt": True,
             "copt_settings": {
-                "copt_sensitivity_parameter": "1.0",
-                "copt_flattening_parameter": 1,
-                "copt_buffer_parameter": "1.1"
+                "copt_sensitivity_parameter": Dec("5.0"),
+                "copt_flattening_parameter": 1,  # integer, must be odd
+                "copt_buffer_parameter": Dec("1.1")
             },
             # buffer on either side of issuance and burning
             # i.e. if 5%:
             #   burn nomins down to a value of 0.95
             #   issue nomins up to a value of 1.05
-            "non_discretionary_cap_buffer": 0
+            "non_discretionary_cap_buffer": Dec('0')
         },
 
         "Havven": {
-            "havven_supply": "1000000000",
+            "havven_supply": Dec("100000"),
             # initial supply of nomins (to help with some calculations)
-            "nomin_supply": "0",
-            "rolling_avg_time_window": 7,
-            "use_volume_weighted_avg": True
+            "nomin_supply": Dec("0"),
+            "rolling_avg_time_window": 0,
+            "use_volume_weighted_avg": False
         },
 
         "Agents": {
@@ -107,9 +101,9 @@ def get_defaults():
             # add a havven foundation for setting initial parameters for copt
             "havven_foundation_enabled": True,
             # what value of cmax will havven use
-            "havven_foundation_initial_c": "0.1",
+            "havven_foundation_initial_c": Dec("0.4"),
             # what portion of all havvens does the foundation get
-            "havven_foundation_cut": "0.2",
+            "havven_foundation_cut": Dec("0.2"),
 
             "AgentFractions": {
                 "Arbitrageur": 3,

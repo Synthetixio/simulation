@@ -108,6 +108,5 @@ class AgentManager:
         havven_foundation.nomins = havven_foundation.havvens * havven_foundation_initial_c
 
         self.havven_model.manager.issued_nomins += havven_foundation.havvens * havven_foundation_initial_c
-
         self.agents['others'].append(havven_foundation)
         return havven_foundation

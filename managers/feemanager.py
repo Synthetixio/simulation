@@ -46,30 +46,12 @@ class FeeManager:
         self.use_hedging_fee = fee_settings['hedging_fee']
         if self.use_hedging_fee:
             self.nomin_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['nomin_fee_level'])
-            # these two should always be 0...
+            # these two should always be 0... but settable just in case...
             self.havven_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['havven_fee_level'])
             self.fiat_hedge_fee_rate = Dec(fee_settings['hedging_fee_settings']['fiat_fee_level'])
             self.hedge_length = fee_settings['hedging_fee_settings']['hedge_length']
 
         self.fees_distributed = Dec(0)
-
-    @property
-    def nomin_fee_rate(self) -> Dec:
-        if self.use_transfer_fee:
-            return self.nomin_transfer_fee_rate
-        return Dec(0)
-
-    @property
-    def havven_fee_rate(self) -> Dec:
-        if self.use_transfer_fee:
-            return self.havven_transfer_fee_rate
-        return Dec(0)
-
-    @property
-    def fiat_fee_rate(self) -> Dec:
-        if self.use_transfer_fee:
-            return self.fiat_transfer_fee_rate
-        return Dec(0)
 
     def collect_hedge_fees(self, actor):
         if self.use_hedging_fee:
@@ -92,7 +74,7 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return quantity
-        return HavvenManager.round_decimal(quantity / (Dec(1) + self.fiat_fee_rate))
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.fiat_transfer_fee_rate))
 
     def transferred_havvens_received(self, quantity: Dec) -> Dec:
         """
@@ -103,7 +85,7 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return quantity
-        return HavvenManager.round_decimal(quantity / (Dec(1) + self.havven_fee_rate))
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.havven_transfer_fee_rate))
 
     def transferred_nomins_received(self, quantity: Dec) -> Dec:
         """
@@ -114,7 +96,7 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return quantity
-        return HavvenManager.round_decimal(quantity / (Dec(1) + self.nomin_fee_rate))
+        return HavvenManager.round_decimal(quantity / (Dec(1) + self.nomin_transfer_fee_rate))
 
     def transferred_fiat_fee(self, quantity: Dec) -> Dec:
         """
@@ -122,7 +104,7 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return Dec(0)
-        return HavvenManager.round_decimal(quantity * self.fiat_fee_rate)
+        return HavvenManager.round_decimal(quantity * self.fiat_transfer_fee_rate)
 
     def transferred_havvens_fee(self, quantity: Dec) -> Dec:
         """
@@ -130,7 +112,7 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return Dec(0)
-        return HavvenManager.round_decimal(quantity * self.havven_fee_rate)
+        return HavvenManager.round_decimal(quantity * self.havven_transfer_fee_rate)
 
     def transferred_nomins_fee(self, quantity: Dec) -> Dec:
         """
@@ -138,26 +120,36 @@ class FeeManager:
         """
         if not self.use_transfer_fee:
             return Dec(0)
-        return HavvenManager.round_decimal(quantity * self.nomin_fee_rate)
+        return HavvenManager.round_decimal(quantity * self.nomin_transfer_fee_rate)
 
-    def distribute_fees(
-            self, schedule_agents: List["agents.MarketPlayer"], copt: Dec, cmax: Dec
-    ) -> None:
+    def distribute_fees_to_havven_holders(self, schedule_agents: List["agents.MarketPlayer"]):
         """
         Distribute currently held nomins to holders of havvens.
         """
-        # Different fee modes:
-        #  * distributed by held havvens
-        # TODO: * distribute by escrowed havvens
-        # TODO: * distribute by issued nomins
-        # TODO: * distribute by motility
+        pre_nomins = self.model_manager.nomins
+        total_havvens = self.model_manager.havven_supply
+        for agent in schedule_agents:
+            nom_to_distribute = max(pre_nomins*agent.havvens/total_havvens, self.model_manager.nomins)
+            agent.nomins += nom_to_distribute
+            self.model_manager.nomins -= nom_to_distribute
 
+    def distribute_fees_to_escrowed_havvens(self, schedule_agents: List["agents.MarketPlayer"]):
+        """
+        Distribute currently held nomins to holders of escrowed havvens.
+        note: this is a bad idea, as it incentives issuance up to cmax, instead of copt
+        """
+        pre_nomins = self.model_manager.nomins
+        total_havvens = sum([i.escrowed_havvens for i in schedule_agents])
+        for agent in schedule_agents:
+            nom_to_distribute = max(pre_nomins*agent.escrowed_havvens/total_havvens, self.model_manager.nomins)
+            agent.nomins += nom_to_distribute
+            self.model_manager.nomins -= nom_to_distribute
+
+    def distribute_fees_using_collateralisation_targets(self, schedule_agents: List["agents.MarketPlayer"], copt: Dec, cmax: Dec):
         pre_nomins = self.model_manager.nomins
 
-        # calculate alphabase
-
+        # calculate alpha_base
         abase = 0
-
         for agent in schedule_agents:
             ci = agent.collateralisation
             if ci <= copt:

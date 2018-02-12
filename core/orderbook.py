@@ -271,9 +271,14 @@ class OrderBook:
         """
         Return the rolling average of the price, only calculate it once per tick.
         """
+        # if not using rolling average, return price
+        if self.model_manager.rolling_avg_time_window == 0:
+            if len(self.history) > 0:
+                return self.history[-1].price
+            return Dec(1)
+
         if self.model_manager.time <= self._last_cached_price_time:
             return self._cached_price
-
         if self.model_manager.volume_weighted_average:
             return self.weighted_rolling_price_average(self.model_manager.rolling_avg_time_window)
         else:

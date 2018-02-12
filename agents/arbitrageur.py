@@ -221,9 +221,9 @@ class Arbitrageur(MarketPlayer):
 
     def _cycle_fee_rate(self) -> Dec:
         """Divide by this fee rate to determine losses after one traversal of an arbitrage cycle."""
-        return hm.round_decimal((Dec(1) + self.model.fee_manager.nomin_fee_rate) *
-                                (Dec(1) + self.model.fee_manager.havven_fee_rate) *
-                                (Dec(1) + self.model.fee_manager.fiat_fee_rate))
+        return hm.round_decimal((Dec(1) + self.model.fee_manager.nomin_transfer_fee_rate) *
+                                (Dec(1) + self.model.fee_manager.havven_transfer_fee_rate) *
+                                (Dec(1) + self.model.fee_manager.fiat_transfer_fee_rate))
 
     def _forward_multiple_no_fees(self) -> Dec:
         """

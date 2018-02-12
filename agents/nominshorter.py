@@ -21,7 +21,8 @@ class NominShorter(MarketPlayer):
 
     TODO: Maybe put up a wall by placing nomin ask @ sell_rate_threshold
     """
-    initial_order = None
+    nom_sell = None
+    nom_buy = None
 
     _nomin_sell_rate_threshold = Dec('1.03')
     """The rate above which the player will sell nomins"""
@@ -36,67 +37,20 @@ class NominShorter(MarketPlayer):
 
     def step(self) -> None:
         super().step()
+        if self.nom_buy:
+            self.nom_buy.cancel()
+        if self.nom_sell:
+            self.nom_sell.cancel()
 
         # get rid of havvens, as that isn't the point of this player
         if self.available_havvens:
-            self.sell_havvens_for_nomins(self.available_havvens)
+            self.sell_havvens_for_nomins_with_fee(self.available_havvens)
 
         if self.available_nomins > 0:
-            trade = self._find_best_nom_fiat_trade()
-            last_price = 0
-            while trade is not None and self.available_nomins > 0:
-                if last_price == trade[0]:
-                    break
-                last_price = trade[0]
-                ask = self._make_nom_fiat_trade(trade)
-                trade = self._find_best_nom_fiat_trade()
+            self.nom_sell = self.place_nomin_fiat_ask_with_fee(self.available_nomins, self._nomin_sell_rate_threshold)
 
         if self.available_fiat > 0:
-            trade = self._find_best_fiat_nom_trade()
-            last_price = 0
-            while trade is not None and self.available_fiat > 0:
-                # rarely, the entire order doesn't get filled, still trying to debug...
-                if last_price == trade[0]:
-                    break
-                last_price = trade[0]
-                bid = self._make_fiat_nom_trade(trade)
-                trade = self._find_best_fiat_nom_trade()
-
-    def _find_best_nom_fiat_trade(self) -> Optional[Tuple[Dec, Dec]]:
-        trade_price_quant = None
-        for bid in self.nomin_fiat_market.highest_bids():
-            if bid.price < self._nomin_sell_rate_threshold:
-                break
-            if trade_price_quant is not None:
-                trade_price_quant = (bid.price, trade_price_quant[1] + bid.quantity)
-            else:
-                trade_price_quant = (bid.price, bid.quantity)
-        return trade_price_quant
-
-    def _make_nom_fiat_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Ask":
-        fee = self.model.fee_manager.transferred_nomins_fee(trade_price_quant[1])
-        # if not enough nomins to cover whole ask
-        if self.available_nomins < trade_price_quant[1] + fee:
-            return self.sell_nomins_for_fiat_with_fee(self.available_nomins)
-        return self.place_nomin_fiat_ask(trade_price_quant[1], trade_price_quant[0])
-
-    def _find_best_fiat_nom_trade(self) -> Optional[Tuple[Dec, Dec]]:
-        trade_price_quant = None
-        for ask in self.nomin_fiat_market.lowest_asks():
-            if ask.price > self._nomin_buy_rate_threshold:
-                break
-            if trade_price_quant is not None:
-                trade_price_quant = (ask.price, trade_price_quant[1] + ask.quantity)
-            else:
-                trade_price_quant = (ask.price, ask.quantity)
-        return trade_price_quant
-
-    def _make_fiat_nom_trade(self, trade_price_quant: Tuple[Dec, Dec]) -> "ob.Bid":
-        fee = self.model.fee_manager.transferred_fiat_fee(trade_price_quant[1])
-        # if not enough fiat to cover whole bid
-        if self.available_fiat < trade_price_quant[1] + fee:
-            return self.sell_fiat_for_nomins_with_fee(self.available_fiat)
-        return self.place_nomin_fiat_bid(trade_price_quant[1], trade_price_quant[0])
+            self.nom_buy = self.place_nomin_fiat_bid_with_fee(self.available_fiat, self._nomin_buy_rate_threshold)
 
 
 class HavvenEscrowNominShorter(NominShorter):

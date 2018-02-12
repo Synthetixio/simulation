@@ -182,20 +182,30 @@ class Mint:
             self.copt = (self.copt_sensitivity_parameter * (
                 (self.market_manager.nomin_fiat_market.price - 1) ** self.copt_flattening_parameter
             ) + 1) * self.global_collateralisation
-            print(self.copt)
-            print(self.global_collateralisation)
+
         if self.fixed_cmax:
             self.cmax = self.minimal_cmax
-        self.cmax = self.copt * self.copt_buffer_parameter
-        if self.cmax < self.minimal_cmax:
-            self.cmax = self.minimal_cmax
+            if self.use_copt and self.fixed_cmax_moves_up:
+                if self.cmax < self.copt * self.copt_buffer_parameter:
+                    self.cmax = self.copt * self.copt_buffer_parameter
+        else:
+            self.cmax = self.copt * self.copt_buffer_parameter
+            if self.cmax < self.minimal_cmax:
+                self.cmax = self.minimal_cmax
 
     @property
     def global_collateralisation(self) -> Dec:
-        return (self.market_manager.nomin_fiat_market.spread_median() * (self.havven_manager.issued_nomins - self.issuance_controller.nomins)) / \
-               (self.intrinsic_havven_value * self.havven_manager.active_havvens)
+        return self.global_nomin_value / self.global_havven_value
 
     @property
     def intrinsic_havven_value(self) -> Dec:
         fees = self.fee_manager.fees_distributed + self.havven_manager.nomins
-        return max(Dec(0.01), fees/(self.havven_manager.havven_supply * Dec('0.001')))
+        return max(Dec(0.5), fees/(self.havven_manager.havven_supply * Dec('0.001')))
+
+    @property
+    def global_nomin_value(self) -> Dec:
+        return self.havven_manager.issued_nomins * self.market_manager.nomin_fiat_market.price
+
+    @property
+    def global_havven_value(self) -> Dec:
+        return self.havven_manager.active_havvens * (self.market_manager.havven_fiat_market.price + self.intrinsic_havven_value)
