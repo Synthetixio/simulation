@@ -23,7 +23,7 @@ class AgentManager:
 
         self.wealth_parameter = agent_settings['wealth_parameter']
         self.wage_parameter = agent_settings['wage_parameter']
-        self.liquidation_parameter = agent_settings['wage_parameter']
+        self.liquidation_parameter = agent_settings['liquidation_parameter']
         self.agent_minimum = agent_settings['agent_minimum']
 
         # A reference to the Havven sim itself.

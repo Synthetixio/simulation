@@ -511,16 +511,14 @@ class MarketPlayer(Agent):
         return True if the agent should work as normal
         """
         self.fiat += self.wage_parameter
-        if random.random() < 0.01 and self.model.manager.time > 10:
+        # chance of a sell off wealth parameter
+        if random.random() < self.liquidation_parameter and self.model.manager.time > 10:
             return self.sell_off()
         return True
 
     def sell_off(self) -> bool:
-        # 1:100 chance of a sell off half of initial wealth
-        amount = Dec(self.initial_wealth/2)
+        amount = Dec(self.model.agent_manager.wealth_parameter)
         self.sell_off_total += amount
-
-        print(f"{self.name} selling off {amount}, owns {self.wealth()}")
 
         self.cancel_orders()
 

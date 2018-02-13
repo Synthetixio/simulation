@@ -94,7 +94,7 @@ class Merchant(MarketPlayer):
         need to transfer... We can trust the buyer will transfer.
         """
         if agent.available_nomins > self.inventory[item]['price'] * quantity and \
-                        self.inventory[item]['current_stock'] > quantity:
+                self.inventory[item]['current_stock'] > quantity:
             self.inventory[item]['current_stock'] -= quantity
             return self.inventory[item]['price'] * quantity
         return Dec(0)
@@ -111,7 +111,8 @@ class Buyer(MarketPlayer):
     max_mpc = 0.9
 
     default_nomin_price = Dec('1.0')
-    patience = Dec('100')
+    patience = Dec('4')
+    max_price = Dec('1.5')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -131,6 +132,14 @@ class Buyer(MarketPlayer):
 
         # start with no money, as they have a wage
         self.fiat = Dec(0)
+        # buyers shouldn't have enough to sell off anyways
+        self.liquidation_parameter = Dec(0)
+
+    def calc_nomin_price(self):
+        if self.wait >= self.patience:
+            return self.max_price - Dec(1 / (self.wait*0.1 + 1))
+        else:
+            return self.default_nomin_price
 
     def step(self) -> None:
         super().step()
@@ -139,13 +148,9 @@ class Buyer(MarketPlayer):
             self.wait = 0
         # Buy some crypto.
         if self.available_fiat:
-            if self.order and self.order.active:
+            if self.order:
                 self.order.cancel()
-            # place a bid at max_nomin_price, as paying more than a dollar for a nomin is counter-intuitive
-            #   when there is no urgent need to acquire them
-
-            nom_price = self.default_nomin_price + (self.wait * self.default_nomin_price / self.patience)
-
+            nom_price = self.calc_nomin_price()
             self.order = self.place_nomin_fiat_bid_with_fee(
                 self.available_fiat / nom_price, nom_price
             )

@@ -155,12 +155,9 @@ class Arbitrageur(MarketPlayer):
         """
         Do the trade cycle a->b->c->a, starting the cycle with volume(in terms of a)
         """
-
         init_havvens = self.havvens
         init_nomins = self.nomins
         init_fiat = self.fiat
-
-        initial_wealth = self.wealth()
 
         if market_directions[a][b] == 'ask':
             trade = self.market_data[a][b].market.ask(
@@ -210,16 +207,18 @@ class Arbitrageur(MarketPlayer):
                 self
             )
             trade.cancel()
-        if (self.wealth() - initial_wealth) < 0:
+
+        profit = (self.fiat - init_fiat) + \
+            self.havven_fiat_market.price * (self.havvens - init_havvens) + \
+            self.nomin_fiat_market.price * (self.nomins - init_nomins)
+
+        if profit < 0:
             print("----------")
             print("- Error with arbitrageur, didn't profit on cycle. Made:")
             print(f'- {self.nomins - init_nomins}n')
             print(f'- {self.havvens - init_havvens}h')
             print(f'- {self.fiat - init_fiat}f')
-            print(f'- {initial_wealth} -> {self.wealth()}')
-            print(f'- {self.escrowed_havvens}')
-            print(f'- {self.issued_nomins}')
-            print(f'- profited {self.wealth() - initial_wealth} on {a}-{b}-{c}-{a}')
+            print(f'- profited {profit} on {a}-{b}-{c}-{a}')
             print("----------")
 
     def _cycle_fee_rate(self) -> Dec:

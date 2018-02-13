@@ -87,8 +87,7 @@ class HavvenModel(Model):
     def fiat_value(self, havvens=Dec('0'), nomins=Dec('0'),
                    fiat=Dec('0')) -> Dec:
         """Return the equivalent fiat value of the given currency basket."""
-        return self.market_manager.havvens_to_fiat(havvens) + \
-            self.market_manager.nomins_to_fiat(nomins) + fiat
+        return self.market_manager.havvens_to_fiat(havvens) + self.market_manager.nomins_to_fiat(nomins) + fiat
 
     def endow_havvens(self, agent: "ag.MarketPlayer", havvens: Dec) -> None:
         """Grant an agent an endowment of havvens."""
