@@ -25,9 +25,10 @@ class ValueHavvenBuyers(MarketPlayer):
     sell_rate_multiplier = Dec('5')
     'How over "value" do they sell the havvens'
 
-    def setup(self, init_value: Dec) -> None:
-        self.wage_parameter = init_value/Dec(100)
-        self.fiat = init_value * Dec(4)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
+
+        self.fiat = wealth_parameter * Dec(4)
 
     def step(self) -> None:
         super().step()

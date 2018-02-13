@@ -27,9 +27,10 @@ class Banker(MarketPlayer):
         # step when initialised so nomins appear on the market.
         self.step()
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
-        init_value = init_value * Dec(random.random()/10 + 0.9)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
+
+        init_value = wealth_parameter * Dec(random.random()/10 + 0.9)
         endowment = hm.round_decimal(init_value * Dec(4))
         self.fiat = init_value
         self.model.endow_havvens(self, endowment)

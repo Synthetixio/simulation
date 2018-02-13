@@ -22,6 +22,8 @@ class AgentManager:
         """
 
         self.wealth_parameter = agent_settings['wealth_parameter']
+        self.wage_parameter = agent_settings['wage_parameter']
+        self.liquidation_parameter = agent_settings['wage_parameter']
         self.agent_minimum = agent_settings['agent_minimum']
 
         # A reference to the Havven sim itself.
@@ -52,7 +54,7 @@ class AgentManager:
 
             for i in range(total):
                 agent = ag.player_names[agent_type](self.running_player_total, self.havven_model)
-                agent.setup(self.wealth_parameter)
+                agent.setup(self.wealth_parameter, self.wage_parameter, self.liquidation_parameter)
                 self.havven_model.schedule.add(agent)
                 self.agents[agent_type].append(agent)
                 self.running_player_total += 1

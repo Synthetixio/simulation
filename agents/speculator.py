@@ -59,16 +59,16 @@ class Speculator(MarketPlayer):
         else:
             raise Exception(f"currency:{self.primary_currency} isn't in [havvens, fiat, nomins]")
 
-    def setup(self, init_value):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
         if self.primary_currency == "fiat":
-            self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
+            self.fiat = self.model.manager.round_decimal(wealth_parameter * Dec(3))
         elif self.primary_currency == "nomins":
-            self.fiat = self.model.manager.round_decimal(init_value * Dec(3))
+            self.fiat = self.model.manager.round_decimal(wealth_parameter * Dec(3))
         elif self.primary_currency == "havvens":
             self.model.endow_havvens(
-                self, self.model.manager.round_decimal(init_value * Dec(3))
+                self, self.model.manager.round_decimal(wealth_parameter * Dec(3))
             )
 
     def _check_trade_profit(self, initial_price, time_bought, order, direction) -> bool:
@@ -277,9 +277,8 @@ class NaiveSpeculator(Speculator):
         self.active_trade_b: Optional[Tuple[Dec, int, 'ob.LimitOrder']] = None
         """tuple of [Price_at_purchase, time, order]"""
 
-    def setup(self, init_value):
-        super().setup(init_value)
-
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_parameter: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_parameter)
         self.change_currency()
 
     def change_currency(self, currency: Optional[str] = None) -> None:

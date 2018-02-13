@@ -77,8 +77,8 @@ class HavvenModel(Model):
         self.havven_foundation = None
         if agent_settings['havven_foundation_enabled']:
             self.havven_foundation = self.agent_manager.add_havven_foundation(
-                agent_settings['havven_foundation_initial_c'],
-                agent_settings['havven_foundation_cut']
+                agent_settings['havven_foundation_settings']['havven_foundation_initial_c'],
+                agent_settings['havven_foundation_settings']['havven_foundation_cut']
             )
 
         self.mint.calculate_copt_cmax()

@@ -35,6 +35,9 @@ class IssuanceController(MarketPlayer):
 
     total_redeemed: Dec = Dec()
 
+    def setup(self, *args):
+        pass
+
     def step(self):
         # create trades in the order they arrive
         for item in self.issuance_orders:

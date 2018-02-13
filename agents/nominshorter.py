@@ -30,10 +30,10 @@ class NominShorter(MarketPlayer):
     _nomin_buy_rate_threshold = Dec('0.99')
     """The rate below which the player will buy nomins"""
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
-        self.fiat = init_value * Dec(2)
+        self.fiat = wealth_parameter * Dec(2)
 
     def step(self) -> None:
         super().step()
@@ -68,11 +68,11 @@ class HavvenEscrowNominShorter(NominShorter):
     can't burn
     """
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
-        self.havvens = init_value * Dec(2)
-        self.fiat = init_value
+        self.havvens = wealth_parameter * Dec(2)
+        self.fiat = wealth_parameter
 
     def step(self) -> None:
         pass

@@ -27,11 +27,11 @@ class Randomizer(MarketPlayer):
         self.max_orders = max_orders
         """Don't submit more than this number of orders."""
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
-        self.fiat = init_value
-        self.model.endow_havvens(self, Dec(3) * init_value)
+        self.fiat = wealth_parameter
+        self.model.endow_havvens(self, Dec(3) * wealth_parameter)
 
     def step(self) -> None:
         super().step()

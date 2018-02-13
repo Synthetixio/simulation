@@ -94,21 +94,21 @@ class MarketMaker(MarketPlayer):
     def name(self) -> str:
         return f"{self.__class__.__name__} {self.unique_id} ({self.trade_market.name})"
 
-    def setup(self, init_value) -> None:
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
         """
         Initially give the players the two currencies of their trade_market
         if they trade in nomins, start with fiat instead, to purchase the nomins
         """
-        self.wage_parameter = init_value/Dec(100)
 
         if self.trade_market == self.havven_fiat_market:
-            self.fiat = init_value * Dec(5)
-            self.model.endow_havvens(self, init_value * Dec(5))
+            self.fiat = wealth_parameter * Dec(5)
+            self.model.endow_havvens(self, wealth_parameter * Dec(5))
         if self.trade_market == self.havven_nomin_market:
-            self.fiat = init_value * Dec(5)
-            self.model.endow_havvens(self, init_value * Dec(5))
+            self.fiat = wealth_parameter * Dec(5)
+            self.model.endow_havvens(self, wealth_parameter * Dec(5))
         if self.trade_market == self.nomin_fiat_market:
-            self.fiat = init_value * Dec(5)
+            self.fiat = wealth_parameter * Dec(5)
 
     def step(self) -> None:
         super().step()

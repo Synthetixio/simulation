@@ -45,12 +45,12 @@ class Arbitrageur(MarketPlayer):
         self.market_data: Dict[str, Dict[str, MarketData]] = None
         self.min_fiat: Dec = None
 
-    def setup(self, init_value: Dec) -> None:
-        self.min_fiat = init_value
-        self.fiat = init_value * 2
-        self.model.endow_havvens(self, init_value)
-        self.wage_parameter = init_value/Dec(100)
-        self.nomins_to_purchase = init_value
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
+        self.min_fiat = wealth_parameter
+        self.fiat = wealth_parameter * 2
+        self.model.endow_havvens(self, wealth_parameter)
+        self.nomins_to_purchase = wealth_parameter
 
     def step(self) -> None:
         """
@@ -156,9 +156,9 @@ class Arbitrageur(MarketPlayer):
         Do the trade cycle a->b->c->a, starting the cycle with volume(in terms of a)
         """
 
-        init_havvens = self.available_havvens
-        init_nomins = self.available_nomins
-        init_fiat = self.available_fiat
+        init_havvens = self.havvens
+        init_nomins = self.nomins
+        init_fiat = self.fiat
 
         initial_wealth = self.wealth()
 
@@ -213,9 +213,12 @@ class Arbitrageur(MarketPlayer):
         if (self.wealth() - initial_wealth) < 0:
             print("----------")
             print("- Error with arbitrageur, didn't profit on cycle. Made:")
-            print(f'- {self.available_nomins - init_nomins}n')
-            print(f'- {self.available_havvens - init_havvens}h')
-            print(f'- {self.available_fiat - init_fiat}f')
+            print(f'- {self.nomins - init_nomins}n')
+            print(f'- {self.havvens - init_havvens}h')
+            print(f'- {self.fiat - init_fiat}f')
+            print(f'- {initial_wealth} -> {self.wealth()}')
+            print(f'- {self.escrowed_havvens}')
+            print(f'- {self.issued_nomins}')
             print(f'- profited {self.wealth() - initial_wealth} on {a}-{b}-{c}-{a}')
             print("----------")
 

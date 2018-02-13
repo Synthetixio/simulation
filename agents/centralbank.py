@@ -34,14 +34,14 @@ class CentralBank(MarketPlayer):
         self.tolerance = tolerance
         """The bank will try to correct the price if it strays out of this range."""
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
         self.model.endow_havvens(
-            self, Dec(self.unique_id * init_value)
+            self, Dec(self.unique_id * wealth_parameter)
         )
-        endowment = hm.round_decimal(init_value * Dec(4))
-        self.fiat = init_value
+        endowment = hm.round_decimal(wealth_parameter * Dec(4))
+        self.fiat = wealth_parameter
         self.model.endow_havvens(self, endowment)
 
     def step(self) -> None:

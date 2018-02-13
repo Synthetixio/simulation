@@ -9,4 +9,5 @@ class HavvenFoundation(MarketPlayer):
     In the future this can be extended to be a buyer of last resort, as well as to
       work as a "banker" issuing and burning as needed for stabilisation.
     """
-    pass
+    def setup(self, *args):
+        pass

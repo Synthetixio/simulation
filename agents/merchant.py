@@ -57,10 +57,9 @@ class Merchant(MarketPlayer):
         self.restock_tick_rate: int = random.randint(20, 30)
         """Time between inventory restocking. Randomised to prevent all merchants restocking at once."""
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
-
-        self.fiat = init_value
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
+        self.fiat = wealth_parameter
 
     def step(self) -> None:
         super().step()
@@ -111,7 +110,8 @@ class Buyer(MarketPlayer):
     min_mpc = 0.1  # not Dec as multiplied by floats later
     max_mpc = 0.9
 
-    max_nomin_price = Dec('1.02')
+    default_nomin_price = Dec('1.0')
+    patience = Dec('100')
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -122,25 +122,32 @@ class Buyer(MarketPlayer):
         self.mpc = (self.max_mpc - self.min_mpc) * random.random() + self.min_mpc
         """This agent's marginal propensity to consume."""
 
+        self.wait = 0
+
         self.order = None
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
         # start with no money, as they have a wage
         self.fiat = Dec(0)
 
     def step(self) -> None:
         super().step()
-
+        self.wait += 1
+        if self.fiat < self.wage_parameter:
+            self.wait = 0
         # Buy some crypto.
         if self.available_fiat:
             if self.order and self.order.active:
                 self.order.cancel()
             # place a bid at max_nomin_price, as paying more than a dollar for a nomin is counter-intuitive
             #   when there is no urgent need to acquire them
+
+            nom_price = self.default_nomin_price + (self.wait * self.default_nomin_price / self.patience)
+
             self.order = self.place_nomin_fiat_bid_with_fee(
-                self.available_fiat / self.max_nomin_price, self.max_nomin_price
+                self.available_fiat / nom_price, nom_price
             )
 
         # If feeling spendy, buy something.

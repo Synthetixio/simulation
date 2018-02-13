@@ -25,12 +25,11 @@ class MaxNominIssuer(MarketPlayer):
         # step when initialised so nomins appear on the market.
         self.step()
 
-    def setup(self, init_value: Dec):
-        self.wage_parameter = init_value/Dec(100)
+    def setup(self, wealth_parameter: Dec, wage_parameter: Dec, liquidation_param: Dec) -> None:
+        super().setup(wealth_parameter, wage_parameter, liquidation_param)
 
-        endowment = hm.round_decimal(init_value * Dec(4))
-        self.fiat = init_value
-        self.model.endow_havvens(self, endowment)
+        self.fiat = wealth_parameter
+        self.model.endow_havvens(self, wealth_parameter * Dec(4))
 
     def step(self) -> None:
         super().step()

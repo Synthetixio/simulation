@@ -53,9 +53,9 @@ def get_defaults():
             "hedging_fee_settings": {
                 # hedging fee will be charged per tick
                 "hedge_length": 50,
-                "nomin_fee_level": "0.005",
-                "havven_fee_level": "0.005",
-                "fiat_fee_level": "0.005"
+                "nomin_fee_level": Dec("0.005"),
+                "havven_fee_level": Dec("0.005"),
+                "fiat_fee_level": Dec("0.005")
             }
         },
 
@@ -75,8 +75,8 @@ def get_defaults():
             # calculate and use copt for fee distribution
             "use_copt": True,
             "copt_settings": {
-                "copt_sensitivity_parameter": Dec("5.0"),
-                "copt_flattening_parameter": 1,  # integer, must be odd
+                "copt_sensitivity_parameter": Dec("10.0"),
+                "copt_flattening_parameter": 7,  # integer, must be odd
                 "copt_buffer_parameter": Dec("1.1")
             },
             # buffer on either side of issuance and burning
@@ -87,7 +87,7 @@ def get_defaults():
         },
 
         "Havven": {
-            "havven_supply": Dec("100000"),
+            "havven_supply": Dec("1000000"),
             # initial supply of nomins (to help with some calculations)
             "nomin_supply": Dec("0"),
             "rolling_avg_time_window": 0,
@@ -98,12 +98,20 @@ def get_defaults():
             # minimum number of each agent
             "agent_minimum": 1,
             "wealth_parameter": 1000,
+            # parameter for what wages in fiat do actors add to the pool
+            "wage_parameter": 10,
+            # what probability does an actor have to trigger a liquidation event
+            "liquidation_parameter": Dec('0.01'),
+            # do actors run profit taking logic
+            "profit_taking": True,
             # add a havven foundation for setting initial parameters for copt
             "havven_foundation_enabled": True,
-            # what value of cmax will havven use
-            "havven_foundation_initial_c": Dec("0.4"),
-            # what portion of all havvens does the foundation get
-            "havven_foundation_cut": Dec("0.2"),
+            "havven_foundation_settings": {
+                # what value of cmax will havven use
+                "havven_foundation_initial_c": Dec("0.4"),
+                # what portion of all havvens does the foundation get
+                "havven_foundation_cut": Dec("0.2"),
+            },
 
             "AgentFractions": {
                 "Arbitrageur": 3,

@@ -146,6 +146,8 @@ class FeeManager:
             self.model_manager.nomins -= nom_to_distribute
 
     def distribute_fees_using_collateralisation_targets(self, schedule_agents: List["agents.MarketPlayer"], copt: Dec, cmax: Dec):
+        if copt == 0:
+            return
         pre_nomins = self.model_manager.nomins
 
         # calculate alpha_base
