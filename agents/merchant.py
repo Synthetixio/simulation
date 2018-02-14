@@ -111,7 +111,7 @@ class Buyer(MarketPlayer):
     max_mpc = 0.9
 
     default_nomin_price = Dec('1.0')
-    patience = Dec('4')
+    patience = 70
     max_price = Dec('1.5')
 
     def __init__(self, *args, **kwargs) -> None:
@@ -137,19 +137,22 @@ class Buyer(MarketPlayer):
 
     def calc_nomin_price(self):
         if self.wait >= self.patience:
-            return self.max_price - Dec(1 / (self.wait*0.1 + 1))
+            print(self.wait, max(self.max_price - Dec(1 / ((self.wait + self.patience)*0.01)), 1))
+            return max(self.max_price - Dec(1 / ((self.wait + self.patience)*0.01)), 1)
         else:
             return self.default_nomin_price
 
     def step(self) -> None:
         super().step()
+        self.wage += 1
         self.wait += 1
-        if self.fiat < self.wage_parameter:
-            self.wait = 0
         # Buy some crypto.
         if self.available_fiat:
-            if self.order:
+            if self.order and self.order.active:
                 self.order.cancel()
+            else:
+                # order was filled
+                self.wait = 0
             nom_price = self.calc_nomin_price()
             self.order = self.place_nomin_fiat_bid_with_fee(
                 self.available_fiat / nom_price, nom_price

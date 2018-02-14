@@ -80,7 +80,6 @@ class IssuanceController(MarketPlayer):
         """
         Place an order to sell issued nomins for fiat, and send the fiat to the player
         """
-        print("Issuing", value)
         self.issuance_orders.append({
             'initial': value,
             'remaining': value,
@@ -89,7 +88,6 @@ class IssuanceController(MarketPlayer):
         })
 
     def place_burn_order(self, value: Dec, player: 'MarketPlayer'):
-        print("Burning", value)
         self.burn_orders.append({
             'initial': value,
             'remaining': value,

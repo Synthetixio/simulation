@@ -18,7 +18,7 @@ player_names = {
     'Banker': Banker,
     'Randomizer': Randomizer,
     'NominShorter': NominShorter,
-    # 'HavvenEscrowNominShorter': HavvenEscrowNominShorter,
+    'HavvenEscrowNominShorter': HavvenEscrowNominShorter,
     'HavvenSpeculator': HavvenSpeculator,
     'NaiveSpeculator': NaiveSpeculator,
     'Merchant': Merchant,

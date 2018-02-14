@@ -238,6 +238,17 @@ class MarketPlayer(Agent):
         """
         return self.model.mint.escrow_havvens(self, value)
 
+    def issue_nomins(self, value: Dec, fail_if_over: bool=True) -> bool:
+        """
+        Escrow havvens to issue a certain amount of nomins
+        """
+        remaining_issuance = self.model.mint.remaining_issuance_rights(self)
+        if remaining_issuance > value:
+            return self.model.mint.escrow_havvens(self, remaining_issuance/value*self.available_havvens)
+        if not fail_if_over:
+            return self.model.mint.escrow_havvens(self, remaining_issuance)
+        return False
+
     def available_escrowed_havvens(self) -> Dec:
         """
         Return the quantity of escrowed havvens which is not
@@ -271,6 +282,12 @@ class MarketPlayer(Agent):
         Burn a positive value of fiat, which frees up havvens.
         """
         return self.model.mint.free_havvens(self, value)
+
+    def burn_nomins(self, value: Dec) -> bool:
+        """
+        Burn a positive number of nomins, to free up havvens.
+        """
+        return self.model.mint.burn_nomins(self, value)
 
     def _sell_quoted(self, book: "ob.OrderBook", quantity: Dec) -> Optional["ob.Bid"]:
         """
