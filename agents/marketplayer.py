@@ -29,6 +29,8 @@ class MarketPlayer(Agent):
         self.havvens: Dec = Dec(havvens)
         self.nomins: Dec = Dec(nomins)
         self.issued_nomins: Dec = Dec(0)
+        self.burning_fiat: Dec = Dec(0)
+        'Variable for counting how much fiat is being used for burning currently'
 
         # values that are currently used in orders
         self.unavailable_fiat: Dec = Dec(0)

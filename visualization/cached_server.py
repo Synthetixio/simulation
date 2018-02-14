@@ -1,7 +1,7 @@
 import copy
 import os
-import threading
 import time
+from decimal import Decimal as Dec
 
 import tornado.autoreload
 import tornado.escape
@@ -35,7 +35,6 @@ class CachedSocketHandler(tornado.websocket.WebSocketHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.resetlock = threading.Lock()
         self.step = 0
         self.last_step_time = time.time()
 
@@ -118,12 +117,8 @@ class CachedDataHandler:
         for name in self.data:
             i = self.data[name]
             settings = copy.deepcopy(self.default_settings)
-            for section in i["settings"]:
-                if section not in settings:
-                    continue
-                for item in i['settings'][section]:
-                    if item in settings[section]:
-                        settings[section][item] = i["settings"][section][item]
+            settings = self.merge_settings(settings, i["settings"])
+
             to_send.append(
                 {
                     "name": name,
@@ -133,6 +128,19 @@ class CachedDataHandler:
                 }
             )
         return to_send
+
+    def merge_settings(self, defaults, settings):
+        result = {}
+        for i in defaults:
+            if i not in settings:
+                result[i] = defaults[i]
+            elif type(defaults[i]) == dict:
+                result[i] = self.merge_settings(defaults[i], settings[i])
+            elif type(defaults[i]) == Dec:
+                result[i] = float(settings[i])
+            else:
+                result[i] = settings[i]
+        return result
 
 
 class CachedModularServer(tornado.web.Application):
@@ -164,7 +172,6 @@ class CachedModularServer(tornado.web.Application):
         self.cached = settings['Server']['cached']
         if self.cached:
             self.cached_data_handler = CachedDataHandler(settings)
-        self.threaded = settings['Server']['threaded']
         self.visualization_elements = visualization_elements
         self.model_name = name
         self.fps_max = settings['Server']['fps_max']

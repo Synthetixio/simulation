@@ -159,20 +159,17 @@ class Mint:
         """
         value = self.havven_manager.round_decimal(value)
         if self.minimal_issuance_amount <= value <= agent.available_fiat and \
-                value <= agent.issued_nomins and self.cmax > 0:
-
+                value <= (agent.issued_nomins + agent.burning_fiat) and self.cmax > 0:
             agent.fiat -= value
+            agent.burning_fiat += value
             self.issuance_controller.fiat += value
-            fee = self.market_manager.nomin_fiat_market.buyer_fee(Dec(1), value)
-            agent.issued_nomins -= (value - fee)
-            self.havven_manager.issued_nomins -= (value - fee)
             self.issuance_controller.place_burn_order(value, agent)
             return True
         return False
 
     def burn_nomins(self, agent: "agents.MarketPlayer", value: Dec) -> None:
         burn_fee = value*self.fee_manager.burning_fee_rate
-        if value <= agent.available_nomins and value-burn_fee <= agent.issued_nomins:
+        if value <= agent.available_nomins and value-burn_fee <= (agent.issued_nomins + agent.burning_fiat):
             agent.nomins -= value
             agent.issued_nomins -= value-burn_fee
             self.havven_manager.issued_nomins -= (value - burn_fee)

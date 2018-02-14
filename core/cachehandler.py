@@ -47,8 +47,10 @@ run_settings = [
             "Model": {
                 'num_agents': 125,
             },
-            "AgentFractions": {
-                "Banker": 100
+            "Agents": {
+                "AgentFractions": {
+                    "Banker": 100
+                }
             }
         }
     },
@@ -61,8 +63,10 @@ run_settings = [
             "Model": {
                 'num_agents': 125,
             },
-            "AgentFractions": {
-                "Randomizer": 100
+            "Agents": {
+                "AgentFractions": {
+                    "Randomizer": 100
+                }
             }
         }
     },
@@ -90,9 +94,11 @@ run_settings = [
             "Model": {
                 'num_agents': 125,
             },
-            "AgentFractions": {
-                "NominShorter": 0,
-                "HavvenEscrowNominShorter": 0
+            "Agents": {
+                "AgentFractions": {
+                    "NominShorter": 0,
+                    "HavvenEscrowNominShorter": 0
+                }
             }
         }
     },
@@ -105,7 +111,7 @@ def set_run_settings(defaults, run_settings):
     for item in defaults:
         if item not in run_settings:
             settings[item] = defaults[item]
-        elif type(item) == dict:
+        elif type(defaults[item]) == dict:
             settings[item] = set_run_settings(defaults[item], run_settings[item])
         else:
             # this doesn't check type, assumes it is correct (as it is set in the code above)
