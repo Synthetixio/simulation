@@ -52,6 +52,8 @@ class FeeManager:
             self.hedge_length = fee_settings['hedging_fee_settings']['hedge_length']
 
         self.fees_distributed = Dec(0)
+        self.last_fees_collected = Dec(1)  # start at 1 so no 0 value of havvens
+        self.was_distributed = False
 
     def collect_hedge_fees(self, actor):
         if self.use_hedging_fee:
@@ -163,11 +165,14 @@ class FeeManager:
             abase += agent.havvens * fee_mult
 
         if abase <= 0:
+            self.last_fees_collected = self.model_manager.nomins - self.last_fees_collected
             print("Skipping fee distribution, no ci is in the 0->cmax range")
             return
 
+        pre_distribute = self.fees_distributed
         for agent in schedule_agents:
             if self.model_manager.nomins < 0:
+                print(pre_distribute, self.fees_distributed, self.model_manager.nomins)
                 raise Exception("Model manager has less than 0 nomins when distributing fees")
             ci = agent.collateralisation
             if ci <= copt:
@@ -182,3 +187,4 @@ class FeeManager:
             agent.nomins += qty
             self.model_manager.nomins -= qty
             self.fees_distributed += qty
+        self.last_fees_collected = self.fees_distributed - pre_distribute

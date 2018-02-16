@@ -22,8 +22,8 @@ class Banker(MarketPlayer):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.collateralisation_diff: Dec = Dec('0.02')
-        'how far off copt does the banker stay (percentage wise)'
+        self.collateralisation_diff: Dec = Dec('1')  # TODO: make this percentage based, not nomin
+        'how far off copt does the banker stay (in terms of nomins issued)'
         # step when initialised so nomins appear on the market.
         self.step()
 
@@ -38,34 +38,46 @@ class Banker(MarketPlayer):
     def step(self) -> None:
         super().step()
 
-        # spend excess fiat on havvens
-        if self.available_fiat > self.issued_nomins:
-            quantity = self.available_fiat - self.issued_nomins
-            price = self.havven_fiat_market.lowest_ask_price()
-            self.place_havven_fiat_bid_with_fee(quantity/price, price*Dec('1.05'))
+        # # spend excess fiat on havvens
+        # if self.available_fiat > self.issued_nomins:
+        #     quantity = self.available_fiat - self.issued_nomins
+        #     price = self.havven_fiat_market.lowest_ask_price()
+        #     self.place_havven_fiat_bid_with_fee(quantity/price, price*Dec('1.05'))
 
-        if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
-            # first try to buy more havvens with nomins
+        optimal_issuance = self.model.mint.optimal_issuance_rights(self)
+        if optimal_issuance > self.collateralisation_diff:
+            print("attempting to issue", optimal_issuance)
+            if not self.issue_nomins(optimal_issuance):
+                raise Exception("issue with issuing nomins")
+        elif optimal_issuance < -self.collateralisation_diff:
             if self.available_nomins > 0:
-                havvens_needed = self.model.mint.havvens_off_optimal(self)
-                price = self.havven_nomin_market.price_to_buy_quantity(havvens_needed)
+                self.burn_nomins(min(self.available_nomins, -optimal_issuance))
+            optimal_issuance = self.model.mint.optimal_issuance_rights(self)
+            if optimal_issuance < -self.collateralisation_diff:
+                self.free_havvens(-optimal_issuance)
 
-                # only spend enough to get to havvens needed, or just buy as many as they can
-                quantity = min(havvens_needed, self.available_nomins*price)
-
-                trade = self.place_havven_nomin_bid_with_fee(price, quantity)
-                if trade:
-                    trade.cancel()  # don't hold onto this trade, as burning nomins next
-
-            # if still under collateralised, burn nomins using fiat
-            if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
-                nom_to_burn = self.model.mint.optimal_issuance_rights(self)
-                if self.fiat < nom_to_burn:
-                    self.free_havvens(self.fiat)
-                    print("not enough fiat to burn nomins to get to c_opt")
-                else:
-                    self.free_havvens(nom_to_burn)
-
-        elif self.collateralisation * (1 - self.collateralisation_diff) < self.model.mint.copt:
-            to_escrow = self.model.mint.optimal_issuance_rights(self)
-            self.escrow_havvens(to_escrow)
+        # if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
+        #     # first try to buy more havvens with nomins
+        #     if self.available_nomins > 0:
+        #         havvens_needed = self.model.mint.havvens_off_optimal(self)
+        #         price = self.havven_nomin_market.price_to_buy_quantity(havvens_needed)
+        #
+        #         # only spend enough to get to havvens needed, or just buy as many as they can
+        #         quantity = min(havvens_needed, self.available_nomins*price)
+        #
+        #         trade = self.place_havven_nomin_bid_with_fee(price, quantity)
+        #         if trade:
+        #             trade.cancel()  # don't hold onto this trade, as burning nomins next
+        #
+        #     # if still under collateralised, burn nomins using fiat
+        #     if self.collateralisation * (1 + self.collateralisation_diff) > self.model.mint.copt:
+        #         nom_to_burn = self.model.mint.optimal_issuance_rights(self)
+        #         if self.fiat < nom_to_burn:
+        #             self.free_havvens(self.fiat)
+        #             print("not enough fiat to burn nomins to get to c_opt")
+        #         else:
+        #             self.free_havvens(nom_to_burn)
+        #
+        # elif self.collateralisation * (1 - self.collateralisation_diff) < self.model.mint.copt:
+        #     to_escrow = self.model.mint.optimal_issuance_rights(self)
+        #     self.escrow_havvens(to_escrow)

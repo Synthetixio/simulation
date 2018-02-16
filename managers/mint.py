@@ -64,25 +64,24 @@ class Mint:
         value = self.havven_manager.round_decimal(value)
         if self.minimal_issuance_amount <= value <= agent.available_havvens and self.cmax > 0:
             nom_received = self.havven_manager.round_decimal(self.issued_nomins_received(value))
+            print("should receive", nom_received)
             if nom_received <= Dec(0):
                 return False
             agent.issued_nomins += nom_received
             self.havven_manager.issued_nomins += nom_received
             self.issuance_controller.nomins += nom_received
             self.issuance_controller.place_issuance_order(nom_received, agent)
-            fee = self.market_manager.nomin_fiat_market.seller_fee(Dec(1), value)
-            agent.fiat += nom_received - fee  # give the nomin value @ 1 instantly, rest comes later
+            return True
         return False
 
     def issued_nomins_received(self, havvens: Dec) -> Dec:
         """The number of nomins created by escrowing a number of havvens"""
-        n_i = (
+        return (
             havvens *
             self.cmax *
             self.intrinsic_havven_value /
             self.market_manager.nomin_fiat_market.price
         )
-        return n_i
 
     def escrowed_havvens(self, agent: "agents.MarketPlayer") -> Dec:
         """
@@ -122,7 +121,6 @@ class Mint:
                     self.copt *
                     self.intrinsic_havven_value /
                     self.market_manager.nomin_fiat_market.price
-
                 )
             )
         raise Exception("use_copt is false", agent, "tried to call optimal_issuance_rights")
@@ -196,8 +194,8 @@ class Mint:
 
     @property
     def intrinsic_havven_value(self) -> Dec:
-        fees = self.fee_manager.fees_distributed + self.havven_manager.nomins
-        return max(Dec(0.5), fees/(self.havven_manager.havven_supply * Dec('0.001')))
+        fees = self.fee_manager.last_fees_collected
+        return max(Dec(0.1), fees/(self.havven_manager.havven_supply * Dec('0.0001')))
 
     @property
     def global_nomin_value(self) -> Dec:

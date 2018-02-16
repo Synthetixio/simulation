@@ -133,32 +133,47 @@ class IssuanceController(MarketPlayer):
             # give the issuer the 'remainder', should be 0 when matching @ pn = 1
             issuance_order['player'].fiat += record.quantity * record.price
             self.fiat -= record.quantity * record.price
+
             self.nomins -= record.quantity
+            # give excess fiat to the player (i.e. when matching order that's more than 1)
+            burn_order['player'].fiat += record.quantity * (1 - record.price)
+            self.fiat -= record.quantity * (1 - record.price)
 
             if ask.active:
                 # issuance partially filled
-                burn_order['player'].issued_nomins -= record.quantity
-                self.model.manager.issued_nomins -= record.quantity
                 issuance_order['remaining'] -= record.quantity
-                burn_order['remaining'] = 0
                 if issuance_order['remaining'] <= 0:
                     raise Exception("issuance order remaining <= 0 when order partially filled")
+
+                burn_order['player'].issued_nomins -= burn_order['remaining']
+                self.model.manager.issued_nomins -= burn_order['remaining']
+                burn_order['player'].burning_fiat -= burn_order['remaining']
+                burn_order['remaining'] = 0
+                if burn_order['player'].issued_nomins < 0:
+                    print(burn_order['player'].debug_str)
+
             elif bid.active:
                 # burn partially filled
-                self.model.manager.issued_nomins -= burn_order['remaining']
-                burn_order['player'].issued_nomins -= burn_order['remaining']
-                burn_order['player'].burning_fiat += burn_order['remaining']
                 issuance_order['remaining'] = 0
+
+                burn_order['player'].issued_nomins -= record.quantity
+                self.model.manager.issued_nomins -= record.quantity
+                burn_order['player'].burning_fiat -= record.quantity
                 burn_order['remaining'] -= record.quantity
                 if burn_order['remaining'] <= 0:
                     raise Exception("burn order remaining <= 0 when order partially filled")
+                if burn_order['player'].issued_nomins < 0:
+                    print(burn_order['player'].debug_str)
             else:
                 # both were filled completely
-                self.model.manager.issued_nomins -= burn_order['remaining']
-                burn_order['player'].issued_nomins -= burn_order['remaining']
-                burn_order['player'].burning_fiat += burn_order['remaining']
                 issuance_order['remaining'] = 0
+
+                burn_order['player'].issued_nomins -= burn_order['remaining']
+                self.model.manager.issued_nomins -= burn_order['remaining']
+                burn_order['player'].burning_fiat -= burn_order['remaining']
                 burn_order['remaining'] = 0
+                if burn_order['player'].issued_nomins < 0:
+                    print(burn_order['player'].debug_str)
 
         elif record.seller == self:
             # selling nomins, so issuing them into the market
@@ -174,12 +189,12 @@ class IssuanceController(MarketPlayer):
                 raise Exception("issuance orders got filled in wrong order for some reason " +
                                 f"({order['remaining']} < {record.quantity})")
 
-            order['remaining'] -= record.quantity
             order['player'].fiat += record.quantity * record.price
             self.fiat -= record.quantity * record.price
 
             if ask.active:
                 # order partially filled
+                order['remaining'] -= record.quantity
                 if order['remaining'] <= 0:
                     raise Exception("order remaining <= 0 when order partially filled")
             else:
@@ -200,24 +215,28 @@ class IssuanceController(MarketPlayer):
                 raise Exception("burn orders got filled in wrong order for some reason " +
                                 f"({order['remaining']} < {record.quantity})")
 
-            order['remaining'] -= record.quantity
-
+            # burn the nomins
             self.nomins -= record.quantity
-            # give excess fiat to the player (i.e. when matching order thats more than 1)
+
+            # give excess fiat to the player (i.e. when matching order that's less than 1)
             order['player'].fiat += record.quantity * (1 - record.price)
             self.fiat -= record.quantity * (1 - record.price)
 
             if bid.active:
                 # bid partially filled
+                order['player'].issued_nomins -= record.quantity
+                self.model.manager.issued_nomins -= record.quantity
+                order['player'].burning_fiat -= record.quantity
+                order['remaining'] -= record.quantity
                 if order['remaining'] <= 0:
                     raise Exception("order remaining <= 0 when order partially filled")
-                # refund excess fiat, if price was below 1 (should never be above)
-                order['player'].issued_nomins -= record.quantity
-                order['player'].burning_fiat += record.quantity
             else:
-                # order filled completely
+                # order filled completely, clear any potential rounding errors with issuance
                 order['player'].issued_nomins -= order['remaining']
-                order['player'].burning_fiat += order['remaining']
+                self.model.manager.issued_nomins -= order['remaining']
+                order['player'].burning_fiat -= order['remaining']
                 order['remaining'] = 0
+                if order['player'].issued_nomins < 0:
+                    print(order['player'].debug_str)
 
         self.trades.append(record)

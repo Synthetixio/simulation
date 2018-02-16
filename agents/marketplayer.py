@@ -40,7 +40,6 @@ class MarketPlayer(Agent):
         self.wage_parameter: Dec = Dec(0)
         self.liquidation_parameter: Dec = Dec(0)
         self.sell_off_total: Dec = Dec(0)
-        self.fiat_debt: Dec = Dec(0)
 
         self.initial_wealth: Dec = self.wealth()
 
@@ -113,6 +112,23 @@ class MarketPlayer(Agent):
         The name of this object; its type and its unique id.
         """
         return f"{self.__class__.__name__} {self.unique_id}"
+
+    @property
+    def debug_str(self) -> str:
+        return f"""{self.name}
+        Havvens:      {self.havvens}
+        Nomins:       {self.nomins}
+        Fiat:         {self.fiat}
+        
+        Issued Nom:   {self.issued_nomins}
+        burning fiat: {self.burning_fiat}
+        escrowed hav: {self.escrowed_havvens}
+        Collat:       {self.collateralisation}
+        
+        wage:         {self.wage_parameter}
+        liquidation:  {self.liquidation_parameter}
+        sold off:     {self.sell_off_total}
+        """
 
     def _fraction(self, qty: Dec, divisor: Dec = Dec(3), minimum: Dec = Dec(1)) -> Dec:
         """
@@ -243,8 +259,11 @@ class MarketPlayer(Agent):
         Escrow havvens to issue a certain amount of nomins
         """
         remaining_issuance = self.model.mint.remaining_issuance_rights(self)
-        if remaining_issuance > value:
-            return self.model.mint.escrow_havvens(self, remaining_issuance/value*self.available_havvens)
+        print("remaining issuance:", remaining_issuance)
+        if remaining_issuance >= value:
+            print("escrowing:",value/remaining_issuance*self.available_havvens)
+            print("have", self.available_havvens)
+            return self.model.mint.escrow_havvens(self, value/remaining_issuance*self.available_havvens)
         if not fail_if_over:
             return self.model.mint.escrow_havvens(self, remaining_issuance)
         return False

@@ -59,9 +59,6 @@ class AgentManager:
                 self.agents[agent_type].append(agent)
                 self.running_player_total += 1
 
-        # Add a central stabilisation bank
-        # self.add_central_bank(self.running_player_total, self.num_agents, self.wealth_parameter)
-
         # Now that each agent has its initial endowment, make them remember it.
         for agent in self.havven_model.schedule.agents:
             agent.reset_initial_wealth()
@@ -75,21 +72,12 @@ class AgentManager:
         else:
             self.agents['others'].append(agent)
 
-    def add_central_bank(self) -> 'ag.CentralBank':
-        central_bank = ag.CentralBank(
-            self.running_player_total, self.havven_model,
-            nomin_target=Dec('1.0')
-        )
-        self.havven_model.schedule.add(central_bank)
-        self.agents["others"].append(central_bank)
-        return central_bank
-
     def add_issuance_controller(self) -> 'ag.IssuanceController':
         issuance_controller = ag.IssuanceController(self.running_player_total, self.havven_model)
 
         # give the issuance controller some extra fiat/nomins to avoid rounding errors
-        issuance_controller.fiat += Dec('5')
-        issuance_controller.nomins += Dec('5')
+        issuance_controller.fiat += Dec('1')
+        issuance_controller.nomins += Dec('1')
 
         self.running_player_total += 1
         self.havven_model.schedule.add(issuance_controller)

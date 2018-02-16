@@ -53,4 +53,4 @@ class ValueHavvenBuyers(MarketPlayer):
         self.havven_fiat_sell = self.place_havven_fiat_ask_with_fee(self.available_havvens, sell_price)
 
     def havven_value_calculation(self) -> Dec:
-        return self.model.mint.cmax * self.nomin_fiat_market.price / self.havven_fiat_market.price
+        return (self.model.mint.cmax * self.nomin_fiat_market.price / self.havven_fiat_market.price) + self.model.mint.intrinsic_havven_value
